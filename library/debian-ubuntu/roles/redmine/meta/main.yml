@@ -1,2 +1,2 @@
 dependencies:
-  - role: '../../library/roles/apache'
+  - role: '../../library/debian-ubuntu/roles/apache'

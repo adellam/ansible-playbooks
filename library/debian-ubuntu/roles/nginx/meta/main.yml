@@ -1,4 +1,4 @@
 ---
 dependencies:
-  - role: '../../library/roles/ldap-client-config'
+  - role: '../../library/debian-ubuntu/roles/ldap-client-config'
     when: nginx_use_ldap_pam_auth
