@@ -1,0 +1,27 @@
+---
+- block:
+    - name: Install the PROJ.4 deb packages required by the Geoserver spatialite extension
+      apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=3600
+      with_items: '{{ geoserver_spatial_dpkg_requirements }}'
+      
+    - name: Download and unpack the Geoserver spatialite extension
+      unarchive: copy=no src={{ geoserver_spatial_url }} dest={{ item.instance_path }}/webapps/{{ geoserver_app_name }}/WEB-INF/lib/ creates={{ item.instance_path }}/webapps/{{ geoserver_app_name }}/WEB-INF/lib/spatialite-jdbc-3.7.2-2.4.jar owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+      notify: tomcat instances restart
+
+    - name: Create the data directory where sqlite will store its files
+      file: dest={{ geoserver_spatial_db_dir }} state=directory owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+
+  when: geoserver_spatial_install
+  tags: [ 'geoserver', 'spatialite' ]
+
+
+- block:
+    - name: Remove the Geoserver spatialite data directory
+      file: path={{ item }} state=absent
+      with_items:
+        - '{{ geoserver_spatial_db_dir }}'
+
+  when: not geoserver_spatial_install
+  tags: [ 'geoserver', 'spatialite' ]

@@ -1,0 +1,217 @@
+#!/bin/bash
+
+SM_DIR={{ smartgears_install_path }}
+SM_CONF_F={{ smartgears_user_home }}/.containerxml/1-container.xml
+SM_CONF_TOKENS_F={{ smartgears_user_home }}/.containerxml/2-container.xml
+SM_CONF_TAIL_F={{ smartgears_user_home }}/.containerxml/3-container.xml
+SM_CONF_SCOPES_F=/usr/local/etc/scopes.list
+SM_CONF_DEST_F=${SM_DIR}/container.xml
+SM_LIB_DIR=${SM_DIR}/lib
+SM_STATE_DIR=${SM_DIR}/state/
+GET_KEYS_SCRIPT=/usr/local/bin/get-gcube-keys
+GET_SCOPES_SCRIPT=/usr/local/bin/get-scopes
+SVC=tomcat-instance-{{ smartgears_http_port }}
+TOMCAT_DEFAULT=/etc/default/${SVC}
+LOG_FILE=/var/log/smartgears-node-setup.log
+HOSTS_FILE=/etc/hosts
+FQDN_HOST=
+PUB_FQDN_HOST=
+PUBLIC_IP=
+MAIN_IP=
+RETVAL=0
+CLOUD_INSTANCE_DIR=/var/lib/cloud/instance
+MEM=$( free -m | egrep ^Mem | awk '{ print $2 }'  )
+JAVA_MAX_HEAP=$( expr $MEM - 2048 )
+
+# Init some variables that should be passed
+if [ -z "${SMARTGEARS_SCOPES}" ] ; then
+    SMARTGEARS_SCOPES=
+fi
+if [ -z "${HOST}" ] ; then
+    HOST=
+fi
+
+{% raw %}
+> $LOG_FILE
+function setup_hostname() {
+    echo "-- setup_hostname" >> $LOG_FILE
+    if [ -z "${HOST}" ] ; then
+        echo "No hostname was passed from the outside. Trying to find it out by ourselves" >> $LOG_FILE
+        FQDN_HOST=$( /bin/hostname -f )
+        if [ -z "${FQDN_HOST}" ] ; then
+            echo "The machine has no FQDN. Revert to plain hostname if available" >> $LOG_FILE
+            HOST=$( /bin/hostname )
+            echo "Setting the plain hostname: $HOST" >> $LOG_FILE
+        else
+            HOST=$FQDN_HOST
+        fi
+    fi
+}
+
+function find_public_ip() {
+    echo "-- find_public_ip" >> $LOG_FILE
+    # We don't know if we have been assigned a private or public IP address
+    PUBLIC_IP=$( wget http://ipecho.net/plain -qO - )
+    MAIN_IP=$( ip addr show scope global dev eth0 | grep inet | awk '{ print $2 }' | cut -d "/" -f 1 )
+    echo "Our main IP is ${MAIN_IP}" >> $LOG_FILE
+    if [ -z $PUBLIC_IP ] ; then
+        # We have some kind of problem
+        echo "We cannot obtain our public IP from outside. Using our main IP address as public IP" >> $LOG_FILE
+        PUBLIC_IP=$MAIN_IP
+    else
+        echo "Our public IP is ${PUBLIC_IP}"  >> $LOG_FILE
+    fi
+    # Try to know our public FQDN
+    TMP_FQDN_HOST=$( host $PUBLIC_IP )
+    RET_FQDN=$?
+    if [ $RET_FQDN -eq 0 ] ; then
+        PUB_FQDN_HOST=$( host $PUBLIC_IP | awk '{print $5}' | sed -e 's/\.$//g' )
+    fi
+}
+
+function modify_hosts_file() {
+    echo "-- modify_hosts_file" >> $LOG_FILE
+    # Set the hosts file with the new data
+    grep -v $HOST $HOSTS_FILE > $HOSTS_FILE.tmp
+    if [ "${FQDN_HOST}" == "${HOST}" ] ; then
+        FQDN_HOST=${HOST}.localhost
+    fi
+    echo "${PUBLIC_IP} ${FQDN_HOST} ${PUB_FQDN_HOST} ${HOST}" >> $HOSTS_FILE.tmp
+    mv $HOSTS_FILE.tmp $HOSTS_FILE
+    chmod 644 $HOSTS_FILE
+    chown root:root $HOSTS_FILE
+}
+    
+function smartgears_config_parameters_check() {
+    echo "-- smartgears_config_parameters_check" >> $LOG_FILE
+    if [ -z "${INFRA_NAME}" ] ; then
+        echo "The infrastructure name is void" >> $LOG_FILE
+        RETVAL=1
+    fi
+    if [ -z "${COUNTRY}" ] ; then
+        echo "The country code is void, setting a default" >> $LOG_FILE
+        export COUNTRY="IT"
+    elif [ ${#COUNTRY} -ne 2 ] ; then
+        echo "The country code is wrong. It must be two characters long" >> $LOG_FILE
+        RETVAL=1
+    fi
+    if [ $RETVAL -eq 1 ] ; then
+        echo "Exiting because of errors. The SmartExecutor will not start" >> $LOG_FILE
+        exit 1
+    fi
+}
+
+function populate_head_containerxml() {
+    echo "-- populate_head_containerxml" >> $LOG_FILE
+    # We use the public FQDN if there's one. Otherwise we use the public IP
+    if [ ! -z ${PUB_FQDN_HOST} ] ; then
+        sed -i -e "s#@SMARTGEARS_HOSTNAME@#${PUB_FQDN_HOST}#g" $SM_CONF_F
+    else
+        sed -i -e "s#@SMARTGEARS_HOSTNAME@#${PUBLIC_IP}#g" $SM_CONF_F
+    fi
+    sed -i -e "s#@SMARTGEARS_INFRASTRUCTURE_NAME@#${INFRA_NAME}#g" $SM_CONF_F
+    sed -i -e "s#@SMARTGEARS_VO_NAME@#${SCOPE}#g" $SM_CONF_F
+    sed -i -e "s#@SMARTGEARS_COUNTRY@#${COUNTRY}#g" $SM_CONF_F
+    sed -i -e "s#@SMARTGEARS_LOCATION@#${LOCATION}#g" $SM_CONF_F
+}
+
+{% endraw %}
+
+function set_scopes_list() {
+    echo "-- set_scopes_list" >> $LOG_FILE
+    if [ -z "${SMARTGEARS_SCOPES}" ] ; then
+        SMARTGEARS_SCOPES=""
+        echo "No scopes were defined" >> $LOG_FILE
+    else
+        echo "The scopes list is $SMARTGEARS_SCOPES" >> $LOG_FILE
+    fi
+    echo "SCOPES_LIST='${SMARTGEARS_SCOPES}'" > $SM_CONF_SCOPES_F
+}
+
+function fix_get_scopes() {
+    echo "-- fix_get_scopes" >> $LOG_FILE
+    # We use the public FQDN if there's one. Otherwise we use the public IP
+    if [ ! -z ${PUB_FQDN_HOST} ] ; then
+        sed -i -e "s#@SMARTGEARS_HOSTNAME@#${PUB_FQDN_HOST}#g" $GET_SCOPES_SCRIPT
+    else
+        sed -i -e "s#@SMARTGEARS_HOSTNAME@#${PUBLIC_IP}#g" $GET_SCOPES_SCRIPT
+    fi
+}
+
+function get_smartgears_scope_tokens() {
+    # The SMARTGEARS_TOKEN variable need to be set outside the contextualization script
+    echo "-- get_smartgears_scope_tokens" >> $LOG_FILE
+    if [ -z "${SMARTGEARS_TOKEN}" ] ; then
+        echo "No infrastructure token was passed, aborting" >> $LOG_FILE
+        echo "" > $SM_CONF_TOKENS_F
+    else
+        $GET_SCOPES_SCRIPT $( echo ${SMARTGEARS_TOKEN}) >> $LOG_FILE
+    fi
+}
+
+function merge_container_xml() {
+    echo "-- merge_container_xml: compose the file" >> $LOG_FILE
+    cat $SM_CONF_F $SM_CONF_TOKENS_F $SM_CONF_TAIL_F > $SM_CONF_DEST_F
+    chown gcube:gcube $SM_CONF_DEST_F
+    chmod 640 $SM_CONF_DEST_F
+}
+
+function get_gcube_keys() {
+    echo "-- get_gcube_keys" >> $LOG_FILE
+    # Get and install the gcube security keys
+    if [ -x $GET_KEYS_SCRIPT ] ; then
+        echo "Getting the infrastructure keys" >> $LOG_FILE
+        $GET_KEYS_SCRIPT ${INFRA_NAME} >> $LOG_FILE
+        rm -f $GET_KEYS_SCRIPT
+        echo "Done" >> $LOG_FILE
+    else
+        echo "Not getting the infrastructure keys, the script is not available." >> $LOG_FILE
+    fi
+}
+
+function set_java_heap() {
+    echo "-- set_java_heap" >> $LOG_FILE
+    if [ $JAVA_MAX_HEAP -lt 1024 ] ; then
+        JAVA_MAX_HEAP=1024
+    fi
+    grep -v ^JAVA_HEAP $TOMCAT_DEFAULT > $TOMCAT_DEFAULT.tmp
+    echo "JAVA_HEAP='-Xms${JAVA_MAX_HEAP}m -Xmx${JAVA_MAX_HEAP}m'" > $TOMCAT_DEFAULT.heap
+    cat $TOMCAT_DEFAULT.heap $TOMCAT_DEFAULT.tmp > $TOMCAT_DEFAULT
+}
+
+function cleanup_cloud_user_data() {
+    # Remove the token from the use provided data file
+    echo "-- cleanup_cloud_user_data" >> $LOG_FILE
+    grep -v SMARTGEARS_TOKEN $CLOUD_INSTANCE_DIR/user-data.txt > $CLOUD_INSTANCE_DIR/user-data.txt.tmp
+    mv $CLOUD_INSTANCE_DIR/user-data.txt.tmp $CLOUD_INSTANCE_DIR/user-data.txt
+    grep -v SMARTGEARS_TOKEN $CLOUD_INSTANCE_DIR/user-data.txt.i > $CLOUD_INSTANCE_DIR/user-data.txt.i.tmp
+    mv $CLOUD_INSTANCE_DIR/user-data.txt.i.tmp $CLOUD_INSTANCE_DIR/user-data.txt.i
+}
+
+##############################
+#
+# Main
+#
+
+/etc/init.d/${SVC} stop >> $LOG_FILE 2>&1
+rm -fr ${SM_STATE_DIR}/*
+rm -f ${SM_DIR}/ghn.log
+
+setup_hostname
+find_public_ip
+modify_hosts_file
+smartgears_config_parameters_check
+set_scopes_list
+populate_head_containerxml
+fix_get_scopes
+get_smartgears_scope_tokens
+merge_container_xml
+get_gcube_keys
+set_java_heap
+cleanup_cloud_user_data
+
+/usr/sbin/update-rc.d  ${SVC} enable >> $LOG_FILE 2>&1
+/etc/init.d/${SVC} start >> $LOG_FILE 2>&1
+
+exit 0
+

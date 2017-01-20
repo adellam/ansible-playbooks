@@ -1,0 +1,6 @@
+---
+- name: install the postgresql common packages
+  yum: pkg={{ item }} state={{ psql_pkg_state }}
+  with_items: '{{ psql_common_packages }}'
+  when: not psql_install_scl_version
+  tags: [ 'centos', 'scl', 'postgresql' ]

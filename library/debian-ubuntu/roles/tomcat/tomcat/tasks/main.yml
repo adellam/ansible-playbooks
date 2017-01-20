@@ -1,0 +1,22 @@
+---
+- include: tomcat-pkgs.yml
+- include: tomcat-admin.yml
+  when: tomcat_install_admin
+- include: tomcat-jmx.yml
+  when:
+    - tomcat_jmx_enabled
+    - tomcat_jmx_auth_enabled
+  tags: [ 'tomcat', 'jmx' ]
+- include: tomcat-log4j-logging.yml
+  when: tomcat_use_log4j
+  tags: [ 'tomcat', 'tomcat_log4j' ]
+- include: tomcat-logger-logging.yml
+  when: not tomcat_use_log4j
+- include: access_log.yml
+  when: tomcat_access_log_enabled
+- include: pgsql_jdbc.yml
+  when: tomcat_install_pg_jdbc
+- include: not_pgsql_jdbc.yml
+  when: not tomcat_install_pg_jdbc
+
+

@@ -1,0 +1,8 @@
+[http-get-dos]
+enabled = {{ f2b_apache_ddos_enabled }}
+port = http,https
+filter = apache-ddos-filter
+logpath = /var/log/apache*/*access*log
+maxretry = {{ f2b_ddos_maxretry }}
+findtime = {{ f2b_ddos_findtime }}
+bantime = {{ f2b_ban_time }}

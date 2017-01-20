@@ -1,0 +1,52 @@
+---
+- name: Load the apache ssl modules
+  apache2_module: name={{ item }} state=present
+  with_items: '{{ apache_ssl_modules }}'
+  when:
+    - apache_ssl_modules_enabled
+    - is_trusty
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_mods' ]
+
+- name: Load some apache proxy modules
+  apache2_module: name={{ item }} state=present
+  with_items: '{{ apache_http_proxy_modules }}'
+  when: apache_http_proxy_modules_enabled
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_mods' ]
+
+- name: Load additional apache modules if any
+  apache2_module: name={{ item }} state=present
+  with_items: '{{ apache_additional_modules_list }}'
+  when: apache_additional_modules
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_mods' ]
+
+- name: Load the apache status module
+  apache2_module: name={{ item }} state=present
+  with_items: status
+  when: apache_status_module 
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_mods', 'apache_status' ]
+
+- name: Configure the apache status module
+  template: src={{ item }}.j2 dest=/etc/apache2/mods-available/{{ item }} owner=root group=root mode=0644
+  with_items: status.conf
+  when: apache_status_module 
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_mods', 'apache_status' ]
+
+- name: Load the apache info module
+  apache2_module: name={{ item }} state=present
+  with_items: info
+  when: apache_info_module 
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_mods', 'apache_info' ]
+
+- name: Configure the apache info module
+  template: src={{ item }}.j2 dest=/etc/apache2/mods-available/{{ item }} owner=root group=root mode=0644
+  with_items: info.conf
+  when: apache_info_module 
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_mods', 'apache_info' ]
+

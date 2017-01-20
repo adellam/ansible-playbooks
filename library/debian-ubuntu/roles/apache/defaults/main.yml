@@ -1,0 +1,82 @@
+---
+apache_service_enabled: True
+apache_user: www-data
+apache_group: '{{ apache_user }}'
+
+# Possible choices: event, prefork (the old ones), worker (the threaded version), itm
+apache_mpm_mode: worker
+
+apache_packages:
+  - apache2
+  - 'apache2-mpm-{{ apache_mpm_mode }}'
+  - apache2-utils
+  - libapache2-mod-xsendfile
+  - unzip
+  - zip
+
+# Only one can be present at the same time. It needs to be listed as the last one
+apache_worker_modules:
+#  - { name: 'mpm_itm', state: 'absent' }
+  - { name: 'mpm_event', state: 'absent' }
+  - { name: 'mpm_prefork', state: 'absent' }
+  - { name: 'mpm_{{ apache_mpm_mode }}', state: 'present' }
+
+apache_default_modules:
+  - headers
+  - rewrite
+  - expires
+  - xsendfile
+
+apache_ssl_modules_enabled: True
+apache_ssl_modules:
+  - ssl
+  - socache_shmcb
+apache_http_proxy_modules_enabled: False
+apache_http_proxy_modules:
+  - proxy
+  - proxy_ajp
+  - proxy_http
+
+apache_status_module: True  
+apache_status_location: '/server-status'
+apache_status_allowed_hosts:
+  - 127.0.0.1/8
+
+apache_info_module: True
+apache_info_location: '/server-info'
+apache_info_allowed_hosts:
+  - 127.0.0.1/8
+
+apache_basic_auth: False
+apache_basic_auth_single_file: True
+apache_basic_auth_dir: /etc/apache2/auth
+apache_basic_auth_file: '{{ apache_basic_auth_dir }}/htpasswd'
+
+apache_basic_auth_modules:
+  - auth_basic
+  - authn_file
+  - authz_user
+
+# Put them in a vault file. auth_file is optional. Not used when apache_basic_auth_single_file is true
+# apache_basic_users:
+#   - { username:'', password:'', state:'present,absent', auth_file:'path_to_file' }
+
+#
+apache_additional_packages: False
+apache_additional_packages_list:
+#   - libapache2-mod-uwsgi
+#   - ...
+#
+# Set this variable to load the modules you need
+apache_additional_modules: False
+apache_additional_modules_list:
+#  -
+#  -
+
+apache_letsencrypt_managed: True
+apache_letsencrypt_proxy_modules:
+  - proxy
+  - proxy_http
+
+apache_letsencrypt_proxy_conf:
+  - letsencrypt-proxy.conf

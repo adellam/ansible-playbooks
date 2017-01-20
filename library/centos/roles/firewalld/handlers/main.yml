@@ -1,0 +1,13 @@
+---
+- name: Enable and start firewalld
+  service: name=firewalld state=started enabled=yes
+  when: firewalld_enabled
+
+- name: Reload firewall config
+  command: firewall-cmd --reload
+  notify: Restart fail2ban
+  when: firewalld_enabled
+
+- name: Restart fail2ban
+  service: name=fail2ban state=restarted
+  when: fail2ban_enabled is defined and fail2ban_enabled

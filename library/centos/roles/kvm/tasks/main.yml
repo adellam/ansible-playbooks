@@ -1,0 +1,49 @@
+---
+- name: Install the virtualization packages
+  yum: name={{ item }} state={{ virtualization_pkg_state }}
+  with_items: virtualization_packages
+  tags: kvm
+
+- name: Enable libvirtd when needed
+  service: name={{ item }} state=started enabled=yes
+  with_items: virtualization_services_to_be_enabled
+  when: virtualization_enable_libvirtd
+  tags: [ 'kvm', 'libvirt' ]
+    
+- name: Disable nfs
+  service: name={{ item }} state=stopped enabled=no
+  with_items: virtualization_nfs_services_to_be_disabled
+  when: virtualization_disable_nfs
+  tags: [ 'kvm', 'nfs' ]
+    
+- name: Disable iscsi
+  service: name={{ item }} state=stopped enabled=no
+  with_items: virtualization_iscsi_services_to_be_disabled
+  when: virtualization_disable_iscsi
+  tags: [ 'kvm' , 'iscsi' ]
+    
+- name: Set some kernel parameters needed by virtualization. IP forwarding for example, if we need NAT
+  sysctl: name={{ item.name }} state={{ item.state }} value={{ item.value }} sysctl_file=/etc/sysctl.d/90-virtualization.conf reload=yes sysctl_set=yes
+  with_items: virtualization_sysctl_tuning
+  tags: kvm
+
+- name: Collect the ISO boot images
+  get_url: url="{{ item }}" dest={{ virtualization_os_boot_dir }}/
+  with_items: virtualization_os_boot_images
+  tags: [ 'kvm', 'iso_images' ]
+
+- name: Create the LVM PV
+  command: pvcreate {{ item }}
+  with_items: virtualization_kvm_lvm_pv
+  when: virtualization_kvm_create_lvm_pv
+  tags: [ 'kvm', 'lvm_pv' ]
+
+- name: Create the LVM VG to be used by the virtual guests
+  lvg: vg={{ virtualization_kvm_lvm_vg }} pvs={{ item }}
+  with_items: virtualization_kvm_lvm_pv
+  when: virtualization_kvm_create_lvm_vg
+  tags: [ 'kvm', 'lvm_vg' ]
+
+- name: Fix the /dev/kvm permissions
+  file: dest=/dev/kvm owner=root group=kvm mode=0660
+  tags: kvm

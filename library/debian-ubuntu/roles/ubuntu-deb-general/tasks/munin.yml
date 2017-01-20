@@ -1,0 +1,24 @@
+---
+- name: install munin-node
+  apt: pkg=munin-node state=installed
+  when: has_apt
+  tags:
+    - packages
+    - munin
+
+- name: munin-node ACLs
+  lineinfile: name=/etc/munin/munin-node.conf line={{ item }}
+  with_items:
+    - 'allow ^146\.48\.87\.88$'
+    - 'allow ^146\.48\.122\.15$'
+    - 'allow ^146\.48\.123\.23$'
+  register: munin_config
+  tags:
+    - munin
+
+- name: reload munin-node
+  service: name=munin-node state=restarted
+  when: munin_config.changed == True
+  tags:
+    - munin
+

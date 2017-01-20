@@ -1,0 +1,22 @@
+---
+- name: install the packages needed to run the redmine infrastructure. install the ruby packages needed to run redmine. Set ruby 1.9.3 as default
+  apt: pkg={{ item }} state=installed
+  with_items: redmine_base_packages_old_gems
+  notify:
+    - set ruby 1.9.3 as default
+    - set gem 1.9.3 as default
+
+# The standard mod-passenger doesn't work with ruby 1.9
+- name: install the packages needed to run the redmine infrastructure
+  apt: pkg={{ item }} state=absent
+  with_items:
+    - libapache2-mod-passenger
+  notify: apache2 reload
+
+- name: Remove the old passenger configuration
+  file: src=/etc/apache2/mods-available/{{ item }} dest=/etc/apache2/mods-enabled/{{ item }} state=absent
+  with_items:
+    - passenger.load
+    - passenger.conf
+  notify: apache2 reload
+

@@ -1,0 +1,28 @@
+[DEFAULT]
+
+# "bantime" is the number of seconds that a host is banned.
+bantime  = {{ fail2ban_bantime }}
+# A host is banned if it has generated "maxretry" during the last "findtime"
+# seconds.
+findtime  = {{ fail2ban_findtime }}
+# "maxretry" is the number of failures before a host get banned.
+maxretry = {{ fail2ban_maxretry }}
+
+[sshd]
+enabled={{ fail2ban_sshd_enabled }}
+
+[sshd-ddos]
+enabled={{ fail2ban_sshd_ddos_enabled }}
+
+[nginx-http-auth]
+enabled={{ fail2ban_nginx_auth_enabled }}
+
+[apache-auth]
+enabled={{ fail2ban_apache_auth_enabled }}
+
+[php-url-fopen]
+enabled={{ fail2ban_php_url_fopen_enabled }}
+
+[vsftpd]
+enabled={{ fail2ban_vsftpd_enabled }}
+

@@ -1,0 +1,160 @@
+---
+#
+# Note: the library role 'tomcat' is a dependency
+#
+- name: disable the tomcat main instance
+  service: name='tomcat{{ tomcat_version }}' state=stopped enabled=no
+  when: not tomcat_service_enabled
+  tags: [ 'tomcat', 'tomcat_instances' ]
+  
+- name: Create a tomcat user for each instance if needed
+  user: name={{ item.user }} home={{ item.user_home }} createhome=false shell={{ item.user_shell }}
+  with_items: '{{ tomcat_m_instances }}'
+  when:
+    - not tomcat_m_use_default_user
+    - item.user != "tomcat{{ tomcat_version }}"
+    - item.user_shell is defined
+  register: tomcat_first_install
+  ignore_errors: True
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Create a tomcat user if needed
+  user: name={{ tomcat_m_default_user }} home={{ tomcat_m_instances_base_path }} createhome=false shell={{ tomcat_m_default_user_shell }}
+  when:
+    - tomcat_m_use_default_user
+    - tomcat_m_default_user != "tomcat{{ tomcat_version }}"
+  register: tomcat_first_install
+  ignore_errors: True
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Create the instances directory trees
+  file: dest={{ item.0.instance_path }}/{{ item[1] }} owner={{ item.0.user }} group={{ item.0.user }} mode=0755 state=directory
+  with_nested:
+    - '{{ tomcat_m_instances }}'
+    - [ 'common/classes', 'conf/Catalina/localhost', 'conf/policy.d', 'lib', 'server/classes', 'shared/classes', 'webapps' ]
+  register: tomcat_first_install
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Create the instances log dirs
+  file: dest={{ tomcat_m_instances_logdir_base }}/{{ item.http_port }} owner={{ item.user }} group={{ item.user }} mode=0755 state=directory
+  with_items: '{{ tomcat_m_instances }}'
+  register: tomcat_first_install
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Create the instances work dirs
+  file: dest={{ tomcat_m_cache_base }}/{{ item.http_port }} owner={{ item.user }} group={{ item.user }} mode=0755 state=directory
+  with_items: '{{ tomcat_m_instances }}'
+  register: tomcat_first_install
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Create links to work dir inside the instances directory tree
+  file: src={{ tomcat_m_cache_base }}/{{ item.http_port }} dest={{ item.instance_path }}/work state=link
+  with_items: '{{ tomcat_m_instances }}'
+  register: tomcat_first_install
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Create links to log dir inside the instances directory tree
+  file: src={{ tomcat_m_instances_logdir_base }}/{{ item.http_port }} dest={{ item.instance_path }}/logs state=link
+  with_items: '{{ tomcat_m_instances }}'
+  register: tomcat_first_install
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Populate the instances conf directory
+  copy: src={{ item[1] }} dest={{ item.0.instance_path }}/conf/{{ item[1] }} owner={{ item.0.user }} group={{ item.0.user }} mode=0640
+  with_nested:
+    - '{{ tomcat_m_instances }}'
+    - [ 'catalina.properties', 'context.xml', 'tomcat-users.xml', 'web.xml' ]
+  register: restart_needed
+  notify:
+    - tomcat restart instances with changed configs 
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Populate the instances conf/policy.d directory
+  copy: src=policy.d/{{ item[1] }} dest={{ item.0.instance_path }}/conf/policy.d/{{ item[1] }} owner={{ item.0.user }} group={{ item.0.user }} mode=0640
+  with_nested:
+    - '{{ tomcat_m_instances }}'
+    - [ '01system.policy', '02debian.policy', '03catalina.policy', '04webapps.policy', '50local.policy' ]
+  register: restart_needed
+  notify:
+    - tomcat restart instances with changed configs 
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Install logging.properties if we do not use log4j for the tomcat logging
+  copy: src={{ item[1] }} dest={{ item.0.instance_path }}/conf/{{ item[1] }} owner={{ item.0.user }} group={{ item.0.user }} mode=0640
+  with_nested:
+    - '{{ tomcat_m_instances }}'
+    - [ 'logging.properties' ]
+  when:
+    - tomcat_use_log4j is defined
+    - not tomcat_use_log4j
+  register: restart_needed
+  notify:
+    - tomcat restart instances with changed configs 
+  tags: [ 'tomcat', 'tomcat_instances' ]
+
+- name: Install the server.xml conf file
+  template: src=tomcat-server.xml.j2 dest={{ item.instance_path }}/conf/server.xml owner={{ item.user }} group={{ item.user }} mode=0640
+  with_items: '{{ tomcat_m_instances }}'
+  register: restart_needed
+  notify:
+    - tomcat restart instances with changed configs 
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_conf', 'tomcat_serverxml' ]
+
+- name: Install the instances startup scripts
+  template: src=tomcat-instance.init.j2 dest=/etc/init.d/tomcat-instance-{{ item.http_port }} mode=0755 owner=root group=root
+  with_items: '{{ tomcat_m_instances }}'
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_init' ]
+
+- name: Install the tomcat instances default file
+  template: src=tomcat-default.j2 dest=/etc/default/tomcat-instance-{{ item.http_port }} mode=0640 owner=root group={{ item.user }}
+  with_items: '{{ tomcat_m_instances }}'
+  register: restart_needed
+  notify:
+    - tomcat restart instances with changed configs 
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_conf', 'tomcat_default' ]
+
+- name: Install a logrotate entry for the access log file
+  template: src=tomcat.logrotate.j2 dest=/etc/logrotate.d/tomcat_instance-{{ item.http_port }} owner=root group=root mode=0644
+  with_items: '{{ tomcat_m_instances }}'
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_conf' ]
+
+- name: Install the jmx authorization file
+  template: src=jmxremote.passwd.j2 dest={{ item.instance_path }}/conf/jmxremote.passwd owner={{ item.user }} group={{ item.user }} mode=0600
+  with_items: '{{ tomcat_m_instances }}'
+  when:
+    - item.jmx_enabled is defined
+    - item.jmx_auth_enabled is defined
+    - item.jmx_enabled
+    - item.jmx_auth_enabled
+  register: jmx_restart_needed
+  notify:
+    - tomcat restart instances with changed jmx config
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_jmx' ]
+
+- name: Install the jmx role file
+  copy: src=jmxremote.access dest={{ item.instance_path }}/conf/jmxremote.access owner={{ item.user }} group={{ item.user }} mode=0644
+  with_items: '{{ tomcat_m_instances }}'
+  when:
+    - item.jmx_enabled is defined
+    - item.jmx_auth_enabled is defined
+    - item.jmx_enabled
+    - item.jmx_auth_enabled
+  register: jmx restart_needed
+  notify:
+    - tomcat restart instances with changed jmx config
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_jmx' ]
+
+- name: Start all the tomcat instances
+  service: name='tomcat-instance-{{ item.http_port }}' state=started sleep=20
+  with_items: '{{ tomcat_m_instances }}'
+  when:
+    - tomcat_first_install.changed
+    - tomcat_m_start_instances
+  tags: [ 'tomcat', 'tomcat_instances']
+  ignore_errors: True
+
+- name: Enable all the tomcat instances
+  service: name='tomcat-instance-{{ item.http_port }}' enabled=yes
+  with_items: '{{ tomcat_m_instances }}'
+  when: tomcat_m_enable_instances
+  tags: [ 'tomcat', 'tomcat_instances']

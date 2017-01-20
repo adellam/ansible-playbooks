@@ -1,0 +1,65 @@
+# Here follows entries for some specific programs
+
+# The MariaDB server
+[mysqld]
+port            = {{ mysql_db_port }}
+socket          = {{ mysql_socket }}
+max_connections	= {{ mysql_db_max_connections }}
+datadir         = {{ mysql_data_dir }}
+log_error       = {{ mysql_log_dir }}/error.log
+skip-external-locking
+key_buffer_size = 16M
+max_allowed_packet = {{ mysql_max_allowed_packet }}
+table_open_cache = 512
+sort_buffer_size = 8M
+net_buffer_length = 8K
+read_buffer_size = {{ mysqld_db_read_buffer_size }}
+read_rnd_buffer_size = {{ mysql_db_read_rnd_buffer_size }}
+myisam_sort_buffer_size = 16M
+
+{% if mysqld_sql_mode is defined %}
+sql_mode = {{ mysqld_sql_mode }}
+{% endif %}
+{% if mysqld_ft_stopword_file is defined %}
+ft_stopword_file = {{ mysqld_ft_stopword_file }}
+{% endif %}
+{% if mysqld_ft_min_word_lenght is defined %}
+ft_min_word_len = {{ mysqld_ft_min_word_lenght }}
+{% endif %}
+ft_boolean_syntax = '{{ mysql_ft_boolean_syntax | default('+ -><()~*:\"\"&|') }}'
+
+# Point the following paths to different dedicated disks
+#tmpdir         = /tmp/
+
+# Instead of skip-networking the default is now to listen only on
+# localhost which is more compatible and is not less secure.
+{% if mysql_listen_on_ext_int %}
+bind-address            = 0.0.0.0
+{% else %}
+bind-address            = 127.0.0.1
+{% endif %}
+
+# Enable binary logging. This is required for acting as a MASTER in a
+# replication configuration. You also need the binary log if you need
+# the ability to do point in time recovery from your latest backup.
+log-bin=mysql-bin
+
+# binary logging format - mixed recommended
+binlog_format=mixed
+
+# Uncomment the following if you are using InnoDB tables
+innodb_data_home_dir = {{ mysql_data_dir }}
+innodb_data_file_path = {{ mysql_db_innodb_data_file_path }}
+innodb_log_group_home_dir = {{ mysql_data_dir }}
+# You can set .._buffer_pool_size up to 50 - 80 %
+# of RAM but beware of setting memory usage too high
+innodb_buffer_pool_size = {{ mysql_db_innodb_buffer_pool_size }}
+innodb_additional_mem_pool_size = {{ mysql_db_innodb_additional_mem_pool_size }}
+# Set .._log_file_size to 25 % of buffer pool size
+innodb_log_file_size = {{ mysql_db_innodb_log_file_size }}
+innodb_log_buffer_size = {{ mysql_db_innodb_log_buffer_size }}
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+
+[mysqld_safe]
+open-files-limit = {{ mysql_safe_open_files_limit }}

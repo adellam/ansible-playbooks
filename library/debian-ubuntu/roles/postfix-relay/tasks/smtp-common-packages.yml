@@ -1,0 +1,50 @@
+---
+- block:
+
+    - name: Install postfix and libsas to do mail relay
+      action: apt pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
+      with_items:
+        - postfix
+        - libsasl2-2
+
+    - name: Write the postfix main configuration file
+      template: src=main.cf.j2 dest=/etc/postfix/main.cf owner=root group=root mode=0444
+      notify: Restart postfix
+
+    - name: Activate the submission port on the postfix master file
+      template: src=postfix-master.cf.j2 dest=/etc/postfix/master.cf owner=root group=root mode=0444
+      notify: Restart postfix
+
+    - name: Install the postfix NRPE nagios check
+      copy: src={{ item }} dest={{ nagios_plugins_dir }}/{{ item }}  owner=root group=nagios mode=0555
+      with_items: '{{ postfix_nagios_checks }}'
+      when: postfix_nagios_check
+      tags: [ 'postfix-relay', 'nagios', 'nrpe' ]
+
+    - name: Install the postfix NRPE command configuration
+      template: src=postfix-nrpe.cfg.j2 dest={{ nrpe_include_dir }}/postfix-nrpe.cfg  owner=root group=root mode=0444
+      notify: Reload NRPE server
+      when: postfix_nagios_check
+      tags: [ 'postfix-relay', 'nagios', 'nrpe' ]
+
+    - name: Ensure that postfix is started and enabled
+      service: name=postfix state=started enabled=yes
+      when: postfix_enabled
+
+    - name: Ensure that postfix is stopped and disabled
+      service: name=postfix state=stopped enabled=no
+      when: not postfix_enabled
+
+  when: postfix_install_packages
+  tags: postfix-relay 
+
+- block:
+
+    - name: Remove postfix and libsas
+      action: apt pkg={{ item }} state=absent
+      with_items:
+        - postfix
+        - libsasl2-2
+
+  when: not postfix_install_packages
+  tags: postfix-relay 

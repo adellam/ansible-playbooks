@@ -1,0 +1,4 @@
+---
+ldap_uri: "ldap://ldap.sub.research-infrastructures.eu"
+ldap_base_dn: "dc=research-infrastructures,dc=eu"
+ldap_tls_cacert: /etc/ssl/certs/ca-certificates.crt

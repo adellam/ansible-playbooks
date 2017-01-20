@@ -1,0 +1,8 @@
+export ORIENTDB_DIR="{{ orientdb_home_prefix }}/{{ orientdb_user }}/{{ orientdb_dir }}"
+export ORIENTDB_USER="{{ orientdb_user }}"
+export ORIENTDB_OPTS_MEMORY="{{ orientdb_java_heap }}"
+export ORIENTDB_SETTINGS="{{ orientdb_default_settings }}"
+ORIENTDB_SERVER_OPTS=
+{% if orientdb_distributed %}
+ORIENTDB_SERVER_OPTS="-Ddistributed=true"
+{% endif %}

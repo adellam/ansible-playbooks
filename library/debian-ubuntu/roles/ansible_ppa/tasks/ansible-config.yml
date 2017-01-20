@@ -1,0 +1,11 @@
+---
+- name: Set some ansible configuration parameters
+  ini_file: dest={{ ansible_cfg_file }} section={{ item.section }} option={{ item.option }} value={{ item.value }}
+  with_items: '{{ ansible_config_options }}'
+  tags: [ 'ansible', 'ansible_cfg' ]
+
+- name: Create the ansible plugins directories
+  file: dest={{ item }} state=directory
+  with_items: '{{ ansible_plugins_dirs }}'
+  tags: [ 'ansible', 'ansible_cfg' ]
+  

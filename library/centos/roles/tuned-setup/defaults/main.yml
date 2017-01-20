@@ -1,0 +1,6 @@
+---
+# tuned-adm profile virtual-host
+centos_tuned_enabled: True
+centos_host_tuned_profile: virtual-host
+centos_guest_tuned_profile: virtual-guest
+centos_tuned_profile: '{{ centos_guest_tuned_profile }}'

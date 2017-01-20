@@ -1,0 +1,14 @@
+---
+cassandra_install_from_external_repo: True
+cassandra_install_packages: True
+cassandra_latest_version: True
+cassandra_start_server: True
+cassandra_cluster_enabled: False
+cassandra_cluster_port: 7000
+cassandra_cluster_ssl_port: 7001
+cassandra_native_transport_port: 9042
+cassandra_rpc_port: 9160
+cassandra_jmx_port: 7199
+cassandra_allowed_hosts:
+  - 127.0.0.1/8
+  - '{{ ansible_default_ipv4.address }}/32'

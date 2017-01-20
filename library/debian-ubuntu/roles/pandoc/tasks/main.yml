@@ -1,0 +1,8 @@
+---
+- name: Get the pandoc deb package
+  get_url: url={{pandoc_pkg_url}} dest=/srv/{{ pandoc_pkg_file }}
+  tags: pandoc
+
+- name: Install the pandoc deb package
+  apt: deb=/srv/{{ pandoc_pkg_file }}
+  tags: pandoc

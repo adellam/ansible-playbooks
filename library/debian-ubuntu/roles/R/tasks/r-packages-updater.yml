@@ -1,0 +1,33 @@
+---
+- block:
+    - name: Install the R packages updater script
+      template: src=update_r_packages.sh.j2 dest=/usr/local/bin/update_r_packages owner=root group=root mode=0755
+
+    - name: Create the R packages updater SVN base directory
+      file: dest={{ r_packages_svn_base_dir }} state=directory
+
+    - name: Cron job that installs new R packages, if any
+      cron: name="install new R packages" user=root cron_file=install-r-packages minute="*/10" job="/usr/local/bin/update_r_packages install >/var/log/install_r_packages 2>&1" state=present
+
+    - name: Cron job that upgrades existing R packages and installs new ones, if any
+      cron: name="install new R packages" user=root cron_file=upgrade-r-packages hour="3" job="/usr/local/bin/update_r_packages upgrade >/var/log/update_r_packages 2>&1" state=present
+
+  when: r_packages_updater
+  tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_github', 'r_cran_pkgs', 'r_github_pkgs', 'r_packages_updater' ]
+
+
+- block:
+    - name: Remove the R packages updater script
+      file: dest=/usr/local/bin/update_r_packages state=absent
+
+    - name: Remove the R packages updater SVN base directory
+      file: dest={{ r_packages_svn_base_dir }} state=absent
+
+    - name: Remove the cron job that installs new R packages
+      cron: name="install new R packages" user=root minute="*/10" cron_file=install-r-packages job="/usr/local/bin/update_r_packages install >/var/log/install_r_packages 2>&1" state=absent
+
+    - name: Remove the cron job that upgrades existing R packages and installs new ones
+      cron: name="install new R packages" user=root cron_file=upgrade-r-packages hour="3" job="/usr/local/bin/update_r_packages upgrade >/var/log/update_r_packages 2>&1" state=absent
+
+  when: not r_packages_updater
+  tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_github', 'r_cran_pkgs', 'r_github_pkgs', 'r_packages_updater' ]

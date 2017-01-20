@@ -1,0 +1,32 @@
+---
+- block:
+    - name: Create the sharelatex data dir on the host when the container runs as docker
+      file: dest={{ sharelatex_data_dir }} state=directory owner=docker group=docker
+      when: docker_run_as_docker_user
+
+    - name: Create the sharelatex data dir on the host when the container runs as root
+      file: dest={{ sharelatex_data_dir }} state=directory
+      when: not docker_run_as_docker_user
+
+    - name: Create the sharelatex directory into the docker s user home
+      file: dest={{ docker_user_home }}/sharelatex state=directory owner=docker group=docker
+      when: docker_run_as_docker_user
+      
+    - name: Install the docker env file when the container runs as docker
+      template: src=sharelatex-env.sh.j2 dest={{ docker_user_home }}/sharelatex/sharelatex-env.sh owner=docker group=docker
+      when: docker_run_as_docker_user
+
+    - name: Install the docker env file when the container runs as root
+      template: src=sharelatex-env.sh.j2 dest=/opt/sharelatex-env.sh
+      when: not docker_run_as_docker_user
+
+    - name: Start the Sharelatex docker container as docker user
+      command: docker run -v {{ sharelatex_host_data_dir }}:{{ sharelatex_container_data_dir }} -p {{ sharelatex_container_public_port }}:{{ sharelatex_container_local_port }} --name={{ sharelatex_container_name }} --env-file {{ docker_user_home }}/sharelatex/sharelatex-env.sh {{ sharelatex_docker_image }}
+      when: docker_run_as_docker_user
+
+    - name: Start the Sharelatex docker container as root
+      command: docker run -v {{ sharelatex_host_data_dir }}:{{ sharelatex_container_data_dir }} -p {{ sharelatex_container_public_port }}:{{ sharelatex_container_local_port }} --name={{ sharelatex_container_name }} --env-file /opt/sharelatex-env.sh {{ sharelatex_docker_image }}
+      when: not docker_run_as_docker_user
+
+  when: sharelatex_install
+  tags: [ 'docker', 'sharelatex' ]

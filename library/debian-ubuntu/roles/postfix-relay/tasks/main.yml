@@ -1,0 +1,8 @@
+---
+- include: smtp-common-packages.yml
+- include: smtp-sasl-auth.yml
+  when:
+    - postfix_use_sasl_auth
+    - postfix_relay_client
+- include: postfix-relay-server.yml
+  when: postfix_relay_server

@@ -1,0 +1,6 @@
+---
+- name: install the mysql packages
+  apt: pkg={{ item }} state={{ mysql_pkg_state }}
+  with_items: '{{ mysql_packages_list }}'
+  tags: mysql
+

@@ -1,0 +1,46 @@
+---
+- name: Create the sudoers group if needed
+  group: name={{ users_sudoers_group }} state=present
+  when: users_sudoers_create_group
+  tags:
+    - users
+
+- name: Add a sudo additional configuration for the new sudoers group
+  template: src=sudoers.j2 dest=/etc/sudoers.d/{{ users_sudoers_group }}
+  when: users_sudoers_create_sudo_conf
+  tags:
+    - users
+
+- name: Create the home directories for the users
+  file: dest={{ item.home }} state=directory owner=root group=root mode=0755
+  with_items: users_system_users
+  when:
+    - users_system_users is defined
+    - item.createhome
+  tags:
+    - users
+  
+- name: Create users
+  user: name={{ item.login }} comment="{{ item.name }}" home={{ item.home }}/{{ item.login }} createhome={{ item.createhome }} shell={{ item.shell }}
+  with_items: users_system_users
+  when:
+    - users_system_users is defined
+  tags:
+    - users
+
+- name: ensure that the users can login with their ssh keys
+  authorized_key: user="{{ item.login }}" key="{{ item.ssh_key }}" state=present
+  with_items: users_system_users
+  when:
+    - users_system_users is defined
+    - item.ssh_key is defined
+  tags:
+    - users
+
+- name: Add the admin users to the sudoers group
+  user: name={{ item.login }} groups={{ users_sudoers_group }}
+  with_items: users_system_users
+  when:
+    - users_system_users is defined
+  tags:
+    - users

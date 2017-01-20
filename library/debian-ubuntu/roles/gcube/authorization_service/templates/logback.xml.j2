@@ -1,0 +1,24 @@
+
+<configuration>
+
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${catalina.base}/logs/ghn.log</file>
+		<append>true</append>
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n
+			</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${catalina.base}/logs/ghn.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+	</appender>
+
+	<logger name="org.gcube" level="{{ authorization_service_loglevel }}" />
+	<logger name="org.gcube.common.authorizationservice" level="{{ authorization_service_loglevel }}" />
+	<logger name="org.gcube.common" level="{{ authorization_service_loglevel }}" />
+	
+	<root level="{{ authorization_service_root_loglevel }}">
+		<appender-ref ref="FILE" />
+	</root>
+</configuration>

@@ -1,0 +1,21 @@
+---
+- name: Add databases to mysql, if any
+  mysql_db: name={{ item.name }} collation={{ item.collation }} encoding={{ item.encoding }} state=present
+  with_items: '{{ mysql_db_data }}'
+  when:
+    - mysql_db_data is defined
+    - item.name is defined
+  tags:
+    - mysql
+    - mysql_db
+
+- name: Add a user for the databases
+  mysql_user: name={{ item.user }} password={{ item.pwd }} host={{ item.allowed_hosts }} priv={{ item.name }}.*:{{ item.user_grant }} state=present
+  with_items: '{{ mysql_db_data }}'
+  when:
+    - mysql_db_data is defined
+    - item.name is defined
+  tags:
+    - mysql
+    - mysql_db
+

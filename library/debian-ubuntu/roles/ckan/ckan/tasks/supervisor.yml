@@ -1,0 +1,19 @@
+---
+- name: Install the supervisor daemon needed to automate the gather and fetch operations
+  apt: pkg={{ item }} state=present
+  with_items: '{{ ckan_gather_fetch_pkgs }}'
+  tags: [ 'ckan', 'ckan_harvest' ]
+
+- name: Install the gather and fetch supervisor configuration
+  template: src=ckan_harvesting.conf.j2 dest=/etc/supervisor/conf.d/ckan_harvesting.conf owner=root group=root mode=0644
+  notify: Reconfigure the supervisor daemon
+  tags: [ 'ckan', 'ckan_harvest' ]
+
+- name: Install a cron job that run the harvesters
+  cron: name="CKAN harvester" minute="0" job="{{ ckan_virtenv }}/bin/paster --plugin=ckanext-harvest harvester run --config={{ ckan_config_file }} > {{ ckan_logdir }}/harvester_run.log 2>&1" user={{ ckan_shell_user }}
+  when: ckan_harvester_run
+  tags: [ 'ckan', 'ckan_harvest', 'ckan_harvest_cron' ]
+
+- name: Ensure that supervisord is running and enabled
+  service: name=supervisor state=started enabled=yes
+  tags: [ 'ckan', 'ckan_harvest' ]

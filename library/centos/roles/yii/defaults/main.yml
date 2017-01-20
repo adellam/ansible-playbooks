@@ -1,0 +1,27 @@
+---
+#
+# Note: in the index.php directory, the path to the yii distribution will be something like
+# $yii='{{ yii_install_dir }}/yii/framework/yii.php';
+#
+yii_version: 1.1.15
+yii_release: 022a51
+yii_installs:
+  - { version: '{{ yii_version }}', release: '{{ yii_release }}' }
+
+yii_download_url: 'https://github.com/yiisoft/yii/releases/download/{{ yii_version }}/yii-{{ yii_version }}.{{ yii_release }}.tar.gz'
+
+yii_install_dir: '/opt'
+yii_framework_dir: '{{ yii_install_dir }}/yii-{{ yii_version }}'
+
+yii_php_modules:
+  - php-xml
+  - php-pdo
+  - php-pecl-imagick
+  - php-pecl-memcache
+  - php-xcache
+  - php-gd
+  - php-mcrypt
+  - pcre
+  
+yii_php_db_server_modules:
+  - php-pgsql

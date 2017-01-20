@@ -1,0 +1,66 @@
+---
+- name: apache2 reload
+  service: name=apache2 state=reloaded
+
+- name: apache2 reload when needed
+  when: ruby_use_mod_passenger
+  service: name=apache2 state=reloaded
+
+# NB: we set 1.9.1, but if ruby1.9.3 is installed the real default is 1.9.3. Blame debian/ubuntu
+- name: set ruby 1.9.3 as default
+#  shell: update-alternatives --set ruby /usr/bin/ruby1.9.1
+  alternatives: name=ruby path=/usr/bin/ruby1.9.1
+  when: is_precise
+  ignore_errors: True
+
+# NB: we set 1.9.1, but if gem1.9.3 is installed the real default is 1.9.3. Blame debian/ubuntu
+- name: set gem 1.9.3 as default
+#  shell: update-alternatives --set gem /usr/bin/gem1.9.1
+  alternatives: name=gem path=/usr/bin/gem1.9.1
+  when: is_precise
+  ignore_errors: True
+
+- name: Reload unicorn
+  service: name=redmine state=reloaded
+
+- name: Reload unicorn when needed
+  service: name=redmine state=restarted
+  when: ruby_use_unicorn
+
+- name: Reconfigure redmine
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; bundle exec rake redmine:plugins:migrate RAILS_ENV=production
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+
+- name: Reconfigure agile plugin
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; bundle exec rake redmine:plugins NAME=redmine_agile RAILS_ENV=production
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+    
+- name: Bundle install
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; bundle install --without development test mysql RAILS_ENV=production
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+
+- name: Bundle install and reconfigure redmine
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; bundle install ; bundle exec rake redmine:plugins:migrate RAILS_ENV=production
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+
+- name: Remove a plugin and reconfigure redmine
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; bundle exec rake redmine:plugins:migrate NAME=redmine_plugin_name VERSION=0 RAILS_ENV=production
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+
+- name: Generate the mod-passenger executable
+  shell: passenger-install-apache2-module -a
+  when: ruby_use_mod_passenger
+
+- name: change the redmine permissions recursively
+  shell: chown -R {{ redmine_user }}:{{ redmine_group }} {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/files {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/log {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/tmp {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/public/plugin_assets
+  ignore_errors: True

@@ -1,0 +1,12 @@
+---
+sysctl_custom_file: /etc/sysctl.d/90-custom-values.conf
+sysctl_opts_reload: yes
+sysctl_custom_file_state: present
+
+# Only name and value are mandatory. The others have defaults
+#systemctl_custom_options:
+#  - { name: 'net.nf_conntrack_max', value: '32768', sysctlfile: '{{ sysctl_custom_file }}', sysctl_reload: '{{ sysctl_opts_reload }}', sysctlfile_state: '{{ sysctl_custom_file_state }}' }
+
+disable_ipv6: True
+ipv6_sysctl_value: 1
+ipv6_sysctl_file: /etc/sysctl.d/10-ipv6-disable.conf

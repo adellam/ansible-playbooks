@@ -1,0 +1,61 @@
+---
+- block: 
+    - name: setup the Oracle JDK repository on ubuntu
+      apt_repository: repo='{{ jdk_ubuntu_ppa }}' state=present update_cache=yes
+      when: is_ubuntu
+
+    - name: Install the Oracle JDK repository pgp key on debian
+      apt_key: keyserver=keyserver.ubuntu.com id={{ jdk_ppa_key }}
+      when: is_debian
+
+    - name: setup the Oracle JDK repository on debian
+      apt_repository: repo='{{ jdk_ppa_repo }}' state=present update_cache=yes
+      when: is_debian
+
+    - name: Accept the Oracle Java license
+      debconf: name='oracle-java{{ item }}-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+      with_items: '{{ jdk_version }}'
+
+    - name: Install the latest version of Oracle JDK
+      apt: pkg={{ item }} state={{ jdk_pkg_state }} force=yes update_cache=yes cache_valid_time=1800
+      when: not jdk_use_tarfile
+      register: jdk_install
+      with_items: '{{ oracle_jdk_packages }}'
+
+    - name: Install the extended security JCE Oracle JDK package
+      apt: pkg=oracle-java{{ item }}-unlimited-jce-policy state={{ jdk_pkg_state }} force=yes update_cache=yes cache_valid_time=1800
+      with_items: '{{ jdk_version }}'
+      when:
+        - not jdk_use_tarfile
+        - jdk_install_strong_encryption_policy
+
+    - name: Set the JDK default via update-alternatives
+      apt: pkg=oracle-java{{ item }}-set-default state={{ jdk_pkg_state }} force=yes update_cache=yes cache_valid_time=1800
+      with_items: '{{ jdk_default }}'
+      when:
+        - not jdk_use_tarfile
+        - jdk_default is defined
+      notify: Set the default Oracle JDK
+
+    - name: Install a custom version of Oracle JDK from a tar file
+      unarchive: src={{ jdk_tarfile }} dest={{ jdk_java_home_prefix }} copy={{ jdk_copy_tarfile | default(omit) }}
+      when: '{{ jdk_use_tarfile }}'
+
+    - name: Set fact jdk_installed
+      set_fact: jdk_installed=True
+
+  tags: [ 'oracle_jdk', 'jdk' ]
+
+- block:
+    - name: Install a default keyring that includes the Letsencrypt X3 cross signed CA and the INFN CA certificate
+      copy: src=cacerts-jdk7 dest={{ jdk_java_home }}/jre/lib/security/cacerts owner=root group=root mode=0644
+
+  when: jdk_default <= 7 
+  tags: [ 'oracle_jdk', 'jdk', 'jdk_cacert' ]
+
+- block:
+    - name: Change the default keyring. Insert the INFN CA certificate
+      shell: keytool -list -keystore {{ jdk_java_home }}/jre/lib/security/cacerts  -storepass changeit -noprompt | grep infn-ca-2015 ; RETVAL=$? ; if [ $RETVAL -ne 0 ] ; then keytool -trustcacerts -keystore {{ jdk_java_home }}/jre/lib/security/cacerts -storepass changeit -noprompt -importcert -alias infn-ca-2015-2030 -file /usr/local/share/ca-certificates/infn-ca-2015.crt ; fi
+
+  when: jdk_default >= 8
+  tags: [ 'oracle_jdk', 'jdk', 'jdk_cacert' ]

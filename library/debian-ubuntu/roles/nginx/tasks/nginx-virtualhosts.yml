@@ -1,0 +1,12 @@
+---
+- name: Install the nginx virtualhost files
+  template: src=nginx-virthost.j2 dest=/etc/nginx/sites-available/{{ item.virthost_name }} owner=root group=root mode=0444
+  with_items: '{{ nginx_virthosts | default(omit) }}'
+  notify: Reload nginx
+  tags: [ 'nginx', 'virtualhost' ]
+
+- name: Enable the nginx virtualhosts
+  file: src=/etc/nginx/sites-available/{{ item.virthost_name }} dest=/etc/nginx/sites-enabled/{{ item.virthost_name }} state=link
+  with_items: '{{ nginx_virthosts | default(omit) }}'
+  notify: Reload nginx
+  tags: [ 'nginx', 'virtualhost' ]

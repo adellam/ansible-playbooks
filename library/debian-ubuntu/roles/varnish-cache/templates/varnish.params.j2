@@ -1,0 +1,73 @@
+# Configuration file for varnish
+#
+# /etc/init.d/varnish expects the variables $DAEMON_OPTS, $NFILES and $MEMLOCK
+# to be set from this shell script fragment.
+#
+{% if varnish_enabled %}
+START=yes
+{% else %}
+START=no
+{% endif %}
+# Set this to 1 to make systemd reload try to switch vcl without restart.
+RELOAD_VCL=1
+
+# Maximum number of open files (for ulimit -n)
+NFILES={{ varnish_n_files }}
+
+# Maximum locked memory size (for ulimit -l)
+# Used for locking the shared memory log in memory.  If you increase log size,
+# you need to increase this number as well
+MEMLOCK={{ varnish_memlock }}
+
+# Default varnish instance name is the local nodename.  Can be overridden with
+# the -n switch, to have more instances on a single server.
+INSTANCE={{ varnish_instance_name }}
+
+## Alternative 3, Advanced configuration
+#
+# See varnishd(1) for more information.
+#
+# # Main configuration file. You probably want to change it :)
+VARNISH_VCL_CONF={{ varnish_vcl_conf }}
+#
+# # Default address and port to bind to
+# # Blank address means all IPv4 and IPv6 interfaces, otherwise specify
+# # a host name, an IPv4 dotted quad, or an IPv6 address in brackets.
+# VARNISH_LISTEN_ADDRESS=
+VARNISH_LISTEN_PORT={{ varnish_listen_port }}
+#
+# # Telnet admin interface listen address and port
+VARNISH_ADMIN_LISTEN_ADDRESS={{ varnish_admin_listen_host }}
+VARNISH_ADMIN_LISTEN_PORT={{ varnish_admin_listen_port }}
+#
+# Shared secret file for admin interface
+VARNISH_SECRET_FILE={{ varnish_secret_file }}
+
+# # The minimum number of worker threads to start
+VARNISH_MIN_THREADS={{ varnish_min_threads }}
+#
+# # The Maximum number of worker threads to start
+VARNISH_MAX_THREADS={{ varnish_max_threads }}
+#
+# # Idle timeout for worker threads
+VARNISH_THREAD_TIMEOUT={{ varnish_thread_timeout }}
+#
+# # Cache file location
+VARNISH_STORAGE_FILE={{ varnish_storage_file }}
+#
+# # Cache file size: in bytes, optionally using k / M / G / T suffix,
+# # or in percentage of available disk space using the % suffix.
+VARNISH_STORAGE_SIZE={{ varnish_storage_size }}
+#
+# 
+# # Backend storage specification
+VARNISH_STORAGE="file,{{ varnish_storage_file }},{{ varnish_storage_size }}"
+#
+# # Default TTL used when the backend does not specify one
+VARNISH_TTL={{ varnish_ttl }}
+#
+# User and group for the varnishd worker processes
+VARNISH_USER={{ varnish_user }}
+VARNISH_GROUP={{ varnish_group }}
+#
+DAEMON_OPTS="-a :{{ varnish_listen_port }} -P {{ varnish_pid_file }} -f {{ varnish_vcl_conf }} -T {{ varnish_admin_listen_host }}:{{ varnish_admin_listen_port }} -t {{ varnish_ttl }} -p thread_pool_min={{ varnish_min_threads }} -p thread_pool_max={{ varnish_max_threads }} -p thread_pool_timeout={{ varnish_thread_timeout }} -S {{ varnish_secret_file }} -n {{ varnish_instance_name }} {% if varnish_use_disk_cache %}-s file,{{ varnish_storage_file }},{{ varnish_storage_size }}{% endif %} {% if varnish_use_ram_cache %}-s malloc,{{ varnish_ram_cache_size }}{% endif %}"

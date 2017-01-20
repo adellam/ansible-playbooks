@@ -1,0 +1,23 @@
+---
+- include: apt-proxy.yml
+- include: resolvconf.yml
+  when: install_resolvconf
+- include: packages.yml
+- include: ntp.yml
+- include: remove-unneeded-pkgs.yml
+- include: denyhost.yml
+  when: is_debian_7_or_older
+- include: denyhost.yml
+  when: is_ubuntu_less_than_trusty
+- include: munin.yml
+  when: configure_munin
+- include: pubkeys.yml
+  when: manage_root_ssh_keys
+- include: rsyslogfix.yml
+- include: unattended-upgrades.yml
+- include: pki-basics.yml
+- include: install_external_ca_cert.yml
+- include: manage_su_limits.yml
+- include: disable-unneeded-services.yml
+
+

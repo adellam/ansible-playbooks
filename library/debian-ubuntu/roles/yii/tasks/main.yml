@@ -1,0 +1,44 @@
+---
+- name: Create the yii installation directory
+  file: dest={{ yii_install_dir }} state=directory owner=root group=root mode=0755
+  tags: [ 'yii', 'yii-framework' ]
+
+- name: Get the yii distribution file
+  get_url: url={{ yii_download_url }} dest={{ yii_install_dir }}/yii-{{ yii_version }}.{{ yii_release }}.tar.gz mode=0400
+  tags: [ 'yii', 'yii-framework' ]
+
+- name: Unpack the yii distribution file
+  unarchive: src=/opt/yii-{{ yii_version }}.{{ yii_release }}.tar.gz dest={{ yii_install_dir }} copy=no
+  args:
+    creates: '{{ yii_install_dir }}/yii-{{ yii_version }}.{{ yii_release }}/framework/yii.php'
+  register: yii_unpack
+  tags: [ 'yii', 'yii-framework' ]
+
+- name: Fix the permissions on the yii framework directory
+  command: chown -R root:root {{ yii_install_dir }}/yii-{{ yii_version }}.{{ yii_release }}
+  when: ( yii_unpack | changed )
+  tags: [ 'yii', 'yii-framework' ]
+
+- name: Create a couple of links to the running version
+  file: src={{ yii_install_dir }}/yii-{{ yii_version }}.{{ yii_release }} dest={{ item }} state=link
+  with_items:
+    - '{{ yii_framework_dir }}'
+    - '{{ yii_install_dir }}/yii'
+  tags: [ 'yii', 'yii-framework' ]
+
+- name: Remove the unneeded files
+  file: dest={{ yii_install_dir }}/yii-{{ yii_version }}.{{ yii_release }}/{{ item }} state=absent
+  with_items: yii_unneeded_files
+  tags: [ 'yii', 'yii-framework' ]
+
+- name: Install the php required modules
+  apt: name={{ item }} state=present
+  with_items: yii_php_modules
+  notify: Reload php-fpm
+  tags: [ 'yii', 'yii-framework' ]
+
+- name: Install the php modules to access the db servers
+  apt: name={{ item }} state=present
+  with_items: yii_php_db_server_modules
+  notify: Reload php-fpm
+  tags: [ 'yii', 'yii-framework' ]

@@ -1,0 +1,41 @@
+---
+- block:
+    - name: Add the Docker repository key
+      apt_key: keyserver={{ docker_repo_keyserver }} id={{ docker_repo_key }} state=present
+
+    - name: Add the Docker repository
+      apt_repository: repo='{{ docker_repo }}' update_cache=yes
+
+    - name: Create the docker user
+      user: name=docker comment="Docker User" shell=/bin/bash home={{ docker_user_home }} system=yes
+      when: docker_run_as_docker_user
+
+    - name: Install Docker
+      apt: pkg={{ item }} state={{ docker_pkg_status }} update_cache=yes cache_valid_time=3600
+      with_items: '{{ docker_packages }}'
+
+    - name: Ensure that the service is started and enabled
+      service: name=docker state=started enabled=yes
+
+  when: docker_install 
+  tags: docker 
+
+- block:
+    - name: Ensure that the service is stopped and disabled
+      service: name=docker state=stopped enabled=no
+
+    - name: Remove the Docker package
+      apt: pkg={{ item }} state=absent
+      with_items: '{{ docker_packages }}'
+
+    - name: Remove the docker user
+      user: name=docker state=absent
+
+    - name: Remove the Docker repository key
+      apt_key: keyserver={{ docker_repo_keyserver }} id={{ docker_repo_key }} state=absent
+
+    - name: Remove the Docker repository
+      apt_repository: repo='{{ docker_repo }}' state=absent update_cache=yes
+
+  when: not docker_install 
+  tags: docker 

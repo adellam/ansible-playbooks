@@ -1,0 +1,14 @@
+---
+- name: Set OpenJDK 6 as default
+  shell: update-java-alternatives -s java-1.6.0-openjdk-amd64
+
+- name: Set OpenJDK 7 as default
+  shell: update-java-alternatives -s java-1.7.0-openjdk-amd64
+
+- name: Set OpenJDK 8 as default
+  shell: update-java-alternatives -s java-1.8.0-openjdk-amd64
+
+- name: Set the default OpenJDK
+  shell: update-java-alternatives -s java-1.{{ item }}.0-openjdk-amd64
+  with_items: '{{ openjdk_default }}'
+

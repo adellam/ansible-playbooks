@@ -1,0 +1,11 @@
+---
+- name: Load the required apache modules
+  apache2_module: name={{ item }} state=present
+  with_items: '{{ redmine_base_apache_modules }}'
+  notify: apache2 reload
+  tags: [ 'apache', 'redmine' ]
+
+- name: Ensure that the apache ssl directory exists
+  file: dest=/etc/apache2/ssl state=directory owner=root group=root mode=0750
+  tags: [ 'apache', 'redmine' ]
+

@@ -1,0 +1,19 @@
+- name: Reload NRPE server
+  service: name=nagios-nrpe-server state=reloaded
+
+- name: Restart NRPE server
+  service: name=nagios-nrpe-server state=restarted
+
+- name: Restart Nagios server
+  service: name=nagios3 state=restarted
+
+- name: Reload Nagios server
+  service: name=nagios3 state=reloaded
+
+- name: Update apt cache
+  apt: update_cache=yes
+  ignore_errors: True
+
+- name: Start Dell OMSA
+  service: name=dataeng state=restarted enabled=yes
+  ignore_errors: True

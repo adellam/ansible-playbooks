@@ -1,0 +1,9 @@
+---
+mc_pkg_state: present
+mc_enabled: True
+
+mc_port: 11211
+mc_user: memcached
+mc_maxconn: 1024
+mc_cachesize: 256
+mc_options: ""

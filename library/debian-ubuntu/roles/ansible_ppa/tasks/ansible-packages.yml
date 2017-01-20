@@ -1,0 +1,15 @@
+---
+- name: Remove the now obsolete rquillo ppa for ansible
+  apt_repository: repo='ppa:rquillo/ansible' state=absent
+  register: update_apt_cache_rquillo
+  tags: ansible
+
+- name: Add the ansible ppa for ansible
+  apt_repository: repo='ppa:ansible/ansible' update_cache=yes
+  register: update_apt_cache
+  tags: ansible
+
+- name: Install the ansible package
+  apt: pkg=ansible state={{ ansible_pkg_state }}
+  tags: ansible
+

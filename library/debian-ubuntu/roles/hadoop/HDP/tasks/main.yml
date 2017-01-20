@@ -1,0 +1,18 @@
+---
+- block: 
+    - name: apt key for the Hortonworks ambari repository
+      apt_key: keyserver=keyserver.ubuntu.com id={{ hdp_ambari_repo_key }} state=present
+
+    - name: Install the Hortonworks ambari repository
+      get_url: url={{ hdp_ambari_repo_url }} dest=/etc/apt/sources.list.d/ambari.list
+      register: ambari_repo
+
+    - name: Update the apt cache
+      apt: update_cache=yes
+      when: ( ambari_repo | changed )
+
+    - name: Install the ambari server
+      apt: pkg=ambari-server state=latest
+  
+  when: hdp_ambari_install
+  tags: [ 'hdp', 'hadoop', 'ambari' ]

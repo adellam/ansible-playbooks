@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Run a DB dump before the backup
+if [ -x /usr/local/sbin/postgresql-backup ] ; then
+    /usr/local/sbin/postgresql-backup
+fi
+
+if [ -x /usr/local/sbin/mysql-backup ] ; then
+    /usr/local/sbin/mysql-backup
+fi
+

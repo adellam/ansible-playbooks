@@ -1,0 +1,32 @@
+---
+# 
+# The ganglia plugin comes from https://github.com/ganglia/gmond_python_modules
+#
+- name: Install the ganglia plugin for Couchbase. One instance per bucket
+  template: src=couchbase.py.j2 dest=/usr/lib/ganglia/python_modules/couchbase_{{ item }}.py owner=root group=ganglia mode=0440
+  with_items: '{{ couchbase_monitored_buckets }}'
+  when: couchbase_ganglia_plugin_enabled
+  notify: Restart ganglia monitor
+  tags: [ 'ganglia', 'couchbase' ]
+
+- name: Distribute the ganglia (gmond) configuration for the Couchbase plugin
+  template: src=couchbase.pyconf.j2 dest=/etc/ganglia/conf.d/couchbase_{{ item }}.pyconf owner=root group=ganglia mode=0440
+  with_items: '{{ couchbase_monitored_buckets }}'
+  when: couchbase_ganglia_plugin_enabled
+  notify: Restart ganglia monitor
+  tags: [ 'ganglia', 'couchbase' ]
+
+- name: Remove the ganglia (gmond) configuration for the Couchbase plugin when we want it disabled
+  file: dest=/etc/ganglia/conf.d/couchbase_{{ item }}.pyconf state=absent
+  with_items: '{{ couchbase_monitored_buckets }}'
+  when: not couchbase_ganglia_plugin_enabled
+  notify: Restart ganglia monitor
+  tags: [ 'ganglia', 'couchbase' ]
+
+- name: Remove the ganglia plugin for Couchbase when we want it disabled
+  file: dest=/usr/lib/ganglia/python_modules/couchbase_{{ item }}.py state=absent
+  with_items: '{{ couchbase_monitored_buckets }}'
+  when: not couchbase_ganglia_plugin_enabled
+  notify: Restart ganglia monitor
+  tags: [ 'ganglia', 'couchbase' ]
+

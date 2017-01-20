@@ -1,0 +1,43 @@
+---
+- block:
+    - name: Add the boost ppa
+      apt_repository: repo='ppa:boost-latest/ppa' update_cache=yes
+      when: is_precise
+
+    - name: Add the devel chain ppa
+      apt_repository: repo='ppa:ubuntu-toolchain-r/test' update_cache=yes
+
+    - name: Install the quickrank dependencies
+      apt: name={{ item }} state=present
+      with_items: '{{ quickrank_package_list | default([]) }}'
+  
+  tags: [ 'boost', 'libboost', 'quickrank' ]
+
+- block:
+    - name: Download the quickrank distribution
+      git: repo={{ quickrank_git_url }} dest=/home/{{ d4science_user }}/quickrank force={{ quickrank_git_force_pull }}
+      register: quickrank_src
+
+    - name: Copy some needed files if the distribution is Ubuntu 12.04
+      copy: src={{ item }} dest=/home/{{ d4science_user }}/quickrank/{{ item }}
+      with_items:
+        - CMakeLists.txt.12.04.diff
+        - QuickRankMakeRulesOverwrite.cmake
+      when: is_precise
+
+    - name: Apply a patch to the CMakeLists.txt if the distribution is Ubuntu 12.04
+      shell: cd /home/{{ d4science_user }}/quickrank ; patch -p0 < CMakeLists.txt.12.04.diff
+      when: is_precise
+
+    - name: Configure the sources and compile them
+      shell: cd /home/{{ d4science_user }}/quickrank ; rm -fr build ; mkdir build ; cd /home/{{ d4science_user }}/quickrank/build ; cmake .. -DCMAKE_CXX_COMPILER=g++-5 -DCMAKE_BUILD_TYPE=Release ; make
+      when: ( quickrank_src | changed )
+
+    - name: Install the quickrank binaries
+      become: False
+      shell: cd /home/{{ d4science_user }}/quickrank/bin ; install -m 755 quicklearn /usr/local/bin
+      when: ( quickrank_src | changed )
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  tags: [ 'boost', 'libboost', 'quickrank', 'quickrank_bin' ]

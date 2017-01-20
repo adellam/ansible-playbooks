@@ -1,0 +1,27 @@
+---
+piwik_repo_key: 'https://debian.piwik.org/repository.gpg'
+piwik_repo: 'deb https://debian.piwik.org/ piwik main'
+
+piwik_install_archive_cron: True
+
+piwik_under_nginx: True
+piwik_under_phpfpm: True
+piwik_user: piwik
+piwik_http_doc_root: '/usr/share/piwik'
+piwik_owned_data:
+  - /etc/piwik/
+  - /var/lib/piwik/data/tmp
+  - /var/log/piwik/
+  - /usr/share/piwik/misc
+  - /usr/share/piwik/plugins
+
+piwik_url: 'http://{{ ansible_fqdn }}/'
+piwik_pkgs:
+  - piwik
+  - php5-mysql
+  - php5-json
+  - php5-ldap
+  - php5-gd
+  - php5-redis
+
+

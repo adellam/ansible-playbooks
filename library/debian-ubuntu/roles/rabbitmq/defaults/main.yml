@@ -1,0 +1,26 @@
+---
+rabbitmq_enabled: True
+rabbitmq_repo: 'deb http://www.rabbitmq.com/debian/ testing main'
+rabbitmq_repo_key: https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
+rabbitmq_pkg_state: present
+rabbitmq_server_pkg:
+  - rabbitmq-server
+
+rabbitmq_enabled_plugins: 'amqp_client,rabbitmq_amqp1_0,rabbitmq_management,rabbitmq_management_agent,rabbitmq_management_visualiser,rabbitmq_mqtt,rabbitmq_stomp,webmachine'
+
+rabbitmq_disabled_plugins: ''
+
+rabbitmq_default_f: /etc/default/rabbitmq-server
+rabbitmq_fileno: 4096
+rabbitmq_admin_u: r_admin
+
+
+#
+#
+# 4369 (epmd), 25672 (Erlang distribution)
+# 5672, 5671 (AMQP 0-9-1 without and with TLS)
+# 15672 (if management plugin is enabled)
+# 61613, 61614 (if STOMP is enabled)
+# 1883, 8883 (if MQTT is enabled)
+#
+

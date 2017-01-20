@@ -1,0 +1,17 @@
+---
+bind_pkg_state: present
+bind_use_chroot: True
+bind_chroot_base: /var/named/chroot
+bind_service_enabled: True
+#bind_config_path: '{{ bind_chroot_base }}/etc'
+bind_config_path: '/etc'
+bind_user: named
+bind_group: named
+
+bind_packages:
+  - bind
+  - bind-license
+  - bind-utils
+
+bind_chroot_packages:
+  - bind-chroot

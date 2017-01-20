@@ -1,0 +1,5 @@
+---
+social_data_indexer_se_plugin_install: False
+social_data_indexer_se_plugin_ver: 1.1.1-4.1.0-133365
+social_data_indexer_se_plugin_name: 'social-data-indexer-se-plugin-{{ social_data_indexer_se_plugin_ver }}-jar-with-dependencies.jar'
+social_data_indexer_se_plugin_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/socialnetworking/social-data-indexer-se-plugin/{{ social_data_indexer_se_plugin_ver }}/{{ social_data_indexer_se_plugin_name }}'

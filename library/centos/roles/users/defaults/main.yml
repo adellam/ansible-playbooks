@@ -1,0 +1,8 @@
+---
+users_sudoers_group: wheel
+users_sudoers_create_group: False
+users_sudoers_create_sudo_conf: False
+users_home_dir: /home
+#users_system_users:
+#  - { login: 'foo', name: "Foo Bar", home: '{{ users_home_dir }}', createhome: 'yes', ssh_key: '{{ foo_ssh_key }}', shell: '/bin/bash', admin: 'True' }
+

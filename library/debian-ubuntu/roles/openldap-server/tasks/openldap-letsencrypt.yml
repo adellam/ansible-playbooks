@@ -1,0 +1,25 @@
+---
+- name: Install a script that fix the letsencrypt certificates for openldap and then reload the service
+  copy: src=openldap-letsencrypt-acme.sh dest={{ letsencrypt_acme_services_scripts_dir }}/openldap owner=root group=root mode=4555
+  when:
+    - openldap_letsencrypt_managed
+    - letsencrypt_acme_install
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'letsencrypt' ]
+
+- name: Copy the SSL ldif on the ldap server
+  copy: src=olcSSL.ldif dest=/etc/ldap/olcSSL.ldif
+  when:
+    - openldap_letsencrypt_managed
+    - letsencrypt_acme_install
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'letsencrypt' ]
+
+- name: Enable the openldap ssl configuration
+  shell: ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /etc/ldap/olcSSL.ldif ; touch /etc/ldap/.olcSSL.ldif.installed
+  args:
+    creates: /etc/ldap/.olcSSL.ldif.installed
+  notify: Restart openldap 
+  when:
+    - openldap_letsencrypt_managed
+    - letsencrypt_acme_install
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'letsencrypt' ]
+

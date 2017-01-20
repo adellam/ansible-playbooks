@@ -1,0 +1,24 @@
+---
+- name: Install the gem bundler
+  gem: name=bundler state=latest
+  tags:
+    - ruby
+    - redmine
+
+- name: Install the gem packages needed by some external utilities
+  gem: name={{ item }} state=latest
+  with_items: redmine_additional_gems
+  tags:
+    - ruby
+    - redmine
+
+- name: Install the gem passenger. The apache mod_passenger module is too old. For ubuntu 12.04
+  gem: name=passenger state=present
+  notify: Generate the mod-passenger executable
+  when:
+    - ruby_use_mod_passenger
+    - is_precise
+  tags:
+    - ruby
+    - redmine
+

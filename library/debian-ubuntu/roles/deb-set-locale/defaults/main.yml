@@ -1,0 +1,8 @@
+---
+deb_default_locale: "en_US.UTF-8"
+deb_locales: "{{ deb_default_locale }} en_US, it_IT.UTF-8 it_IT"
+deb_locales_list:
+  - '{{ deb_default_locale }}'
+  - en_US
+  - it_IT.UTF-8
+  - it_IT

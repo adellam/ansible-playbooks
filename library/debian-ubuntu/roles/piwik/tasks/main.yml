@@ -1,0 +1,29 @@
+---
+- name: Install the piwik repo key
+  apt_key: url={{ piwik_repo_key }} state=present
+  tags: [ 'piwik', 'analytics' ]
+
+- name: Install the piwik debian repo
+  apt_repository: repo='{{ piwik_repo }}' state=present
+  tags: [ 'piwik', 'analytics' ]
+
+- name: Install piwik and some dependencies
+  apt: name={{ item }}
+  with_items: '{{ piwik_pkgs }}'
+  tags: [ 'piwik', 'analytics' ]
+
+- name: Restore the piwik permissions so that they match the fpm config
+  shell: find {{ item }} -user www-data -exec chown {{ piwik_user }} {} \; ; find {{ item }} -group www-data -exec chgrp {{ piwik_user }} {} \;
+  with_items: '{{ piwik_owned_data }}'
+  when: piwik_under_phpfpm
+  tags: [ 'piwik', 'analytics' ]
+
+- name: Install a cron job to archive the old logs data
+  cron: minute="5" user={{ piwik_user }} name="Archive Piwik Log Data" job='[ -e /usr/share/piwik/console ] && [ -x /usr/bin/php ] && nice /usr/bin/php /usr/share/piwik/console core:archive --url="{{ piwik_url }}" >> /var/log/piwik/piwik-archive.log 2>&1' cron_file=piwik-archive
+  when: piwik_install_archive_cron
+  tags: [ 'piwik', 'analytics' ]
+  
+- name: Create a directory for the fcgi cache
+  file: dest=/var/cache/nginx/fcgicache type=directory owner=piwik
+  when: piwik_under_nginx
+  tags: [ 'piwik', 'analytics' ]

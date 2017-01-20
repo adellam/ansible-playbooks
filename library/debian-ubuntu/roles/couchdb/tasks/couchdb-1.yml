@@ -1,0 +1,89 @@
+---
+# This is the playbook that installs couchdb 1.x
+#
+- name: Add the ppa for couchdb
+  apt_repository: repo='{{ couchdb_ppa }}'
+  register: install_ppa
+  tags: couchdb
+
+- name: Update the apt cache if needed
+  apt: update_cache=yes
+  when: ( install_ppa | changed )
+  tags: couchdb
+
+- name: Install the couchdb packages
+  apt: pkg={{ item }}  state={{ couchdb_pkg_state }}
+  with_items: couchdb_pkgs
+  tags: couchdb
+
+- name: Change the open files limit
+  template: src=limits-couchdb.nofiles.j2 dest=/etc/security/limits.d/couchdb.nofiles.conf owner=root group=root mode=0444
+  tags: couchdb
+
+#
+# Couchdb changes the admin password with a hash, so we need to not overwrite the file at each playbook run
+# Note: we have chosen to distribute the hashed password
+- name: Create the admin config file, once
+  copy: content="[admins]\n" dest={{ couchdb_local_ini_d }}/local.d/admin.ini force=no
+  when: couchdb_set_admin
+  register: admin_init
+  tags: couchdb
+  
+- name: Set the admin users
+  ini_file: dest={{ couchdb_local_ini_d }}/local.d/admin.ini section=admins option={{ item.user }} value={{ item.pwd }} owner=couchdb group=couchdb mode=0640 state={{ item.state }}
+  with_items: couchdb_admin_users
+  when:
+    - couchdb_set_admin
+#    - admin_init is defined and ( admin_init | changed )
+  notify: Restart couchdb
+  tags: [ 'couchdb', 'couch_opts']
+  
+- name: Basic couchdb configuration
+  ini_file: dest={{ couchdb_local_ini_d }}/local.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=couchdb group=couchdb mode=0640 state={{ item.state }}
+  with_items: couchdb_default_options
+  notify: Restart couchdb
+  tags: [ 'couchdb', 'couch_opts']
+  
+- name: Replicator couchdb configuration
+  ini_file: dest={{ couchdb_local_ini_d }}/local.d/replicator.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=couchdb group=couchdb mode=0640 state={{ item.state }}
+  with_items: couchdb_replicator_options
+  notify: Restart couchdb
+  tags: [ 'couchdb', 'couch_opts']
+
+- name: Activate ssl for couchdb
+  ini_file: dest={{ couchdb_local_ini_d }}/local.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=couchdb group=couchdb mode=0640 state={{ item.state }}
+  with_items: couchdb_ssl_options
+  when: couchdb_ssl_enabled
+  notify: Restart couchdb
+  tags: [ 'couchdb', 'couch_opts']
+
+- name: Activate ssl for couchdb
+  ini_file: dest={{ couchdb_local_ini_d }}/default.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=couchdb group=couchdb mode=0640 state={{ item.state }}
+  with_items: couchdb_ssl_default_remove
+  when: couchdb_ssl_enabled
+  notify: Restart couchdb
+  tags: [ 'couchdb', 'couch_opts']
+
+- name: Disable ssl for couchdb
+  ini_file: dest={{ couchdb_local_ini_d }}/local.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=couchdb group=couchdb mode=0640 state={{ item.state }}
+  with_items: couchdb_disable_ssl_options
+  when: not couchdb_ssl_enabled
+  notify: Restart couchdb
+  tags: [ 'couchdb', 'couch_opts']
+
+- name: Custom couchdb configuration
+  ini_file: dest={{ couchdb_local_ini_d }}/local.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=couchdb group=couchdb mode=0640 state={{ item.state }}
+  with_items: couchdb_custom_options
+  when: couchdb_custom_options is defined
+  notify: Restart couchdb
+  tags: [ 'couchdb', 'couch_opts']
+  
+- name: Ensure that couchdb is enabled and running
+  service: name=couchdb state=started enabled=yes
+  when: couchdb_enabled
+  tags: couchdb
+
+- name: Ensure that couchdb is disabled and stopped
+  service: name=couchdb state=stopped enabled=no
+  when: not couchdb_enabled
+  tags: couchdb

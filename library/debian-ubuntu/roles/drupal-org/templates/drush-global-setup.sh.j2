@@ -1,0 +1,14 @@
+#!/bin/bash
+
+DEST_FILE=/usr/local/bin/drush
+
+php -r "readfile('{{ drupal_drush_download_url }}');" > $DEST_FILE
+
+chmod 755 $DEST_FILE
+
+# The init setup is not useful and it is interactive
+#drush init
+
+exit $?
+
+

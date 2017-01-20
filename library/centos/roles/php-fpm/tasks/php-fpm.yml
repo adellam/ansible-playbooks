@@ -1,0 +1,71 @@
+---
+- name: Install the Remi repository package
+  yum: name='{{ php_remi_repo_url }}' state=present
+  when: php_remi_enable_repo
+  tags: [ 'php', 'remi_repo' ]
+
+- name: Enable the required Remi repo
+  command: yum-config-manager --enable remi-php{{ php_shortver }}
+  when: php_remi_enable_repo
+  tags: [ 'php', 'remi_repo' ]
+  
+- name: install the php-fpm package. We assume that apache is the web server of choice.
+  yum: pkg={{ item }} state={{ pkg_state }}
+  with_items: php_fpm_packages
+  tags: php
+
+- name: Set the timezone if we defined one
+  ini_file: dest={{ php_conf_dir }}/php.ini section=Date option=date.timezone value={{ timezone }} backup=yes
+  when: timezone is defined
+  notify: Reload php-fpm
+  tags: [ 'php', 'php_ini' ]
+
+- name: Set some other php.ini values
+  ini_file: dest={{ php_conf_dir }}/php.ini section=Date option={{ item.option }} value={{ item.value }} backup=yes
+  with_items: php_ini_values
+  when: php_ini_values is defined
+  notify: Reload php-fpm
+  tags: [ 'php', 'php_ini' ]
+
+- name: Remove the standard www pool if needed
+  copy: content="" dest={{ php_conf_dir }}/php-fpm.d/www.conf owner=root group=root mode=0444
+  when: phpfpm_remove_default_pool
+  notify: Restart php-fpm
+  tags: [ 'php', 'fpm_pool' ]
+
+- name: Create the base sessions directory
+  file: dest={{ phpfpm_session_prefix }} owner=root group=root mode=0755 state=directory
+  when: phpfpm_use_default_template
+  tags: [ 'php', 'fpm_pool', 'php_session' ]
+
+- name: Create the directories where to store the sessions files. One for each pool
+  file: dest={{ phpfpm_session_prefix }}/{{ item.pool_name }} owner={{ item.user }} group={{ item.group }} mode=0750 state=directory
+  with_items: phpfpm_pools
+  when: phpfpm_use_default_template
+  tags: [ 'php', 'fpm_pool', 'php_session' ]
+
+- name: Install the php-fpm main config file
+  template: src=php-fpm.conf.j2 dest={{ php_conf_dir }}/php-fpm.conf owner=root group=root mode=0444
+  notify: Restart php-fpm
+  tags: [ 'php', 'fpm_pool', 'fpm_conf' ]
+
+- name: Install the php-fpm pools
+  template: src=php-fpm-pool.conf.j2 dest={{ php_conf_dir }}/php-fpm.d/{{ item.pool_name }}.conf owner=root group=root mode=0444
+  with_items: phpfpm_pools
+  when: phpfpm_use_default_template
+  notify: Restart php-fpm
+  tags: [ 'php', 'fpm_pool', 'fpm_conf', 'fpm_pool_conf' ]
+
+- name: Ensure that php-fpm is running and enabled
+  service: name=php-fpm state=started enabled=yes
+  when: phpfpm_service_enabled
+  ignore_errors: True
+  tags: php
+
+- name: Ensure that php-fpm is stopped if it is not meant to be running
+  service: name=php-fpm state=stopped enabled=no
+  when: not phpfpm_service_enabled
+  ignore_errors: True
+  tags: php
+
+

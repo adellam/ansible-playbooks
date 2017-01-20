@@ -1,0 +1,8 @@
+{
+
+{% for opt in opencpu_options %}
+    "{{ opt.name }}": {{ opt.value }}{% if not loop.last %},{% endif %}
+    
+{% endfor %}
+
+}

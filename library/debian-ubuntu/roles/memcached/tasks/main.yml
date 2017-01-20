@@ -1,0 +1,34 @@
+---
+- name: Install the memcached package
+  apt: name={{ item }} state={{ mc_pkg_state }}
+  with_items:
+    - memcached
+  tags: [ 'memcache', 'memcached' ]
+
+- name: Install the memcached conf file
+  template: src={{ item }}.j2 dest=/etc/{{ item }} owner=root group=root mode=0444
+  with_items:
+    - memcached.conf
+  notify: Restart memcached
+  tags: [ 'memcache', 'memcached' ]
+
+- name: Enable memcached
+  action: configfile path=/etc/default/memcached key=ENABLE_MEMCACHED value='yes' syntax=shell
+  when: mc_enabled
+  tags: [ 'memcache', 'memcached' ]
+
+- name: Ensure that the memcached service is started and enabled
+  service: name=memcached state=started enabled=yes
+  when: mc_enabled
+  tags: [ 'memcache', 'memcached' ]
+
+- name: Ensure that the memcached service is stopped
+  service: name=memcached state=stopped enabled=no
+  when: not mc_enabled
+  tags: [ 'memcache', 'memcached' ]
+
+- name: Disable memcached
+  action: configfile path=/etc/default/memcached key=ENABLE_MEMCACHED value='no' syntax=shell
+  when: not mc_enabled
+  tags: [ 'memcache', 'memcached' ]
+

@@ -1,0 +1,7 @@
+---
+grafana_repo_key: https://packagecloud.io/gpg.key
+grafana_repo: 'deb https://packagecloud.io/grafana/testing/debian/ wheezy main'
+grafana_packages:
+  - grafana
+
+grafana_enabled: True

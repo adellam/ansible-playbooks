@@ -1,0 +1,156 @@
+---
+nginx_enabled: True
+nginx_use_ppa: False
+nginx_ppa_repo: ppa:nginx/stable
+nginx_package_state: installed
+
+#nginx_virthosts: []
+
+nginx_snippets_dir: /etc/nginx/snippets
+
+nginx_conf_snippets:
+  - nginx-compression.conf
+  - nginx-websockets.conf
+  - nginx-browser-cache.conf
+  - letsencrypt-proxy.conf
+  - nginx-proxy-params.conf
+  - nginx-server-ssl.conf
+  - nginx-cors.conf
+
+nginx_old_snippets:
+  - compression.conf
+
+nginx_workers: 4
+nginx_worker_connections: 1024
+nginx_multi_accept: 'off'
+nginx_worker_rlimit_nofile: 2048
+nginx_server_tokens: 'off'
+
+nginx_large_client_header_buffers: 4 8k
+
+nginx_enable_compression: True
+nginx_gzip_vary: "on"
+nginx_gzip_proxied: any
+nginx_gzip_comp_level: 6
+nginx_gzip_buffers: 16 8k
+nginx_gzip_http_version: 1.1
+nginx_gzip_types: "text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript"
+
+nginx_enable_browser_cache: True
+nginx_cache_control: public
+nginx_html_cache_expire: -1
+nginx_feed_cache_expire_enabled: False
+nginx_feed_cache_expire: 1h
+nginx_media_cache_expire: 1M
+nginx_css_js_cache_expire: -1
+
+nginx_reverse_proxy: False
+nginx_proxy_buffering: "on"
+nginx_proxy_redirect: "off"
+nginx_proxy_buffer_size: 128k
+nginx_proxy_buffers: 4 256k
+nginx_proxy_busy_buffers_size: 256k
+nginx_proxy_connect_timeout: 30s
+nginx_proxy_read_timeout: 480s
+nginx_proxy_send_timeout: 120s
+nginx_client_max_body_size: 100M
+nginx_client_body_timeout: 240s
+
+nginx_cors_limit_origin: False
+nginx_cors_acl_origin: 'http?://(localhost)'
+
+# Find a set of acceptable defaults for the cache setup
+nginx_cache_enabled: False
+
+nginx_use_ldap_pam_auth: False
+nginx_pam_svc_name: nginx
+nginx_ldap_uri: "ldap://ldap.example.org"
+nginx_ldap_base_dn: "dc=example,dc=org"
+# nginx_ldap_login_attribute: uid
+# nginx_ldap_pam_groupdn:
+nginx_letsencrypt_managed: True
+nginx_websockets_support: False
+nginx_use_common_virthost: False
+
+# Virtualhost example
+# nginx_virthosts:
+#   - virthost_name: '{{ ansible_fqdn }}'
+#     listen: '{{ http_port }}'
+#     server_name: '{{ ansible_fqdn }}'
+#     server_aliases: ''
+#     index: index.html
+#     error_page: /path_to_error_page.html
+#     ssl_enabled: False
+#     ssl_only: False
+#     ssl_letsencrypt_certs: '{{ nginx_letsencrypt_managed }}'
+#     root: /usr/share/nginx/html/
+#     server_tokens: 'off'
+#     proxy_standard_setup: True
+#     proxy_additional_options:
+#       - 'proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache:30m max_size=250m;'
+#     proxies:
+#       - location: /
+#         target: http://localhost:{{ local_http_port }};
+#
+#     extra_parameters: |
+# location ~ \.php$ {
+#         fastcgi_split_path_info ^(.+\.php)(/.+)$;
+#         fastcgi_pass unix:/var/run/php5-fpm.sock;
+#         fastcgi_index index.php;
+#         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+#         include fastcgi_params;
+#       }
+    
+# TODO: ckan, ssl with 80 -> 443 redirection, ssl only (no listening on 80).
+#       If nginx via ppa, proxy_protocol e http/2 too
+#       php, rewrite rules, acls, ldap auth
+#       More robust rules
+#       log format personalization (global, inside conf.d)
+#       CORS
+#       
+# Special cases: mediawiki,...
+#
+# CORS example 1
+    # set $cors '';
+    # if ($http_origin ~* 'https?://(localhost|*\.example\.org)') {
+    #     set $cors 'true';
+    # }
+
+    # if ($cors = 'true') {
+    #     add_header 'Access-Control-Allow-Origin' "$http_origin";
+    #     add_header 'Access-Control-Allow-Credentials' 'true';
+    #     add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
+    #     add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With';
+    # }
+
+    # if ($request_method = 'OPTIONS') {
+    #     return 204;
+    # }
+
+# CORS example 2
+    # location / {
+    #     if ($request_method = 'OPTIONS') {
+    #         add_header 'Access-Control-Allow-Origin' '*';
+    #         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    #         #
+    #         # Custom headers and headers various browsers *should* be OK with but aren't
+    #         #
+    #         add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+    #         #
+    #         # Tell client that this pre-flight info is valid for 20 days
+    #         #
+    #         add_header 'Access-Control-Max-Age' 1728000;
+    #         add_header 'Content-Type' 'text/plain charset=UTF-8';
+    #         add_header 'Content-Length' 0;
+    #         return 204;
+    #     }
+    #     if ($request_method = 'POST') {
+    #         add_header 'Access-Control-Allow-Origin' '*';
+    #         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    #         add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+    #     }
+    #     if ($request_method = 'GET') {
+    #         add_header 'Access-Control-Allow-Origin' '*';
+    #         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    #         add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+    #     }

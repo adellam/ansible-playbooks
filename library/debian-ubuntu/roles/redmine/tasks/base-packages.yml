@@ -1,0 +1,8 @@
+---
+- name: Install the packages needed to run the redmine infrastructure. install the ruby packages needed to run redmine. Use ruby 2.0
+  apt: pkg={{ item }} state=installed
+  with_items: redmine_base_packages
+  tags:
+    - ruby
+    - redmine
+

@@ -1,0 +1,44 @@
+---
+postfix_enabled: True
+postfix_install_packages: True
+# Set it to true when you want configure your machine to send email to a relay
+postfix_relay_client: False
+postfix_biff: "no"
+postfix_append_dot_mydomain: "no"
+postfix_use_relay_host: True
+
+# Accepted values: none, may, encrypt
+postfix_smtpd_tls_security_level: encrypt
+# Accepted values: none, may, encrypt, fingerprint, verify, secure. And from 2.11: dane, dane-only
+postfix_smtp_tls_security_level: encrypt
+postfix_use_sasl_auth: True
+postfix_smtp_sasl_auth_enable: "yes"
+postfix_smtp_create_relay_user: True
+# Set it in the local rules
+#postfix_relay_host: smtp-relay.example.com
+postfix_relay_port: 587
+postfix_default_destination_concurrency_limit: 20
+#postfix_smtp_relay_user: smtp-user
+postfix_smtp_relay_user: '{{ ansible_fqdn }}'
+# This one has to be set inside a vault file
+#postfix_smtp_relay_pwd: set_you_password_here_in_a_vault_encrypted_file
+
+# The following options are used only whe postfix_relay_server is set to True
+postfix_relay_server: False
+postfix_mynetworks: hash:/etc/postfix/network_table
+postfix_interfaces: all
+postfix_inet_protocols: all
+postfix_message_size_limit: 10240000
+
+postfix_sasl_packages:
+  - sasl2-bin
+
+postfix_nagios_check: False
+postfix_nagios_checks:
+  - check_postfix_mailqueue
+  - check_postfix_processed
+
+nagios_postfix_mailq_w: 20
+nagios_postfix_mailq_c: 50
+nagios_postfix_processed_w: 50
+nagios_postfix_processed_c: 150

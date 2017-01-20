@@ -1,0 +1,16 @@
+---
+- name: Create a file system on the new disks
+  filesystem: dev=/dev/{{ item.device }} fstype={{ item.fstype }} force=no
+  with_items: '{{ disks_and_mountpoints_list | default([]) }}'
+  when:
+    - additional_disks
+    - item.create_filesystem
+  tags: [ 'data_disk', 'mountpoint' ]
+
+- name: Manage the additional file systems
+  mount: name={{ item.mountpoint }} src=/dev/{{ item.device }} fstype={{ item.fstype }} opts={{ item.opts }} state={{ item.state }}
+  with_items: '{{ disks_and_mountpoints_list | default([]) }}'
+  when: additional_disks
+  tags: [ 'data_disk', 'mountpoint' ]
+
+  

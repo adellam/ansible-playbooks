@@ -1,0 +1,42 @@
+---
+#
+rsyslog_repo_install: True
+rsyslog_ppa: "ppa:adiscon/v8-stable"
+rsyslog_debian_repo: "deb http://debian.adiscon.com/v8-stable wheezy/"
+rsyslog_repo_key: "AEF0CF8E"
+rsyslog_pkg_status: "latest"
+rsyslog_send_to_elasticsearch: True
+
+rsyslog_use_inotify: True
+# Not used when inotify is enabled
+rsyslog_file_polling_interval: 10
+
+# We use logstash if the elastisearch module is not enabled
+#rsys_logstash_collector_host: logstash.t.hadoop.research-infrastructures.eu
+rsys_logstash_collector_host: logstash
+rsys_logstash_collector_port: 5544
+
+# IMPORTANT: the log_state_file names must be unique
+#rsys_logfiles:
+#  - { logfile: '/var/log/tomcat7/catalina.log', log_tag: 'solr-state', log_state_file: 'solr-state'}
+#  - { logfile: '/var/log/tomcat7/localhost_access.log', log_tag: 'solr-access', log_state_file: 'solr-access'}
+
+#
+# IMPORTANT NOTE: the following setting only work if rsyslog_install_newer_package is set to True
+#
+rsyslog_use_queues: True
+rsyslog_main_queue_size: 1000000
+rsyslog_main_queue_debatchsize: 256
+rsyslog_main_queue_workerthreads: 2
+rsyslog_action_queue_debatchsize: 1024
+rsyslog_action_queue_size: 100000
+rsyslog_action_queue_workerthreads: 5
+# -1 means retry indefinitely if ES is unreachable
+rsyslog_action_resumeretrycount: -1
+
+# The elasticsearch module bypasses logstash and talks directly to elasticsearch
+rsyslog_use_elasticsearch_module: True
+#rsys_elasticsearch_collector_host: logstash.t.hadoop.research-infrastructures.eu
+rsys_elasticsearch_collector_host: logstash
+rsys_elasticsearch_collector_port: 9200
+

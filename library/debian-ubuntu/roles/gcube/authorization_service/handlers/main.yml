@@ -1,0 +1,11 @@
+---
+- name: Restart the authorization service
+  service: name='tomcat-instance-{{ authorization_service_http_port }}' state=restarted
+  when: authorization_service_install
+
+- name: Stop the authorization service
+  service: name='tomcat-instance-{{ authorization_service_http_port }}' state=stopped
+
+- name: Start the authorization service
+  service: name='tomcat-instance-{{ authorization_service_http_port }}' state=started
+  when: authorization_service_install

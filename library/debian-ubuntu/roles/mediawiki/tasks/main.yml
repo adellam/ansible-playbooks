@@ -1,0 +1,45 @@
+---
+- name: Install the php prerequisites
+  apt: name={{ item }} state=present
+  with_items: mw_php_prereq
+  tags: mediawiki
+
+- name: Ensure that the download and install dirs exist
+  file: path={{ item }} state=directory
+  with_items:
+    - '{{ mw_download_dir }}'
+    - '{{ mw_install_dir }}'
+  tags: mediawiki
+  
+- name: Download the mediawiki tar file
+  get_url: url={{ mw_download_url }} dest={{ mw_download_dir }}
+  when: not mw_install_from_package
+  register: mw_download
+  tags: mediawiki
+
+- name: Unpack the mediawiki tar file
+  unarchive: copy=no src={{ mw_download_dir }}/mediawiki-{{ mw_version }}.{{ mw_minor_minor }}.tar.gz dest={{ mw_download_dir }}
+  when: ( mw_download | changed )
+  tags: mediawiki
+
+- name: Move the mediawiki files to the right place
+  command: cp -a {{ mw_download_dir }}/mediawiki-{{ mw_version }}.{{ mw_minor_minor }} {{ mw_install_dir }}/{{ item.virthost }}
+  args:
+    creates: '{{ mw_install_dir }}/{{ item.virthost }}/index.php'
+  with_items: phpfpm_pools
+  register: unpack_mediawiki
+  tags: mediawiki
+
+- name: Set the correct ownership of the mediawiki files
+  file: dest={{ mw_install_dir }}/{{ item.virthost }} owner={{ item.user }} group={{ item.group }} recurse=yes state=directory
+  with_items: phpfpm_pools
+  tags: mediawiki
+
+- name: Remove the original mediawiki unpacked distribution
+  command: rm -fr {{ mw_download_dir }}/mediawiki-{{ mw_version }}.{{ mw_minor_minor }}
+  when: ( unpack_mediawiki | changed )
+  tags: mediawiki
+
+- name: Create the mediawiki conf dir
+  file: path={{ mw_conf_dir }} state=directory
+  tags: mediawiki

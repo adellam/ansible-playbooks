@@ -1,0 +1,56 @@
+---
+#
+# Reference only. Check the iptables-rules.v4.j2 for the list of accepted variables
+#
+#pg_allowed_hosts:
+#  - 146.48.123.17/32
+#  - 146.48.122.110/32
+#
+#munin_server:
+#  - 146.48.122.15
+#  - 146.48.87.88
+#http_port: 80
+#http_allowed_hosts:
+#  - 1.2.3.4/24
+#https_port: 443
+#https_allowed_hosts:
+#  - 0.0.0.0/0
+#
+# Generic tcp and udp access
+# iptables:
+#   tcp_rules: True
+#   tcp:
+#     - { port: '8080', allowed_hosts: [ '{{ network.isti }}', '{{ network.nmis }}', '{{ network.eduroam }}' ] }
+#     - { port: '80', allowed_hosts: [ '{{ network.isti }}', '{{ network.nmis }}', '{{ network.eduroam }}' ] }
+#     - { port: '80' }
+#   udp_rules: True
+#   udp:
+#     - { port: '123', allowed_hosts: [ '{{ network.isti }}', '{{ network.nmis }}', '{{ network.eduroam }}' ] }
+
+# munin_server:
+# - 146.48.122.15
+# - 146.48.87.88
+
+#nagios_monitoring_server_ip: 146.48.123.23
+#mongodb:
+#  start_server: 'yes'
+#  tcp_port: 27017
+#  allowed_hosts:
+#    - 146.48.123.100/32
+
+#iptables_default_policy: REJECT
+iptables_default_policy: ACCEPT
+iptables_nat_enabled: False
+iptables_nat_specify_interfaces: True
+iptables_nat_interfaces:
+  - eth0
+iptables_input_default_policy: '{{ iptables_default_policy }}'
+iptables_forward_default_policy: '{{ iptables_default_policy }}'
+iptables_banned_default_policy: DROP
+ganglia_enabled: False
+nagios_enabled: False
+iptables_open_all_to_isti_nets: False
+tomcat_cluster_enabled: False
+# Another variable needs to be defined before the db rules are set
+psql_firewall_enabled: True
+mysql_firewall_enabled: True

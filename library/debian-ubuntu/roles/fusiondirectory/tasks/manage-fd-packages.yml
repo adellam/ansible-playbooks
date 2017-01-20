@@ -1,0 +1,35 @@
+---
+- block:
+
+    - name: Install the fusiondirectory main packages
+      apt: name={{ item }} state=present update_cache=yes
+      with_items: '{{ fusiondirectory_main_pkgs }}'
+
+    - name: Install the fusiondirectory main plugins
+      apt: name={{ item }} state=present
+      with_items: '{{ fusiondirectory_main_plugins }}'
+
+    - name: Install the fusiondirectory additional plugins
+      apt: name={{ item }} state=present
+      with_items: '{{ fusiondirectory_plugins | default ([]) }}'
+
+  when: fusiondirectory_install
+  tags: fusiondirectory
+  
+- block:
+
+    - name: Remove the fusiondirectory main plugins
+      apt: name={{ item }} state=absent
+      with_items: '{{ fusiondirectory_main_plugins }}'
+
+    - name: Remove the fusiondirectory additional plugins
+      apt: name={{ item }} state=absent
+      with_items: '{{ fusiondirectory_plugins | default ([]) }}'
+
+    - name: Remove the fusiondirectory main packages
+      apt: name={{ item }} state=absent
+      with_items: '{{ fusiondirectory_main_pkgs }}'
+
+  when: not fusiondirectory_install
+  tags: fusiondirectory
+  

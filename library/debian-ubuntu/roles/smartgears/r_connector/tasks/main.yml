@@ -1,0 +1,79 @@
+---
+- block:
+    - name: Remove the installed R connector before upgrading
+      file: dest={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/r-connector'
+        - '{{ smartgears_instance_path }}/webapps/r-connector.war'
+      when: smartgears_upgrade
+
+    - name: Create the R connector webapp directory
+      file: dest={{ smartgears_instance_path }}/webapps/r-connector state=directory
+
+    - name: Get and unpack the R connector war file
+      unarchive: copy=no src={{ r_connector_url }} dest={{ smartgears_instance_path }}/webapps/r-connector
+      args:
+        creates: '{{ smartgears_instance_path }}/webapps/r-connector/WEB-INF/web.xml'
+      
+    - name: Obtain the permission to read the Rstudio secure cookie key
+      become: False
+      file: dest={{ r_connector_rstudio_cookie_key }} mode=640 group={{ smartgears_user }}
+
+    - name: Install the R connector web.xml template
+      template: src=r-web.xml.j2 dest={{ smartgears_instance_path }}/webapps/r-connector/WEB-INF/web.xml mode=0440
+      notify: Restart smartgears 
+
+    - name: Install the packages required to enable the LDAP PAM authentication
+      become: False
+      apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
+      with_items: '{{ r_connector_deb_pkgs }}'
+
+    - name: Install the R add users script
+      become: False
+      template: src=rusersadd.j2 dest={{ r_connector_adduserscript }} owner=root group=root mode=0555
+      tags: [ 'smartgears', 'r_connector', 'tomcat', 'rusersadd' ]
+
+    - name: Crete the directory that will host the RConfiguration stuff
+      become: False
+      file: dest={{ r_connector_rprofile_base_dir }} owner={{ d4science_user }} group={{ d4science_user }} state=directory
+      tags: [ 'smartgears', 'r_connector', 'tomcat', 'rusersadd' ]
+
+    - name: Get the svn repository that provides the .Rprofile
+      subversion: repo={{ r_connector_rprofile_svn_url }} dest={{ r_connector_rprofile_path }}
+      tags: [ 'smartgears', 'r_connector', 'tomcat', 'rusersadd' ]
+
+    - name: Install the cron job that regulary updates the Rprofile
+      cron: name="Update the RStudioConfiguration repo" special_time=daily job="cd {{ r_connector_rprofile_path }} ; svn update >/dev/null 2>&1"
+      tags: [ 'smartgears', 'r_connector', 'tomcat', 'rusersadd' ]
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: r_connector_install
+  tags: [ 'smartgears', 'r_connector', 'tomcat' ]
+
+- block:
+    - name: Remove the installed R connector before upgrading
+      file: dest={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/r-connector'
+        - '{{ smartgears_instance_path }}/webapps/r-connector.war'
+
+    - name: Remove the packages required to enable the LDAP PAM authentication
+      become: False
+      apt: pkg={{ item }} state=absent
+      with_items: '{{ r_connector_deb_pkgs }}'
+
+    - name: Remove the connector raddusers script
+      become: False
+      file: dest={{ r_connector_adduserscript }} state=absent
+
+    - name: Remove the RConfiguration repo
+      file: dest={{ r_connector_rprofile_path }} state=absent
+
+    - name: Remove the cron job that regulary updates the Rprofile
+      cron: name="Update the RStudioConfiguration repo" job="cd {{ r_connector_rprofile_path }} ; svn update >/dev/null 2>&1" state=absent
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: not r_connector_install
+  tags: [ 'smartgears', 'r_connector', 'tomcat' ]

@@ -1,0 +1,8 @@
+---
+- include: pkgs.yml
+
+- name: Enable Docker TCP on local bridge (for docker swarm)
+  action: configfile path=/etc/default/docker syntax=shell key=DOCKER_OPTS value="\"-H tcp://172.17.42.1:2375 -H unix:///var/run/docker.sock\"" 
+  notify: Restart docker
+  when: docker_swarm
+  tags: docker-conf

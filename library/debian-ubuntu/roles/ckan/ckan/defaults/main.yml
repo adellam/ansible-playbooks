@@ -1,0 +1,144 @@
+---
+# To create the first sysadmin user:
+# . /usr/lib/ckan/default/bin/activate
+# cd /usr/lib/ckan/default/src/ckan
+# You have to create your first CKAN sysadmin user from the command line. For example, to create a user called seanh and make him a # sysadmin:
+
+# paster sysadmin add seanh -c /etc/ckan/default/production.ini
+#
+# To create some test data:
+# paster create-test-data -c /etc/ckan/default/production.ini
+
+ckan_version: 2.6
+ckan_deb_file: 'python-ckan_{{ ckan_version }}-{{ ansible_distribution_release }}_amd64.deb'
+ckan_package_url: 'http://packaging.ckan.org/{{ ckan_deb_file }}'
+ckan_libdir: /usr/lib/ckan
+ckan_confdir: /etc/ckan/default
+ckan_virtenv: '{{ ckan_libdir }}/default'
+ckan_file_harvesting_dir: /var/lib/ckan
+ckan_file_storage_dir: '{{ ckan_file_harvesting_dir }}/dev'
+ckan_config_file: '{{ ckan_confdir }}/production.ini'
+ckan_webapp_port: 8080
+ckan_solr_port: 8983
+ckan_shell_user: ckan
+ckan_logdir: /var/log/ckan
+ckan_db_name: ckan
+ckan_db_user: ckan
+
+# CKAN plugins
+ckan_plugins_state: latest
+# Order is important
+ckan_geonetwork_harvester: False
+ckan_ckanext_harvester_url: 'git+https://github.com/ckan/ckanext-harvest.git#egg=ckanext-harvest'
+ckan_ckanext_spatial_url: 'git+https://github.com/okfn/ckanext-spatial.git#egg=ckanext-spatial' 
+ckan_geonetwork_harvester_url: 'https://github.com/geosolutions-it/ckanext-geonetwork.git'
+# Set this to true to install a cron job that regularly runs the harvesters
+ckan_harvester_run: False
+ckan_pdfview: False
+ckan_ckanext_pdfview_url: ckanext-pdfview
+ckan_privatedatasets: False
+ckan_privatedatasets_url: ckanext-privatedatasets
+ckan_privatedatasets_name: privatedatasets
+ckan_hierarchy: False
+ckan_hierarchy_url: 'git+https://github.com/datagovuk/ckanext-hierarchy.git#egg=ckanext-hierarchy'
+ckan_hierarchy_name: hierarchy_display hierarchy_form
+ckan_pages: False
+ckan_pages_url: 'git+https://github.com/ckan/ckanext-pages.git#egg=ckanext-pages'
+ckan_pages_name: pages
+ckan_ldap: False
+#ckan_ldap_url: 'git+https://github.com/NaturalHistoryMuseum/ckanext-ldap'
+ckan_ldap_url: 'https://github.com/NaturalHistoryMuseum/ckanext-ldap'
+ckan_ldap_name: ldap
+ckan_ldap_uri: 'ldap://ldap.example.org'
+ckan_ldap_base_dn: ''
+ckan_ldap_search_filter: 'uid={login}'
+ckan_ldap_user_fullname: 'cn'
+ckan_ldap_username: uid
+ckan_ldap_email: mail
+ckan_ldap_prevent_edits: True
+ckan_ldap_fallback: True
+ckan_ckanext_lire: False
+ckan_ckanext_lire_n: lire
+ckan_ckanext_lire_url: 'https://github.com/milicp/ckanext-lire.git'
+# OAI-PMH
+ckan_oai_pmh: False
+ckan_oai_pmh_name: oaipmh
+ckan_oai_pmh_url: 'https://github.com/kata-csc/ckanext-oaipmh.git'
+# Google analytics
+ckan_google_analytics: False
+ckan_google_analytics_name: googleanalytics
+ckan_google_analytics_url: 'git+https://github.com/ckan/ckanext-googleanalytics.git#egg=ckanext-googleanalytics'
+ckan_google_analytics_fixed_file: 'http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-catalogue/ckan-d4science-extension/plugins/googleanalytics/plugin.py'
+# Google analytics reports
+ckan_ga_reports: False
+ckan_ga_reports_name: ga-report
+ckan_ga_reports_url: 'git+https://github.com/datagovuk/ckanext-ga-report.git#egg=ckanext-ga-report'
+
+
+# Needed to install some CKAN plugins
+ckan_additional_packages:
+  - git
+  - libxslt1-dev
+  - gcc
+  - python-dev
+  - libffi-dev
+  - libxml2-dev
+  - zlib1g-dev
+  - libxslt1-dev
+  - libgeos-c1
+  - libldap2-dev
+  - libsasl2-dev
+  - libssl-dev
+
+ckan_pip_dependencies:
+  - lxml
+  - factory
+  - python-ldap
+  - rdflib
+  - 'urllib3[secure]'
+  - bleach
+
+ckan_pip_versioned_dependencies:
+  - { name: 'SQLAlchemy', version: '0.9.6', state: 'present' }
+
+#
+apache_additional_packages:
+  - libapache2-mod-uwsgi
+  - libpq5
+
+apache_additional_modules:
+  - uwsgi
+
+ckan_production_ini_opts:
+  - { section: 'app:main', option: 'ckan.site_id', value: 'ckan_installation', state: 'present' }
+  - { section: 'app:main', option: 'sqlalchemy.url', value: 'postgresql://{{ ckan_db_user }}:{{ ckan_db_pwd }}@{{ psql_db_host }}/{{ ckan_db_name }}', state: 'present' }
+  - { section: 'app:main', option: 'ckan.site_url', value: 'http://{{ ansible_fqdn }}', state: 'present' }
+  - { section: 'app:main', option: 'solr_url', value: 'http://127.0.0.1:{{ ckan_solr_port }}/solr', state: 'present' }
+  - { section: 'app:main', option: 'ckan.datastore.write_url', value: 'postgresql://{{ ckan_db_user }}:{{ ckan_db_pwd }}@{{ psql_db_host }}/{{ ckan_datastore_db_name }}', state: 'present' }
+  - { section: 'app:main', option: 'ckan.datastore.read_url', value: 'postgresql://{{ ckan_datastore_db_reader }}:{{ ckan_db_pwd }}@{{ psql_db_host }}/{{ ckan_datastore_db_name }}', state: 'present' }
+  - { section: 'app:main', option: 'ckan.site_title', value: 'D4Science CKAN development installation', state: 'present' }
+  - { section: 'app:main', option: 'ckan.site_logo', value: '/base/images/ckan-logo.png', state: 'present' }
+  - { section: 'app:main', option: 'ckan.max_resource_size', value: '10', state: 'present' }
+  - { section: 'app:main', option: 'ckan.max_image_size', value: '2', state: 'present' }
+  - { section: 'app:main', option: 'ckan.tracking_enabled', value: 'true', state: 'present' }
+  - { section: 'app:main', option: 'ckan.privatedatasets.show_acquire_url_on_create', value: 'true', state: 'present' }
+  - { section: 'app:main', option: 'ckan.privatedatasets.show_acquire_url_on_edit', value: 'true', state: 'present' }
+
+ckan_production_ini_plugins_opts:
+  - { section: 'app:main', option: 'ckan.plugins', value: 'stats text_view image_view recline_view datastore datapusher harvest', state: 'present' }
+  - { section: 'app:main', option: 'ckan.datapusher.url', value: 'http://127.0.0.1:8800', state: 'present' }
+  - { section: 'app:main', option: 'ckan.datapusher.formats', value: 'csv xls xlsx tsv application/csv application/vnd.ms-excel application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', state: 'present' }
+  - { section: 'app:main', option: 'ckan.storage_path', value: '{{ ckan_file_storage_dir }}', state: 'present' }
+  - { section: 'app:main', option: 'ckan.harvest.mq.type', value: 'redis', state: 'present' }
+  - { section: 'app:main', option: 'ckan.harvest.mq.hostname', value: 'localhost', state: 'present' }
+  - { section: 'app:main', option: 'ckan.harvest.mq.port', value: '6379', state: 'present' }
+  - { section: 'app:main', option: 'ckan.harvest.mq.db', value: '0', state: 'present' }
+  - { section: 'app:main', option: 'ckanext.spatial.search_backend', value: 'solr', state: 'present' }
+  - { section: 'app:main', option: 'ckanext.pages.organization', value: 'true', state: 'present' }
+  - { section: 'app:main', option: 'ckanext.pages.group', value: 'true', state: 'present' }
+  - { section: 'app:main', option: 'ckanext.pages.about_menu', value: 'false', state: 'absent' }
+  - { section: 'app:main', option: 'ckanext.pages.group_menu', value: 'false', state: 'absent' }
+  - { section: 'app:main', option: 'ckanext.pages.organization_menu', value: 'false', state: 'absent' }
+
+ckan_gather_fetch_pkgs:
+  - supervisor

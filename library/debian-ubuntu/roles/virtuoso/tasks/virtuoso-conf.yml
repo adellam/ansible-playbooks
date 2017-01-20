@@ -1,0 +1,35 @@
+---
+- name: Create the user under which virtuoso will run
+  user: name={{ virtuoso_user }} createhome=no home={{ virtuoso_base_dir }} comment="Virtuoso User" system=yes state=present
+  when: ( virtuoso_user != 'root' )
+  tags: [ 'virtuoso', 'virtuoso_conf' ]
+
+- name: Set up the defaults file
+  action: configfile path=/etc/default/virtuoso-opensource-{{ virtuoso_version }} key={{ item.key }} value="{{ item.value }}" syntax=shell
+  with_items: virtuoso_defaults
+  notify: Restart virtuoso
+  tags: [ 'virtuoso', 'virtuoso_conf' ]
+
+- name: Set up the virtuoso ini file
+  ini_file: dest=/etc/virtuoso-opensource-{{ virtuoso_version }}/virtuoso.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=root group=root mode=0444
+  with_items: virtuoso_ini_opts
+  notify: Restart virtuoso
+  tags: [ 'virtuoso', 'virtuoso_conf' ]
+
+- name: Set up the virtuoso ini file with additional options if there are any
+  ini_file: dest=/etc/virtuoso-opensource-{{ virtuoso_version }}/virtuoso.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=root group=root mode=0444
+  with_items: virtuoso_more_ini_opts
+  when:
+    - virtuoso_set_more_ini_opts
+    - virtuoso_more_ini_opts is defined
+  notify: Restart virtuoso
+  tags: [ 'virtuoso', 'virtuoso_conf' ]
+
+- name: Set the directory permissions for the virtuoso user
+  file: path={{ item }} state=directory recurse=yes owner={{ virtuoso_user }} group={{ virtuoso_user }}
+  with_items:
+    - '{{ virtuoso_db_dir }}'
+    - '{{ virtuoso_log_dir }}'
+  when: ( virtuoso_user != 'root' )
+  tags: [ 'virtuoso', 'virtuoso_conf' ]
+

@@ -1,0 +1,7 @@
+---
+- include: couchdb-1.yml
+  when: couchdb_use_old_package
+- include: couchdb-2.yml
+  when: not couchdb_use_old_package
+- include: ganglia-plugin.yml
+  when: ganglia_enabled

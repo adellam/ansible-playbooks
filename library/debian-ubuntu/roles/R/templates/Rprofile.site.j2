@@ -1,0 +1,13 @@
+##						Emacs please make this -*- R -*-
+## empty Rprofile.site for R on Debian
+##
+## Copyright (C) 2008 Dirk Eddelbuettel and GPL'ed
+##
+## see help(Startup) for documentation on ~/.Rprofile and Rprofile.site
+#
+# NOTE: managed by ansible
+#
+local({r <- getOption("repos")
+       r["CRAN"] <- "{{ r_cran_mirror_site }}"
+       options(repos=r)
+})

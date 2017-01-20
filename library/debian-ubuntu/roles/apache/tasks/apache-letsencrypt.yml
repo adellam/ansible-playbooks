@@ -1,0 +1,47 @@
+---
+- block:
+    - name: Enable the proxy modules needed by letsencrypt
+      apache2_module: name={{ item }} state=present
+      with_items: '{{ apache_letsencrypt_proxy_modules }}'
+      notify: apache2 reload 
+
+    - name: Install the apache letsencrypt directives on trusty
+      template: src={{ item }}.j2 dest=/etc/apache2/conf-available/{{ item }} owner=root group=root mode=0644
+      with_items: '{{ apache_letsencrypt_proxy_conf }}'
+      when: is_trusty
+      notify: apache2 reload 
+
+    - name: Enable the apache letsencrypt directives on trusty
+      file: src=/etc/apache2/conf-available/{{ item }} dest=/etc/apache2/conf-enabled/{{ item }} state=link
+      with_items: '{{ apache_letsencrypt_proxy_conf }}'
+      when: is_trusty
+      notify: apache2 reload 
+
+    - name: Install the apache letsencrypt directives on precise
+      template: src={{ item }}.j2 dest=/etc/apache2/conf.d/{{ item }} owner=root group=root mode=0644
+      with_items: '{{ apache_letsencrypt_proxy_conf }}'
+      when: is_precise
+      notify: apache2 reload 
+
+    - name: Create the acme hooks directory if it does not yet exist
+      file: dest={{ letsencrypt_acme_services_scripts_dir }} state=directory owner=root group=root
+
+    - name: Install a letsencrypt hook for apache
+      copy: src=apache-letsencrypt-acme.sh dest={{ letsencrypt_acme_services_scripts_dir }}/apache2 owner=root group=root mode=4555
+
+  when:
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+    - apache_letsencrypt_managed
+  tags: [ 'apache', 'letsencrypt' ]
+
+- block:
+    - name: Disable the letsencrypt conf
+      file: dest=/etc/apache2/conf-enabled/letsencrypt-proxy.conf state=absent
+      notify: apache2 reload 
+
+    - name: Remove the letsencrypt hook for apache
+      file: path={{ letsencrypt_acme_services_scripts_dir }}/apache2 state=absent
+
+  when: not apache_letsencrypt_managed
+  tags: [ 'apache', 'letsencrypt' ]
+

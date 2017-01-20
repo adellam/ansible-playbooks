@@ -1,0 +1,67 @@
+---
+orientdb_install: False
+orientdb_enabled: True
+orientdb_version: 2.2.13
+orientdb_dir: 'orientdb-community'
+orientdb_tar_file: '{{ orientdb_dir }}-{{ orientdb_version }}.tar.gz'
+orientdb_binary_distribution_url: 'http://orientdb.com/download.php?file={{ orientdb_tar_file }}' 
+orientdb_user: orientdb
+orientdb_log_dir: /var/log/orientdb
+orientdb_log_level: INFO
+orientdb_home_prefix: /home
+orientdb_base_dir: '{{ orientdb_home_prefix }}/{{ orientdb_user }}'
+orientdb_install_dir: '{{ orientdb_base_dir }}/{{ orientdb_dir }}'
+orientdb_data_dir: '{{ orientdb_home_prefix }}/{{ orientdb_user }}/databases'
+orientdb_pid_dir: '{{ orientdb_home_prefix }}/{{ orientdb_user }}/pid'
+orientdb_configuration_files:
+  - orientdb-server-log.properties
+  - orientdb-server-config.xml
+  - default-distributed-db-config.json
+  - hazelcast.xml
+  - automatic-backup.json
+
+orientdb_letsencrypt_ssl_enabled: False
+
+orientdb_hooks_classes:
+  - { name: 'org.gcube.informationsystem.orientdb.hooks.HeaderHook', position: 'REGULAR' }
+  - { name: 'org.gcube.informationsystem.orientdb.hooks.ConsistsOfHook', position: 'REGULAR' }
+  - { name: 'org.gcube.informationsystem.orientdb.hooks.IsRelatedToHook', position: 'REGULAR' }
+
+#orientdb_hooks_jars:
+#  - 'http://maven.research-infrastructures.eu/nexus/service/local/artifact/maven/redirect?r=gcube-snapshots&g=org.gcube.information-system&a=resource-registry-orientdb-hooks&v=1.2.0-SNAPSHOT&e=jar&c=jar-with-dependencies'
+#orientdb_hooks_to_be_removed:
+# - hook*.jar
+
+orientdb_binary_protocol_lower_port: 2424
+orientdb_binary_protocol_higher_port: 2430
+orientdb_http_protocol_lower_port: 2480
+orientdb_http_protocol_higher_port: 2490
+
+orientdb_java_heap: '-Xms1024m -Xmx2048m'
+orientdb_default_settings: ''
+
+orientdb_distributed: False
+orientdb_distributed_autodeploy: 'true'
+#orientdb_distributed_writequorum: 'majority'
+orientdb_distributed_writequorum: 'all'
+orientdb_distributed_readquorum: 1
+orientdb_distributed_readyourwrites: 'true'
+orientdb_distributed_executionmode: 'undefined'
+orientdb_hazelcast_group_name: orientdb
+orientdb_hazelcast_group_password: orientdb
+orientbd_hazelcast_encryption: False
+orientdb_hazelcast_multicast_enabled: True
+orientdb_hazelcast_multicast_group: 235.1.1.1
+orientdb_hazelcast_multicast_port: 2434
+
+
+# For Reference see http://orientdb.com/docs/2.2/Automatic-Backup.html
+orientdb_automatic_backup: True
+orientdb_automatic_backup_mode: 'EXPORT'
+orientdb_automatic_backup_export_options: ''
+orientdb_automatic_backup_delay: 24h
+orientdb_automatic_backup_first_time: '23:00:00'
+orientdb_automatic_backup_directory: '{{ orientdb_home_prefix }}/{{ orientdb_user }}/backups'
+orientdb_automatic_backup_target_file_name: '${DBNAME}-${DATE:yyyyMMddHHmmss}.zip'
+orientdb_automatic_backup_compression_level: 9
+orientdb_automatic_backup_buffer_size: 1048576

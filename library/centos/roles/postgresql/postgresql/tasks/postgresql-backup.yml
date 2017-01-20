@@ -1,0 +1,16 @@
+---
+- name: Backup script for the postgresql database(s)
+  copy: src=postgresql-backup.sh dest=/usr/local/sbin/postgresql-backup owner=root mode=0744
+  tags: [ 'postgresql', 'pg_backup' ]
+
+- name: cron job for the postgresql database(s) backup
+  copy: src=postgresql-backup.cron dest=/etc/cron.daily/postgresql-backup owner=root mode=0744
+  tags: [ 'postgresql', 'pg_backup' ]
+
+- name: postgresql backup defaults
+  template: src=pg_backup-default.j2 dest={{ pg_backup_conf_dir }}/pg_backup  owner=root mode=0744
+  tags: [ 'postgresql', 'pg_backup' ]
+
+- name: authorization file for the database backup
+  template: src=pgpass.j2 dest={{ pg_backup_pass_file }} owner=root mode=0600
+  tags: [ 'postgresql', 'pg_backup' ]

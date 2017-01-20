@@ -1,0 +1,23 @@
+---
+- name: install denyhosts on debian <=7 and ubuntu <= 12.04
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - denyhosts
+  tags: denyhosts
+
+- name: ensure CM can access the VMs
+  action: |
+    lineinfile name=/etc/hosts.allow regexp="sshd: 146.48.123.18$" line="sshd: 146.48.123.18"
+  tags: denyhosts
+
+- name: ensure Monitoring can connect via ssh
+  action: |
+    lineinfile name=/etc/hosts.allow regexp="sshd: 146.48.123.23$" line="sshd: 146.48.123.23"
+  tags: denyhosts
+
+- name: Set the treshold for root on the denyhosts config file
+  lineinfile: |
+    name=/etc/denyhosts.conf regexp="^DENY_THRESHOLD_ROOT = " line="DENY_THRESHOLD_ROOT = 5"
+  notify: Restart denyhosts
+  tags: denyhosts 
+

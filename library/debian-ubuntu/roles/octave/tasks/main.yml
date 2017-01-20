@@ -1,0 +1,27 @@
+---
+- block:
+    - name: Install the octave repository
+      apt_repository: repo={{ octave_repo }} update_cache=yes
+
+    - name: Install the octave packages
+      apt: pkg={{ item }} state={{ octave_pkg_state }} update_cache=yes cache_valid_time=3600
+      with_items: '{{ octave_pkgs }}'
+
+    - name: Install the octave external dependencies packages
+      apt: pkg={{ item }} state={{ octave_pkg_state }} update_cache=yes cache_valid_time=3600
+      with_items: '{{ octave_external_deps }}'
+
+  tags: octave
+  when: octave_install
+
+
+- block:
+    - name: Remove the octave repository
+      apt_repository: repo={{ octave_repo }} state=absent
+
+    - name: Remove the octave packages
+      apt: pkg={{ item }} state=absent
+      with_items: '{{ octave_pkgs }}'
+
+  tags: octave
+  when: not octave_install

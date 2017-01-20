@@ -1,0 +1,6 @@
+---
+#
+# NB: reload is not supported by vsftpd
+#
+- name: Restart vsftpd
+  service: name=vsftpd state=restarted

@@ -1,0 +1,48 @@
+---
+mysql_enabled: True
+mysql_pkg_state: present
+mysql_conf_dir: /etc/mysql/conf.d
+mysql_socket: /var/run/mysqld/mysqld.sock
+mysql_data_dir: /var/lib/mysql
+mysql_log_dir: /var/log/mysql
+
+# python-mysqldb is needed by ansible to manage users and databases
+mysql_packages_list:
+  - mysql-server
+  - mysql-client
+  - mytop
+  - python-mysqldb
+
+mysql_db_name: db_name
+mysql_db_user: db_user
+mysql_db_pwd: "We cannot save the password into the repository. Use another variable and change pgpass.j2 accordingly. Encrypt the file that contains the variable with ansible-vault"
+
+# Alternatives: utf8
+mysql_default_encoding: utf8mb4
+# Alternatives: utf8_unicode_ci utf8_bin
+mysql_default_collation: utf8mb4_unicode_ci
+mysql_db_host: localhost
+mysql_db_port: 3306
+mysql_db_max_connections: 100
+mysqld_db_read_buffer_size: 128K
+mysql_db_read_rnd_buffer_size: 256K
+mysql_db_innodb_data_file_path: 'ibdata1:10M:autoextend'
+mysql_db_innodb_buffer_pool_size: 256M
+mysql_db_innodb_additional_mem_pool_size: 5M
+# Set .._log_file_size to 25 % of buffer pool size
+mysql_db_innodb_log_file_size: 64M
+mysql_db_innodb_log_buffer_size: 9M
+mysql_safe_open_files_limit: 1024
+mysql_max_allowed_packet: 16M
+
+mysql_listen_on_ext_int: False
+#mysql_db_data:
+#  - { name: '{{ mysql_db_name }}', collation: '{{ mysql_default_collation }}', encoding: '{{ mysql_default_encoding }}', user: '{{ mysql_db_user }}', pwd: '{{ mysql_db_pwd }}', user_grant: 'ALL', allowed_hosts: [ 'localhost', 'yyy.yyy.yyy.yyy/32' ] }
+
+mysql_backup_use_nagios: False
+mysql_backup_logdir: '{{ mysql_log_dir }}'
+mysql_backup_logfile: '{{ mysql_backup_logdir }}/my_backup.log'
+mysql_backup_retain_copies: 15
+mysql_backup_destdir: /var/lib/mysql-backup
+mysql_backup_exclude_list: "performance_schema"
+

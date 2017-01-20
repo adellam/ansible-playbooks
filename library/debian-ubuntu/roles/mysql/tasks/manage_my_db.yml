@@ -1,0 +1,24 @@
+---
+- name: Add databases to mysql, if any
+  mysql_db: name={{ item.name }} collation={{ item.collation }} encoding={{ item.encoding }} state=present
+  with_items: '{{ mysql_db_data | default([]) }}'
+  when: item.name is defined
+  tags: [ 'mysql', 'mysql_db' ]
+
+- name: Add a user for the databases
+  mysql_user: name={{ item.0.user }} password={{ item.0.pwd }} host={{ item.1 }} priv="{{ item.0.name }}.*:{{ item.0.user_grant }}" state=present
+  with_subelements:
+    - '{{ mysql_db_data | default([]) }}'
+    - allowed_hosts
+  when: item.0.name is defined
+  tags: [ 'mysql', 'mysql_db', 'mysql_user' ]
+
+- name: Additional user privileges, if defined
+  mysql_user: name={{ item.0.user }} append_privs=yes priv="{{ item.0.name }}.*:{{ item.0.additional_privs }}" state=present
+  with_subelements:
+    - '{{ mysql_db_data | default([]) }}'
+    - allowed_hosts
+  when:
+    - item.0.name is defined
+    - item.0.additional_privs is defined
+  tags: [ 'mysql', 'mysql_db', 'mysql_user' ]

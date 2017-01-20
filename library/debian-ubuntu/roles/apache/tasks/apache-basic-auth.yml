@@ -1,0 +1,38 @@
+---
+- name: Load the basic auth modules
+  apache2_module: name={{ item }} state=present
+  with_items: '{{ apache_basic_auth_modules }}'
+  notify: apache2 reload
+  tags:
+    - apache
+    - apache_basic_auth
+
+- name: Create the authentication directory
+  file: path={{ apache_basic_auth_dir }} mode=0750 owner=root group={{ apache_group }} state=directory
+  tags:
+    - apache
+    - apache_basic_auth
+
+- name: Install the python-passlib library
+  apt: pkg=python-passlib state=present
+  tags:
+    - apache
+    - apache_basic_auth
+  
+- name: Create the basic auth file
+  htpasswd: path={{ apache_basic_auth_file }} name={{ item.username }} password={{ item.password }} create=yes state={{ item.state }}
+  when: apache_basic_users is defined and apache_basic_auth_single_file
+  tags:
+    - apache
+    - apache_basic_auth
+  ignore_errors: True
+
+- name: Create the basic auth file
+  htpasswd: path={{ item.auth_file }} name={{ item.username }} password={{ item.password }} create=yes state={{ item.state }}
+  with_items: '{{ apache_basic_users | default([]) }}'
+  when: apache_basic_users is defined and not apache_basic_auth_single_file
+  tags:
+    - apache
+    - apache_basic_auth
+  ignore_errors: True
+

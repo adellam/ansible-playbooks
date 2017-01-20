@@ -1,0 +1,5 @@
+---
+- name: rabbitmq restart
+  service: name=rabbitmq-server state=restarted
+  when: rabbitmq_enabled
+  

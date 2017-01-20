@@ -1,0 +1,11 @@
+# The distinguished name of the search base.
+BASE {{ ldap_base_dn }}
+
+# Another way to specify your LDAP server is to provide an
+URI {{ ldap_uri }}
+
+# The LDAP version to use (defaults to 3
+# if supported by client library)
+ldap_version 3
+
+nss_initgroups_ignoreusers avahi,backup,bin,daemon,games,gnats,irc,libuuid,list,lp,mail,man,messagebus,munin,news,nslcd,proxy,root,rstudio-server,sshd,sync,sys,syslog,uucp,www-data

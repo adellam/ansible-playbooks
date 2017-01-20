@@ -1,0 +1,11 @@
+---
+# A generic PKI directory where the local certificates will be stored
+pki_dir: /etc/pki/tls
+pki_subdirs:
+  - certs
+  - private
+
+pki_cert_name: ssl_certificate
+pki_cert_duration_days: 365
+pki_cert_key_data: 'rsa:2048'
+pki_cert_subject: '/CN={{ ansible_fqdn }}'

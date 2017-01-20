@@ -1,0 +1,14 @@
+---
+- name: Install the solr schema used by CKAN
+  file: src=/usr/lib/ckan/default/src/ckan/ckan/config/solr/schema.xml dest={{ solr_collections_base_dir }}/{{ item }}/conf/schema.xml state=link force=yes
+  with_items: '{{ solr_cores }}'
+  when: not ckan_geonetwork_harvester
+  notify: Solr Restart
+  tags: [ 'ckan', 'solr', 'solr_schema', 'solr_core' ]
+
+- name: Install the solr schema used by CKAN, modified with the spatial fields
+  copy: src=schema.xml dest={{ solr_collections_base_dir }}/{{ item }}/conf/schema.xml force=yes
+  with_items: '{{ solr_cores }}'
+  when: ckan_geonetwork_harvester
+  notify: Solr Restart
+  tags: [ 'ckan', 'solr', 'solr_schema', 'solr_core' ]

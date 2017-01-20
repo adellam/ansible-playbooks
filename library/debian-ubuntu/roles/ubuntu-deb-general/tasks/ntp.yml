@@ -1,0 +1,9 @@
+---
+- name: Install the ntp server
+  apt: pkg=ntp state={{ pkg_state }}
+  tags: [ 'packages', 'ntp' ]
+
+- name: Ensure that the ntp server is running
+  service: name=ntp state=started enabled=yes
+  tags: [ 'packages', 'ntp' ]
+

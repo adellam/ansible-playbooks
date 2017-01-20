@@ -1,0 +1,44 @@
+---
+- name: Install the apache packages
+  apt: pkg={{ item }} state=installed
+  with_items: '{{ apache_packages }}'
+  tags: [ 'apache', 'apache_main_packages' ]
+
+- name: Install the apache additional packages, if any
+  apt: pkg={{ item }} state=installed
+  with_items: '{{ apache_additional_packages_list }}'
+  when: apache_additional_packages
+  tags: [ 'apache', 'apache_additional_packages' ]
+
+- name: Load the required worker module
+  apache2_module: name={{ item.name }} state={{ item.state }}
+  with_items: '{{ apache_worker_modules }}'
+  when: is_trusty
+  notify: apache2 restart
+  tags: [ 'apache', 'apache_modules', 'apache_workers_modules' ]
+
+- name: Load the required modules
+  apache2_module: name={{ item }} state=present
+  with_items: '{{ apache_default_modules }}'
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_modules' ]
+
+- name: Remove the default virtualhost file
+  file: dest=/etc/apache2/sites-enabled/{{ item }} state=absent
+  with_items:
+    - 000-default
+    - 000-default.conf
+  notify: apache2 reload
+  tags: apache
+
+- name: Ensure that the apache service is enabled and started
+  service: name=apache2 state=started enabled=yes
+  when: apache_service_enabled
+  ignore_errors: True
+  tags: apache
+
+- name: Ensure that the apache service is disabled and stopped if we do not want it running
+  service: name=apache2 state=stopped enabled=no
+  when: not apache_service_enabled
+  ignore_errors: True
+  tags: apache

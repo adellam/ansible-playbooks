@@ -1,0 +1,219 @@
+#
+# GITBLIT.PROPERTIES
+#
+# Define your custom settings in this file and/or include settings defined in
+# other properties files.
+#
+
+# Include Gitblit's 'defaults.properties' within your configuration.
+#
+# NOTE: Gitblit will not automatically reload "included" properties.  Gitblit
+# only watches the 'gitblit.properties' file for modifications.
+#
+# Paths may be relative to the ${baseFolder} or they may be absolute.
+#
+# COMMA-DELIMITED
+# SINCE 1.7.0
+include = {{ gitblit_data_dir }}/defaults.properties
+
+#
+# Define your overrides or custom settings below
+#
+server.httpPort = {{ gitblit_http_port }}
+server.httpsPort = {{ gitblit_https_port }}
+server.redirectToHttpsPort = {{ gitblit_redirect_to_https }}
+server.httpBindInterface = {{ gitblit_http_interface }}
+server.httpsBindInterface = {{ gitblit_https_interface }}
+server.shutdownPort = {{ gitblit_shutdown_port }}
+server.storePassword = {{ gitblit_server_storepassword }}
+git.daemonPort = {{ gitblit_git_daemon_port }}
+git.daemonBindInterface = {{ gitblit_daemon_interface }}
+git.sshPort = {{ gitblit_ssh_port }}
+git.sshBindInterface = {{ gitblit_ssh_interface }}
+git.requiresClientCertificate = {{ gitblit_require_client_ssl_certs }}
+git.acceptedPushTransports = {{ gitblit_git_accepted_push_transport }}
+git.defaultAuthorizationControl = {{ gitblit_default_auth_control }}
+git.createRepositoriesShared = {{ gitblit_creates_repo_shared }}
+git.enableGitServlet = {{ gitblit_enable_git_servlet }}
+# NOTE:
+# This requires git.enableGitServlet = true AND it requires an authenticated
+# git transport connection (http/https) when pushing from a client.
+#
+# Valid services include:
+#    com.gitblit.tickets.FileTicketService
+#    com.gitblit.tickets.BranchTicketService
+#    com.gitblit.tickets.RedisTicketService
+#
+# SINCE 1.4.0
+# RESTART REQUIRED
+tickets.service = {{ gitblit_tickets_service }}
+tickets.acceptNewTickets = {{ gitblit_accept_new_tickets }}
+
+web.allowDeletingNonEmptyRepositories = {{ gitblit_allow_deleting_non_empty_repo }}
+realm.authenticationProviders = {{ gitblit_auth_providers }}
+web.siteName = {{ gitblit_web_sitename }}
+web.headerLogo = {{ gitblit_web_logo }}
+web.canonicalUrl = {{ gitblit_canonical_url }}
+#
+# Auth
+#
+#
+{% if gitblit_auth_ldap_enabled %}
+realm.userService = com.gitblit.LdapUserService
+realm.ldap.backingUserService = ${baseFolder}/users.conf
+{% endif %}
+
+realm.windows.permitBuiltInAdministrators = {{ gitblit_windows_permitbuiltinadmin }}
+# Redmine backend
+realm.redmine.url = {{ gitblit_redmine_url }}
+
+# URL of the LDAP server.
+# To use encrypted transport, use either ldaps:// URL for SSL or ldap+tls:// to
+# send StartTLS command.
+#
+realm.ldap.server = {{ gitblit_ldap_server_url }}
+
+# Login username for LDAP searches.
+# If this value is unspecified, anonymous LDAP login will be used.
+#
+# e.g. mydomain\\username
+#
+realm.ldap.username = {{ gitblit_ldap_username }}
+
+# Login password for LDAP searches.
+#
+realm.ldap.password = {{ gitblit_ldap_password }}
+
+# Bind pattern for Authentication.
+# Allow to directly authenticate an user without LDAP Searches.
+#
+# e.g. CN=${username},OU=Users,OU=UserControl,OU=MyOrganization,DC=MyDomain
+#
+realm.ldap.bindpattern = {{ gitblit_ldap_auth_bind_pattern }}
+# Delegate team membership control to LDAP.
+#
+# If true, team user memberships will be specified by LDAP groups.  This will
+# disable team selection in Edit User and user selection in Edit Team.
+#
+# If false, LDAP will only be used for authentication and Gitblit will maintain
+# team memberships with the *realm.ldap.backingUserService*.
+#
+realm.ldap.maintainTeams = {{ gitblit_ldap_maintainteams }}
+
+# Root node for all LDAP users
+#
+# This is the root node from which subtree user searches will begin.
+# If blank, Gitblit will search ALL nodes.
+#
+realm.ldap.accountBase = {{ gitblit_ldap_accountbase }}
+
+# Filter criteria for LDAP users
+#
+# Query pattern to use when searching for a user account. This may be any valid
+# LDAP query expression, including the standard (&) and (|) operators.
+#
+# Variables may be injected via the ${variableName} syntax.
+# Recognized variables are:
+#    ${username} - The text entered as the user name
+#
+realm.ldap.accountPattern = {{ gitblit_ldap_accountpattern }}
+
+# Root node for all LDAP groups to be used as Gitblit Teams
+#
+# This is the root node from which subtree team searches will begin.
+# If blank, Gitblit will search ALL nodes.
+#
+realm.ldap.groupBase = {{ gitblit_ldap_groupbase }}
+
+# Filter criteria for LDAP groups
+#
+# Query pattern to use when searching for a team. This may be any valid
+# LDAP query expression, including the standard (&) and (|) operators.
+#
+# Variables may be injected via the ${variableName} syntax.
+# Recognized variables are:
+#    ${username} - The text entered as the user name
+#    ${dn} - The Distinguished Name of the user logged in
+#
+# All attributes from the LDAP User record are available. For example, if a user
+# has an attribute "fullName" set to "John", "(fn=${fullName})" will be
+# translated to "(fn=John)".
+#
+realm.ldap.groupMemberPattern = {{ gitblit_ldap_groupmemberpattern }}
+
+# Filter criteria for empty LDAP groups
+#
+# Query pattern to use when searching for an empty team. This may be any valid
+# LDAP query expression, including the standard (&) and (|) operators.
+#
+# default: (&(objectClass=group)(!(member=*)))
+realm.ldap.groupEmptyMemberPattern = {{ gitblit_ldap_groupemptymemberpattern }}
+
+# LDAP users or groups that should be given administrator privileges.
+#
+# Teams are specified with a leading '@' character.  Groups with spaces in the
+# name can be entered as "@team name".  This setting only applies when using
+# LDAP to maintain team memberships.
+#
+# e.g. realm.ldap.admins = john @git_admins "@git admins"
+#
+# SPACE-DELIMITED
+realm.ldap.admins = {{ gitblit_ldap_git_admins }}
+
+# Attribute(s) on the USER record that indicate their display (or full) name.
+# Leave blank for no mapping available in LDAP.
+#
+# This may be a single attribute, or a string of multiple attributes.  Examples:
+#  displayName - Uses the attribute 'displayName' on the user record
+#  ${personalTitle}. ${givenName} ${surname} - Will concatenate the 3
+#       attributes together, with a '.' after personalTitle
+#
+realm.ldap.displayName = {{ gitblit_ldap_displayname }}
+
+# Attribute(s) on the USER record that indicate their email address.
+# Leave blank for no mapping available in LDAP.
+#
+# This may be a single attribute, or a string of multiple attributes.  Examples:
+#  email - Uses the attribute 'email' on the user record
+#  ${givenName}.${surname}@gitblit.com -Will concatenate the 2 attributes
+#       together with a '.' and '@' creating something like first.last@gitblit.com
+#
+realm.ldap.email = {{ gitblit_ldap_email }}
+
+# Attribute on the USER record that indicate their username to be used in gitblit
+# when synchronizing users from LDAP
+# if blank, Gitblit will use uid
+# For MS Active Directory this may be sAMAccountName
+#
+realm.ldap.uid = {{ gitblit_ldap_uid }}
+
+# Defines whether to synchronize all LDAP users and teams into the user service
+#
+# Valid values: true, false
+# If left blank, false is assumed
+#
+realm.ldap.synchronize = {{ gitblig_ldap_synchronize }}
+
+# Defines the period to be used when synchronizing users and teams from ldap.
+#
+# Must be of the form '<long> <TimeUnit>' where <TimeUnit> is one of 'MILLISECONDS', 'SECONDS', 'MINUTES', 'HOURS', 'DAYS'
+
+# default: 5 MINUTES
+#
+# RESTART REQUIRED
+realm.ldap.syncPeriod = {{ gitblit_ldap_syncperiod }}
+
+# Defines whether to delete non-existent LDAP users from the user service
+# during synchronization. depends on  realm.ldap.synchronize = true
+#
+# Valid values: true, false
+# If left blank, true is assumed
+#
+realm.ldap.removeDeletedUsers = {{ gitblit_ldap_remove_deleted_users }}
+
+# Context path for the GO application.  You might want to change the context
+# path if running Gitblit behind a proxy layer such as mod_proxy.
+#
+# SINCE 0.7.0
+# RESTART REQUIRED
+server.contextPath = {{ gitblit_server_contextpath }}

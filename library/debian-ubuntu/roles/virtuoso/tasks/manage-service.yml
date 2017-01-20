@@ -1,0 +1,10 @@
+---
+- name: Enable and start the virtuoso service
+  service: name=virtuoso-opensource-{{ virtuoso_version }} state=restarted enabled=yes
+  when: virtuoso_enabled
+  tags: [ 'virtuoso', 'virtuoso_conf' ]
+
+- name: Stop and disable the virtuoso service
+  service: name=virtuoso-opensource-{{ virtuoso_version }} state=stopped enabled=no
+  when: not virtuoso_enabled
+  tags: [ 'virtuoso', 'virtuoso_conf' ]

@@ -1,0 +1,26 @@
+---
+- name: Start the iptables service
+  service: name=iptables-persistent state=restarted enabled=yes
+  notify: Restart fail2ban
+
+- name: Start the netfilter service
+  service: name=netfilter-persistent state=restarted enabled=yes
+  when: is_debian8
+  notify: Restart fail2ban
+
+- name: Flush the iptables rules
+  command: /etc/init.d/iptables-persistent flush
+  ignore_errors: true
+
+- name: Start the iptables service on Ubuntu < 12.04
+  command: /etc/init.d/iptables-persistent start
+  ignore_errors: true
+
+- name: Stop the iptables service on Ubuntu < 12.04
+  command: /etc/init.d/iptables-persistent stop
+  ignore_errors: true
+
+- name: Restart fail2ban
+  service: name=fail2ban state=restarted enabled=yes
+  when: has_fail2ban
+

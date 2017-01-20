@@ -1,0 +1,130 @@
+---
+#
+# Note: this plugin depends on apache. It's not usable with nginx yet
+#
+redmine_version: 2.5.2
+redmine_inst_name: redmine
+redmine_main_project: redmine
+redmine_db_user: redm_db_user
+redmine_db_name: redm_db_name
+redmine_db_host: localhost
+# The commented variables need to be set on the playbooks
+#redmine_glob_root_dir: /srv/redmine
+# It is a redmine_glob_root_dir subdirectory
+redmine_inst_dir: redmine
+redmine_user: redmine
+redmine_group: redmine
+# Minutes, from 1 to 60
+redmine_ldap_sync_freq: 10
+# users, groups, all
+redmine_ldap_sync_who: all
+
+redmine_glob_user: www-data
+redmine_glob_group: www-data
+redmine_glob_users_home_base: /srv/redmine-home
+
+# Plugins
+rm_ldap_auth: True
+rm_ldap_synch: True
+rm_embedded_tabs_plugin: False
+rm_recurring_tasks_plugin: False
+redmine_install_agile_plugin: False
+rm_scrum_plugin: False
+rm_advanced_roadmap_plugin: False
+rm_scrum2b_plugin: False
+rm_autowatcher_plugin: False
+rm_issuereminder_plugin: False
+rm_issue_reminder_plugin_freq_min: 0
+rm_issue_reminder_plugin_freq_hour: 5
+rm_issue_reminder_plugin_freq_weekday: 1
+# https://github.com/arkhitech/redmine_update_reminder
+# We configure to send the email reminders once a week on monday morning by default
+rm_updatereminder_plugin: False
+rm_updatereminder_plugin_freq_min: 0
+rm_updatereminder_plugin_freq_hour: 5
+rm_updatereminder_plugin_freq_weekday: 1
+rm_mention_plugin: False
+rm_mentions_plugin: False
+rm_defaultcustomquery_plugin: False
+rm_gamification_plugin: False
+rm_closesresolvedissue_plugin: False
+rm_defaultassign_plugin: False
+rm_onceassignedeverwatcher_plugin: False
+rm_clipboardimagepaste_plugin: False
+rm_hotkeysjs_plugin: False
+rm_issuessorting_plugin: False
+rm_mylyn_plugin: False
+rm_quickedit_plugin: False
+rm_quickview_plugin: False
+rm_codereview_plugin: False
+rm_globalroles_plugin: False
+rm_unreadissues_plugin: False
+rm_usability_plugin: False
+rm_mylynconnector_plugin: False
+rm_addsubversionlinks_plugin: False
+rm_wiki_external_plugin: False
+rm_pastebin_plugin: False
+rm_issue_templates_plugin: False
+#
+# IMPORTANT: these are mutually exclusive. One of the two needs to be set to True
+ruby_use_mod_passenger: True
+ruby_use_unicorn: False
+
+# Used by unicorn
+unicorn_listen_port: 4000
+unicorn_listen_address: 127.0.0.1
+unicorn_worker_processes: 5
+unicorn_timeout: 120
+unicorn_log_dir: /var/log/unicorn
+unicorn_pid_dir: /run/unicorn
+unicorn_pid_file: '{{ unicorn_pid_dir }}/unicorn.pid'
+unicorn_gems:
+  - unicorn
+  - coderay
+unicorn_apache_modules:
+  - proxy_balancer
+  - proxy
+  - proxy_http
+  - lbmethod_byrequests
+  - lbmethod_bytraffic
+  - lbmethod_bybusyness
+  - lbmethod_heartbeat
+
+# For Ubuntu trusty
+redmine_base_packages:
+  - subversion
+  - git-core
+  - curl
+  - ruby
+  - rails
+  - ruby-rmagick
+  - rails
+  - zlib1g-dev
+  - libpq-dev
+  - libmysqld-dev
+  - libmagickwand-dev
+  - libmagickcore-dev
+  - imagemagick
+
+# For Ubuntu precise
+redmine_base_packages_old_gems:
+  - subversion
+  - git-core
+  # Needed to compile the apache passenger module
+  - curl
+  - libcurl4-openssl-dev
+  - apache2-prefork-dev
+  - libmagickwand-dev
+  - librmagick-ruby
+  - ruby1.9.3
+  - rubygems
+  - rails
+
+redmine_base_apache_modules:
+  - ssl
+  - rewrite
+  - expires
+
+redmine_additional_gems:
+  - pry
+

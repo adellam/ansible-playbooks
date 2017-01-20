@@ -1,0 +1,40 @@
+---
+letsencrypt_acme_install: False
+# Set to false if a binary installation is needed (unsupported distributions)
+letsencrypt_pkg_install: True
+letsencrypt_acme_pkg_state: latest
+letsencrypt_acme_pkgs:
+  - acmetool
+  - libcap2-bin  
+letsencrypt_acme_ppa_repo: 'ppa:hlandau/rhea'
+letsencrypt_acme_debian_repo: 'deb http://ppa.launchpad.net/hlandau/rhea/ubuntu xenial main'
+letsencrypt_acme_debian_repo_key: '9862409EF124EC763B84972FF5AC9651EDB58DFA'
+letsencrypt_acme_user: acme
+letsencrypt_acme_user_home: /var/lib/acme
+letsencrypt_acme_log_dir: /var/log/acme
+
+letsencrypt_acme_command: acmetool
+letsencrypt_acme_command_opts: '--batch --xlog.syslog --xlog.severity=info'
+letsencrypt_acme_config_dir: '{{ letsencrypt_acme_user_home }}/conf'
+letsencrypt_acme_certsconf_dir: '{{ letsencrypt_acme_user_home }}/desired'
+letsencrypt_acme_certs_dir: '{{ letsencrypt_acme_user_home }}/live/{{ ansible_fqdn }}'
+# The various services maintainers need to put the reconfigure/restart scripts there
+letsencrypt_acme_services_scripts_dir: /usr/lib/acme/hooks
+
+# responses parameters
+letsencrypt_tos_url: 'https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf'
+letsencrypt_acme_agree_tos: true  
+letsencrypt_acme_rsa_key_size: 4096
+# rsa|ecdsa
+letsencrypt_acme_key_type: ecdsa
+letsencrypt_acme_ecdsa_curve: nistp256
+letsencrypt_acme_email: sysadmin@example.com
+# We 'listener' or 'proxy'. Use 'listener' if we need a certificate for a non web service.
+# Need to set cap_net_bind_service=+ep for the acmetool binary so that it is able to bind port 80 in that case.
+letsencrypt_acme_authenticator: proxy
+
+# desired parameters
+letsencrypt_acme_domains:
+  - '{{ ansible_fqdn }}'
+letsencrypt_acme_standalone_port: 4402
+

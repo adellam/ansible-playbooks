@@ -1,0 +1,27 @@
+---
+- name: Install postfix and libsas to do mail relay
+  yum: pkg={{ item }} state=present
+  with_items: postfix_relay_pkg_list
+  tags: postfix_relay
+
+- name: Enable postfix and ensure that is started
+  service: name=postfix state=started enabled=yes
+  when: postfix_enabled
+  tags: postfix_relay
+  
+- name: Disable postfix and ensure that is stopped if we do not want it running
+  service: name=postfix state=stopped enabled=no
+  when: not postfix_enabled
+  tags: postfix_relay
+  
+- name: Write the postfix main configuration file
+  template: src=main.cf.j2 dest=/etc/postfix/main.cf owner=root group=root mode=0444
+  when: postfix_enabled
+  notify: Restart postfix
+  tags: postfix_relay
+
+- name: Write sasl hash file
+  template: src=sasl_passwd.j2 dest=/etc/postfix/sasl_passwd owner=root group=root mode=0400
+  when: postfix_enabled
+  notify: Update SASL hash
+  tags: postfix_relay

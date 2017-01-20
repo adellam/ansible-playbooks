@@ -1,0 +1,72 @@
+mode {{ openvpn_mode }}
+dev {{ openvpn_dev }}
+
+server {{ openvpn_server_net }}
+ifconfig-pool-persist ipp/ipp.txt
+{% for route in openvpn_push_routes %}
+push "route {{ route }}"
+{% endfor %}
+
+{% for route in openvpn_push_routes %}
+push "route {{ route }}"
+{% endfor %}
+
+{% if openvpn_push_settings is defined %}
+{% for dhcp_opt in openvpn_push_settings %}
+push "{{ dhcp_opt }}"
+{% endfor %}
+{% endif %}
+
+port {{ openvpn_port }}
+proto {{ openvpn_protocol }}
+
+{% if openvpn_tls_server %}
+tls-server
+{% endif %}
+
+dh {{ openvpn_dh }}
+ca {{ openvpn_ca }}
+cert {{ openvpn_cert }}
+key {{ openvpn_key }}
+tls-auth {{ openvpn_tls_auth }}
+
+{% if openvpn_compression_enabled %}
+comp-lzo
+{% endif %}
+
+keepalive {{ openvpn_keepalive }}
+
+{% if not openvpn_cert_auth_enabled %}
+# Disable cert-auth
+client-cert-not-required
+{% endif %}
+
+{% if openvpn_username_pam_auth %}
+username-as-common-name
+# PAM login
+plugin /usr/lib/openvpn/openvpn-plugin-auth-pam.so login
+{% endif %}
+
+{% if openvpn_ldap_auth %}
+plugin /usr/lib/openvpn/openvpn-auth-ldap.so /etc/openvpn/auth/auth-ldap.conf
+{% endif %}
+
+{% if openvpn_ldap_perl_auth %}
+auth-user-pass-verify /etc/openvpn/auth/auth-ldap via-env
+script-security 3 execve
+{% endif %}
+
+max-clients {{ openvpn_max_clients }}
+
+persist-tun
+persist-key
+
+status status/openvpn-status.log
+
+{% if openvpn_run_unprivileged %}
+user {{ openvpn_unprivileged_user }}
+group {{ openvpn_unprivileged_group }}
+{% endif %}
+
+verb {{ openvpn_verbosity_log }}
+mute {{ openvpn_mute_after }}

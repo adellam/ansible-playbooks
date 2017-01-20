@@ -1,0 +1,4 @@
+---
+- name: Restart gitblit
+  service: name=gitblit state=restarted sleep=60
+  when: gitblit_enabled

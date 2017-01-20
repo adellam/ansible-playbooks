@@ -1,0 +1,111 @@
+---
+#
+# There's an untrusted Ubuntu PPA repository with gobs of packages and dependencies: https://launchpad.net/~marutter/+archive/ubuntu/c2d4u NOT TESTED
+#
+# To list the installed R packages
+# Run R, then execute
+# packinfo <- installed.packages (fields = c ("Package", "Version"))
+# packinfo[,c("Package", "Version")]
+#
+# The install/remove script has been taken from here: http://adamj.eu/tech/2014/07/19/installing-and-removing-r-packages-with-ansible/
+#
+
+# Set to present if you want install from CRAN
+r_install_cran_repo: absent
+#r_cran_mirror_site: http://cran.rstudio.com
+r_cran_set_default_mirror: True
+r_cran_mirror_site: http://cran.mirror.garr.it/mirrors/CRAN/
+r_base_specific_version: False
+r_base_pkg_version: 2.14.1
+r_packages_main_state: present
+r_packages_state: '{{ r_packages_main_state }}'
+r_plugins_from_deb: True
+r_packages_cleanup: False
+#
+r_packages_updater: False
+r_package_updater_via_subversion: True
+r_package_updater_subversion_repo: http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-analysis/RConfiguration/RPackagesManagement/
+r_packages_svn_base_dir: /srv/r_updater
+# They need to be flat text files
+# 1 package per line
+#r_debian_packages_list_url
+# package[:cran mirror]
+# The CRAN mirror URL is optional
+#r_cran_packages_list_url
+# user/package_name
+#r_github_packages_list_url
+
+r_source_plugins_dest_dir: /var/cache/R
+
+# r_distribution_required_packages:
+#   - gdal-bin
+#   - dans-gdal-scripts
+#   - libgdal1-dev
+#   - libgeos-dev
+#   - libspatialite-dev
+#   - proj
+#   - proj-bin
+#   - proj-data
+#   - libproj-dev
+
+r_base_packages_list:
+  - r-base
+
+# Same list as above, but without version numbers.
+#r_base_packages_hold_list:
+  
+r_plugins_packages_list:
+  - jags
+  - r-cran-rjags
+  - r-cran-abind
+  - r-cran-boot
+  - r-cran-class
+  - r-cran-cluster
+  - r-cran-coda
+  - r-cran-codetools
+  - r-cran-foreign
+  - r-cran-lattice
+  - r-cran-maptools
+  - r-cran-mass
+  - r-cran-matrix
+  - r-cran-mgcv
+  - r-cran-nlme
+  - r-cran-nnet
+  - r-cran-rpart
+  - r-cran-sp
+  - r-cran-spatial
+  - r-cran-survival
+
+# r_plugins_list_to_install:
+#   - { name: 'R2WinBUGS', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'R2jags', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'bayesmix', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'coda', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'rjags', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'runjags', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'base', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'compiler', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'datasets', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'grDevices', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'graphics', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'grid', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'methods', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'parallel', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'reshape', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'splines', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'stats', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'stats4', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'tcltk', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'tools', repo: '{{ r_cran_mirror_site }}' }
+#   - { name: 'utils', repo: '{{ r_cran_mirror_site }}' }
+
+# r_plugins_from_sources:
+#   - { name: 'plyr', version: '1.7.1', source: 'plyr_1.7.1.tar.gz', url: 'http://cran.r-project.org/src/contrib/Archive/plyr/plyr_1.7.1.tar.gz' }
+
+# r_plugins_from_github:
+#   - { plugin_name: 'RFigisGeo', github_user: 'openfigis' }
+#   - { plugin_name: 'rsdmx', github_user: 'opensdmx' }
+
+# 
+#r_plugins_list_to_remove:
+

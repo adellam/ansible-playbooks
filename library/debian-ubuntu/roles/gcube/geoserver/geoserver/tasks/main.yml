@@ -1,0 +1,39 @@
+---
+- block:
+    - name: Create the Geoserver download directory
+      file: path={{ geoserver_download_directory }} state=directory
+
+    - name: Create the Geoserver webapp directory
+      file: path={{ item.instance_path }}/webapps/{{ geoserver_app_name }} state=directory owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+
+    - name: Create the Geoserver data directory
+      file: path={{ geoserver_data_directory }} state=directory owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+      
+    - name: Download and unpack the Geoserver file distribution
+      unarchive: copy=no src={{ geoserver_download_url }} dest={{ geoserver_download_directory }} creates={{ geoserver_download_directory }}/geoserver.war
+
+    - name: Unpack the Geoserver war file
+      unarchive: copy=no src={{ geoserver_download_directory }}/geoserver.war dest={{ item.instance_path }}/webapps/{{ geoserver_app_name }} creates={{ item.instance_path }}/webapps/{{ geoserver_app_name }}/WEB-INF/lib owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+      notify: tomcat instances restart
+
+  when: geoserver_install
+  tags: geoserver
+
+- block:
+    - name: Remove the Geoserver webapp directory
+      file: path={{ item.instance_path }}/webapps/{{ geoserver_app_name }} state=absent
+      with_items: '{{ tomcat_m_instances }}'
+      notify: tomcat instances restart
+
+    - name: Remove the Geoserver download and data directories
+      file: path={{ item }} state=absent
+      with_items:
+        - '{{ geoserver_download_directory }}'
+        - '{{ geoserver_data_directory }}'
+
+  when: not geoserver_install
+  tags: geoserver
+

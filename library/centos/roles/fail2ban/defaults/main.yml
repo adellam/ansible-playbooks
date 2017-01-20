@@ -1,0 +1,13 @@
+---
+# NOTICE Jail started without 'journalmatch' set. Jail regexs will be checked against all journal entries, which is not advised for performance reasons.
+fail2ban_logtarget: SYSLOG
+fail2ban_bantime: 600000
+fail2ban_findtime: 4800
+fail2ban_maxretry: 2
+fail2ban_enabled: True
+fail2ban_sshd_enabled: True
+fail2ban_sshd_ddos_enabled: True
+fail2ban_nginx_auth_enabled: False
+fail2ban_apache_auth_enabled: False
+fail2ban_php_url_fopen_enabled: False
+fail2ban_vsftpd_enabled: False

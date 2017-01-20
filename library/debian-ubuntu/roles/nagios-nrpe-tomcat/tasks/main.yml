@@ -1,0 +1,31 @@
+---
+- name: Install the plugin dependencies
+  apt: pkg={{ item }} state=installed
+  with_items: check_tomcat_deps
+  tags:
+    - nagios
+    - nrpe
+    - check_tomcat
+
+- name: Install the check_tomcat plugin
+  copy: src=check_tomcat dest={{ nagios_isti_plugdir }}/check_tomcat owner=root group=root mode=0755
+  tags:
+    - nagios
+    - nrpe
+    - check_tomcat
+
+- name: Install the check_tomcat nrpe commands file
+  template: src=check_tomcat-nrpe.cfg.j2 dest=/etc/nagios/nrpe.d/check_tomcat.cfg owner=root group=root mode=444
+  notify:
+    - Reload NRPE server
+  tags:
+    - nrpe
+    - nagios
+    - check_tomcat
+
+- name: nagios needs root to execute some commands. We do it via sudo
+  template: src=nagios.sudoers.j2 dest=/etc/sudoers.d/nagios owner=root group=root mode=0440
+  tags:
+    - nagios
+    - nrpe
+

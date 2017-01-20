@@ -1,0 +1,13 @@
+---
+# 
+# The ganglia plugin comes from https://github.com/ganglia/gmond_python_modules
+#
+- name: Install the ganglia plugin for Couchdb
+  copy: src=couchdb.py dest=/usr/lib/ganglia/python_modules/couchdb.py owner=root group=root mode=0444
+  notify: Restart ganglia monitor
+  tags: [ 'ganglia', 'couchdb' ]
+
+- name: Distribute the ganglia (gmond) configuration for the Couchdb plugin
+  template: src=couchdb.pyconf.j2 dest=/etc/ganglia/conf.d/couchdb.pyconf owner=root group=ganglia mode=0440
+  notify: Restart ganglia monitor
+  tags: [ 'ganglia', 'couchdb' ]

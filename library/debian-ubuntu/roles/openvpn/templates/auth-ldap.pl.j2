@@ -1,0 +1,42 @@
+#!/usr/bin/perl -w
+
+{% if openvpn_ldap_perl_auth_ssl %}
+use Net::LDAPS;
+{% else %}
+use Net::LDAP;
+{% endif %}
+use strict;
+
+my $ldap;
+my $result;
+
+my $opt_uri = "{{ openvpn_ldap_host }}";
+my $opt_user = $ENV{'username'};
+my $opt_passwd = $ENV{'password'};
+my $opt_group = "cn={{ openvpn_ldap_perl_auth_group }},{{ openvpn_ldap_group_base }}";
+my $opt_binddn = "uid=".$opt_user.",{{ openvpn_ldap_base_dn }}";
+
+{% if openvpn_ldap_perl_auth_ssl %}
+$ldap = Net::LDAPS->new($opt_uri, version => 3,
+                        port => '{{ openvpn_ldap_perl_auth_sslport }}',
+                        verify => 'require',
+                        {% if openvpn_ca_dir %}
+                        capath => '{{ openvpn_ldap_ca }}'
+                        {% else %}
+                        cafile => '{{ openvpn_ldap_ca }}'
+                        {% endif %}
+    ) or die("LDAPS connect to $opt_uri failed!");
+{% else %}
+$ldap = Net::LDAP->new($opt_uri) or die("LDAP connect to $opt_uri failed!");
+{% endif %}
+
+{% if openvpn_ldap_nonanon_bind %}
+$result = $ldap->bind('{{ openvpn_ldap_binddn }}', password => '{{ openvpn_ldap_bindpwd | default('') }}');
+{% else %}
+$result = $ldap->bind($opt_binddn, password => $opt_passwd);
+{% endif %}
+$result->code and die($result->error);
+$result = $ldap->search(base=>$opt_group, filter => "(&({{ openvpn_ldap_group_member_attr }}=$opt_user))");
+$result->code();
+if ($result->count == 1) { exit 0; }
+unless($result->count){ exit 1; }

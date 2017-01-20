@@ -1,0 +1,9 @@
+---
+- name: Get the smart generic worker plugin and install it inside the smart executor
+  become: True
+  become_user: '{{ smartgears_user }}'
+  get_url: url={{ smart_generic_worker_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
+  when: generic_worker_install
+  notify: Restart smartgears 
+  tags: [ 'smartgears', 'generic_worker', 'tomcat' ]
+

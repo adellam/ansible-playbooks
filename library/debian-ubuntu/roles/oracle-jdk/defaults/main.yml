@@ -1,0 +1,21 @@
+---
+# Supported versions: 6,7,8
+jdk_default: 7
+# jdk_version is a dictionary because it's possible to install more than one version
+jdk_version:
+  - '{{ jdk_default }}'
+jdk_java_home: '/usr/lib/jvm/java-{{ jdk_default }}-oracle'
+jdk_pkg_state: latest
+oracle_jdk_packages:
+  - 'oracle-java{{ jdk_default }}-installer'
+  - 'oracle-java{{ jdk_default }}-set-default'
+jdk_install_strong_encryption_policy: True
+
+jdk_ubuntu_ppa: 'ppa:webupd8team/java'
+jdk_ppa_repo: 'deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main'
+jdk_ppa_key: 7B2C3B0889BF5709A105D03AC2518248EEA14886
+
+# If we want a different oracle jdk set the following variables in the local playbook:
+jdk_use_tarfile: False
+#  jdk_java_home: /usr/lib/jvm/java-7-0-25
+#  jdk_tarfile: oracle-jdk-7.0.25.tar.gz

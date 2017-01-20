@@ -1,0 +1,10 @@
+---
+- name: Install the haproxy NRPE nagios check
+  copy: src=check_haproxy_stats dest={{ nagios_isti_plugdir }}/check_haproxy_stats  owner=root group=root mode=0555
+  when: haproxy_nagios_check
+
+- name: Install the haproxy NRPE command configuration
+  template: src=lb.cfg.j2 dest={{ nrpe_include_dir }}/lb.cfg  owner=root group=root mode=0444
+  notify: Reload NRPE server
+  when: haproxy_nagios_check
+

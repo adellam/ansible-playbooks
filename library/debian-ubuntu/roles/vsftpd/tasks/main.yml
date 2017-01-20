@@ -1,0 +1,21 @@
+---
+- name: Install the vsftpd package
+  apt: pkg=vsftpd state=installed
+  tags: [ 'vsftpd', 'ftp' ] 
+
+- name: Install the vsftpd configuration file
+  template: src=vsftpd.conf.j2 dest=/etc/vsftpd.conf mode=0444 owner=root group=root
+  notify: Restart the vsftpd server
+  tags: [ 'vsftpd', 'ftp' ] 
+
+- name: Start and enable the vsftpd server
+  service: name=vsftpd state=started enabled=yes
+  when: vsftpd_server_enabled
+  tags: [ 'vsftpd', 'ftp' ] 
+
+- name: Stop and disable the vsftpd server
+  service: name=vsftpd state=stopped
+  when: not vsftpd_server_enabled
+  tags: [ 'vsftpd', 'ftp' ] 
+
+

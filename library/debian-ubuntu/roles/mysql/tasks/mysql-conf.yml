@@ -1,0 +1,18 @@
+---
+- name: Create the data directory
+  file: dest={{ mysql_data_dir }} state=directory owner=mysql group=mysql mode=0700
+  tags: [ 'mysql', 'mariadb', 'mysql-conf' ]
+  
+- name: Create the log directory
+  file: dest={{ mysql_log_dir }} state=directory owner=mysql group=adm mode=1750
+  tags: [ 'mysql', 'mariadb', 'mysql-conf' ]
+  
+- name: Install the main configuration files.
+  template: src={{ item }}.cnf.j2 dest={{ mysql_conf_dir }}/{{ item }}.cnf owner=root group=root mode=0644
+  with_items:
+    - client
+    - server
+    - mysql-clients
+  when: mysql_enabled
+  notify: Restart mysql
+  tags: [ 'mysql', 'mariadb', 'mysql-conf' ]

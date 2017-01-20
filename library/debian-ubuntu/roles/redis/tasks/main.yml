@@ -1,0 +1,39 @@
+---
+- block:
+    - name: Install the Redis PPA
+      apt_repository: repo='{{ redis_ppa_repo }}' update_cache=yes
+
+    - name: Install the Redis packages
+      apt: name={{ item }} state={{ redis_pkg_state }} cache_valid_time=1800
+      with_items: '{{ redis_server_pkg }}'
+
+    - name: Install the Redis configuration
+      template: src={{ item }}.j2 dest=/etc/redis/{{ item }} owner=redis group=redis mode=0440
+      with_items: '{{ redis_conf_files }}'
+      notify: Reload Redis
+
+    - name: Start and enable the Redis service
+      service: name=redis-server state=started enabled=yes
+      when: redis_enabled
+
+    - name: Stop and disable the Redis service
+      service: name=redis-server state=stopped enabled=no
+      when: not redis_enabled
+
+  when: redis_install
+  tags: redis 
+
+
+- block:
+    - name: Stop and disable the Redis service
+      service: name=redis-server state=stopped enabled=no
+
+    - name: Remove the Redis packages
+      apt: name={{ item }} state=absent
+      with_items: '{{ redis_server_pkg }}'
+
+    - name: Remove the Redis PPA
+      apt_repository: repo='{{ redis_ppa_repo }}' state=absent update_cache=yes
+
+  when: not redis_install
+  tags: redis 

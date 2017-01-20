@@ -1,0 +1,8 @@
+---
+- name: Restart ghn webservice
+  shell: /etc/init.d/gcore stop ; /etc/init.d/gcore start
+  when:
+    - restart_gcore_service
+    - ( has_tomcat is defined ) and ( not has_tomcat )
+  ignore_errors: True
+

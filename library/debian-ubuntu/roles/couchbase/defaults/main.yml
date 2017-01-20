@@ -1,0 +1,54 @@
+---
+couchbase_install_packages: False
+couchbase_start_server: True
+couchbase_install_from_repo: False
+couchbase_repo_pkg: couchbase-release-1.0-2-amd64.deb
+couchbase_repo_pkg_url: 'http://packages.couchbase.com/releases/couchbase-release/{{ couchbase_repo_pkg }}'
+
+couchbase_pkg_file: 'couchbase-server-community_4.0.0-ubuntu14.04_amd64.deb'
+couchbase_direct_package_url: 'http://packages.couchbase.com/releases/4.0.0/{{ couchbase_pkg_file }}'
+
+couchbase_default_host: localhost
+couchbase_console_port: 8091
+couchbase_xdcr_port: 8092
+couchbase_query_port: 8093
+
+couchbase_admin_port: 9100
+couchbase_scan_port: 9101
+couchbase_http_port: 9102
+couchbase_streamInit_port: 9103
+couchbase_streamCatchup_port: 9104
+couchbase_streamMaint_port: 9105
+
+couchbase_intREST_port: 9998
+couchbase_intGSI_port: 9999
+
+couchbase_memcachedSSL_port: 11207
+
+couchbase_intBacket_port: 11209
+
+couchbase_memcached1_port: 11210
+couchbase_memcached2_port: 11211
+couchbase_encrip1_port: 11214
+couchbase_encrip2_port: 11215
+
+couchbase_consoleSSL_port: 18091
+couchbase_xdcrSSL_port: 18092
+couchbase_N1QLSSL_port: 18093
+
+couchbase_epmd_port: 4369
+
+couchbase_dataExchangeFirst_port: 21100
+couchbase_dataExchangeLast_port: 21299
+
+couchbase_backup_enabled: False
+couchbase_backup_dest_dir: /var/cache
+couchbase_backup_command: /opt/couchbase/bin/cbbackup
+couchbase_backup_type: full
+
+couchbase_swappiness: 1
+
+couchbase_ganglia_plugin_enabled: True
+#couchbase_ganglia_url_username:
+#couchbase_ganglia_url_password:
+couchbase_monitored_buckets:

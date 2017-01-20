@@ -1,0 +1,9 @@
+---
+- name: Install the EGI image setup script
+  template: src=smartgears-setup.sh.j2 dest=/usr/local/bin/smartgears-setup owner=root group=root mode=0555
+  tags: [ 'smartgears', 'tomcat', 'egi', 'egi_image' ]
+
+- name: Install the EGI gcube keys installer script
+  template: src=get-gcube-keys.sh.j2 dest=/usr/local/bin/get-gcube-keys owner=root group=root mode=0500
+  tags: [ 'smartgears', 'tomcat', 'egi', 'egi_image' ]
+

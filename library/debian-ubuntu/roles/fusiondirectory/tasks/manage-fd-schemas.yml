@@ -1,0 +1,32 @@
+---
+- block:
+
+    - name: Install the fusiondirectory main schema packages
+      apt: name={{ item }} state=present update_cache=yes
+      with_items: '{{ fusiondirectory_main_schemas }}'
+
+    - name: Install the fusiondirectory additional schema packages
+      apt: name={{ item }} state=present
+      with_items: '{{ fusiondirectory_schemas | default ([]) }}'
+
+    - name: Install the needed schemas on the ldap server
+      shell: fusiondirectory-insert-schema -i /etc/ldap/schema/fusiondirectory/{{ item }} ; touch /etc/ldap/schema/fusiondirectory/.{{ item }}.installed
+      with_items: '{{ fusiondirectory_ldap_schemas }}'
+      args:
+        creates: '/etc/ldap/schema/fusiondirectory/.{{ item }}.installed'
+  when: fusiondirectory_schemas_install
+  tags: [ 'fusiondirectory', 'fd_schemas' ]
+  
+- block:
+
+    - name: Remove the fusiondirectory main schemas
+      apt: name={{ item }} state=absent
+      with_items: '{{ fusiondirectory_main_schemas }}'
+
+    - name: Remove the fusiondirectory additional schemas
+      apt: name={{ item }} state=absent
+      with_items: '{{ fusiondirectory_schemas | default ([]) }}'
+
+  when: not fusiondirectory_schemas_install
+  tags: [ 'fusiondirectory', 'fd_schemas' ]
+  

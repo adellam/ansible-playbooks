@@ -1,0 +1,21 @@
+# Proxy stuff
+# include /etc/nginx/snippets/nginx-proxy-params.conf;
+proxy_http_version 1.1;
+{% if haproxy_ips is defined %}
+proxy_set_header Host $http_host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-Host $remote_addr;
+proxy_set_header X-Forwarded-Server $host;
+{% else %}
+proxy_set_header Host $host;
+{% endif %}
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_buffering {{ nginx_proxy_buffering }};
+proxy_buffer_size {{ nginx_proxy_buffer_size }};
+proxy_buffers {{ nginx_proxy_buffers }};
+proxy_busy_buffers_size {{ nginx_proxy_busy_buffers_size }};
+proxy_redirect {{ nginx_proxy_redirect }};
+proxy_connect_timeout {{ nginx_proxy_connect_timeout }};
+proxy_read_timeout {{ nginx_proxy_read_timeout }};
+proxy_send_timeout {{ nginx_proxy_send_timeout }};

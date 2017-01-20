@@ -1,0 +1,12 @@
+--- CMakeLists.txt.orig	2016-09-22 19:35:27.516886715 +0200
++++ CMakeLists.txt	2016-09-22 19:36:44.171131969 +0200
+@@ -2,7 +2,8 @@
+ # GNU C++ COMPILER OPTION (on Mac OS X, brew): -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-5
+ # BUILD TYPE: -DCMAKE_BUILD_TYPE=[Release|Debug]
+ 
+-cmake_minimum_required(VERSION 2.8.12)
++cmake_minimum_required(VERSION 2.8.7)
++set(CMAKE_USER_MAKE_RULES_OVERRIDE "QuickRankMakeRulesOverwrite.cmake")
+ project(QUICKRANK CXX)
+ 
+ # require support of C++11

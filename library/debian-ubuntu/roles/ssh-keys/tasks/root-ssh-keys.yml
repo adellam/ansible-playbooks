@@ -1,0 +1,11 @@
+---
+- name: Install the ssh keys for the authorized users
+  authorized_key: user=root key="{{ item }}" state=present
+  with_items: '{{ user_ssh_key | default([]) }}'
+  tags: [ 'pubkeys', 'ssh_keys' ]
+
+- name: Remove obsolete ssh keys if there are any
+  authorized_key: user=root key="{{ item }}" state=absent
+  with_items: '{{ obsolete_ssh_key | default([]) }}'
+  tags: [ 'pubkeys', 'ssh_keys' ]
+

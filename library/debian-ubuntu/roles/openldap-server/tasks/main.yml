@@ -1,0 +1,11 @@
+---
+- include: openldap_packages.yml
+- include: openldap_initializazion.yml
+  when: openldap_service_enabled
+- include: openldap_maintenance.yml
+  when: openldap_service_enabled
+- include: openldap-letsencrypt.yml
+  when: openldap_letsencrypt_managed
+
+  
+  

@@ -1,0 +1,31 @@
+---
+- block:
+  - name: install the apache httpd packages
+    yum: name={{ item }} state={{ httpd_pkg_state }}
+    with_items: '{{ httpd_main_packages }}'
+
+  - name: Install the main httpd configuration file
+    template: src=httpd.conf.j2 dest={{ httpd_base_conf_dir }}/conf/httpd.conf
+    notify: httpd reload
+
+  - name: Enable the modules we want active
+    apache2_module: name={{ item.name }} state={{ item.state | default('present') }}
+    with_items: '{{ httpd_modules }}'
+
+  - name: Manage additional modules, if any
+    apache2_module: name={{ item.name }} state={{ item.state | default('present') }}
+    with_items: '{{ httpd_additional_modules | default([])}}'
+
+  - name: Set the MPM mode
+    template: src=00-mpm.conf.j2 dest={{ httpd_base_conf_dir }}/conf.modules.d/00-mpm.conf mode=0444 owner=root group=root
+    notify: httpd reload
+  
+  - name: Ensure that httpd is stopped if it is not meant to be running
+    service: name=httpd state=stopped enabled=no
+    when: not httpd_service_enabled
+
+  - name: Ensure that httpd is running and enabled
+    service: name=httpd state=started enabled=yes
+
+  when: httpd_service_enabled
+  tags: [ 'httpd', 'apache' ]

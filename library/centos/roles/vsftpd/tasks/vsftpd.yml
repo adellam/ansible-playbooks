@@ -1,0 +1,48 @@
+---
+- name: Install the ftp server packages
+  yum: pkg={{ item }} state={{ pkg_state }}
+  with_items: vsftpd_pkgs
+  tags:
+    - ftp
+    - vsftpd
+
+- name: Ensure that the vsftpd service is enabled
+  service: name=vsftpd enabled=yes
+  tags:
+    - ftp
+    - vsftpd
+  
+- name: Install the vsftpd blacklist files
+  copy: src={{ item }} dest=/etc/vsftpd/{{ item }} owner=root group=root mode=0400
+  with_items: vsftpd_blacklist_files
+  notify: Restart vsftpd
+  tags:
+    - ftp
+    - vsftpd
+
+- name: Install the vsftpd config file
+  template: src=vsftpd.conf.j2 dest=/etc/vsftpd/vsftpd.conf owner=root group=root mode=0400
+  notify: Restart vsftpd
+  tags:
+    - ftp
+    - vsftpd
+
+- name: Set the needed SELinux booleans when local users are enabled
+  seboolean: name={{ item }} state=yes persistent=yes
+  with_items:
+    - ftp_home_dir
+    - ftpd_full_access
+  when: vsftpd_local
+  tags:
+    - ftp
+    - vsftpd
+
+- name: Set the needed SELinux booleans when anonymous users uploads are enabled
+  seboolean: name={{ item }} state=yes persistent=yes
+  with_items:
+    - allow_ftpd_full_access
+    - allow_ftpd_anon_write
+  when: vsftpd_anonymous_upload
+  tags:
+    - ftp
+    - vsftpd

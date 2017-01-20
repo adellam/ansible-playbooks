@@ -1,0 +1,16 @@
+---
+- name: Restart php-fpm
+  service: name=php-fpm state=restarted
+  when: not php_install_rh_scl
+
+- name: Reload php-fpm
+  service: name=php-fpm state=reloaded
+  when: not php_install_rh_scl
+
+- name: Restart php-fpm
+  service: name='rh-php{{ php_rh_scl_shortver }}-php-fpm' state=restarted
+  when: php_install_rh_scl
+
+- name: Reload php-fpm
+  service: name='rh-php{{ php_rh_scl_shortver }}-php-fpm' state=reloaded
+  when: php_install_rh_scl

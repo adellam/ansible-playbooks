@@ -1,0 +1,4 @@
+---
+- name: Reload Redis
+  service: name=redis-server state=restarted
+  when: redis_enabled

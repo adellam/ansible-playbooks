@@ -1,0 +1,12 @@
+---
+- name: Install a script that performs mysql dumps
+  copy: src=mysql-backup.sh dest=/usr/local/sbin/mysql-backup owner=root group=root mode=0750
+  tags: [ 'mysql', 'mysql_backup' ]
+
+- name: Install the mysql backup defaults
+  template: src=mysql_backup-default.j2 dest=/etc/sysconfig/mysql_backup owner=root group=root mode=0440
+  tags: [ 'mysql', 'mysql_backup' ]
+
+- name: Cron job that executes mysql nightly backups
+  copy: src=mysql-backup.cron dest=/etc/cron.daily/mysql-backup owner=root group=root mode=0755
+  tags: [ 'mysql', 'mysql_backup' ]

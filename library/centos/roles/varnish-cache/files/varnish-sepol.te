@@ -1,0 +1,11 @@
+
+module varnish-sepol 1.0;
+
+require {
+	type varnishd_t;
+	class capability { fowner fsetid };
+}
+
+#============= varnishd_t ==============
+allow varnishd_t self:capability fowner;
+allow varnishd_t self:capability fsetid;

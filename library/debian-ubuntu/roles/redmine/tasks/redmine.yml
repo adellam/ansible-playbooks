@@ -1,0 +1,133 @@
+---
+- name: Fail if the redmine data directory variable is not defined
+  fail: msg="redmine_glob_root_dir is required for this role"
+  when: redmine_glob_root_dir is not defined
+  tags: redmine
+
+- name: ensure that the redmine data directories exist
+  file: dest={{ item }} state=directory owner=root group=root
+  with_items:
+    - '{{ redmine_glob_root_dir }}'
+    - '{{ redmine_glob_users_home_base }}'
+  tags: redmine
+
+- name: Create the user that will run the redmine process
+  user: name={{ redmine_user }} createhome=true home={{ redmine_user_home }} shell=/bin/bash
+  tags: redmine
+
+- name: Ensure that the redmine user can write its $HOME/.subversion to store the svn site ssl certificate
+  file: dest={{ redmine_user_home }}/.subversion state=directory owner={{ redmine_user }} group={{ redmine_group }}
+  tags: redmine
+
+# We need to find a way to run svn and accept the certificate in non interactive mode as user www-data
+# su - www-data svn list https://svn.driver.research-infrastructures.eu/driver
+# NB: added "--trust-server-cert" to the svn options in lib/redmine/scm/adapters/subversion_adapter.rb
+#     don't know if it's useful
+- name: Explicitly accept the svn ssl certificate
+  shell: /bin/true
+  tags: redmine
+
+# - name: Check if we have the svn.driver.research-infrastructures.eu public SSL certificate already
+#   shell: ls -l /etc/ssl/certs/svn.driver.research-infrastructures.eu.epm
+#   register: driver_ssl_cert
+#   ignore_errors: True
+
+# - name: Get the svn.driver.research-infrastructures.eu public SSL certificate
+#   command: openssl s_client -connect svn.driver.research-infrastructures.eu:443 -showcerts </dev/null 2>/dev/null|openssl x509 -outform PEM > /etc/ssl/certs/svn.driver.research-infrastructures.eu.epm
+#   when: "{{ driver_ssl_cert.rc }} != 0"
+
+- name: Get the redmine tarball
+  get_url: url=http://www.redmine.org/releases/redmine-{{ redmine_version }}.tar.gz dest={{ redmine_glob_root_dir }}/redmine-{{ redmine_version }}.tar.gz
+  tags: redmine
+
+- name: Explode the redmine archive
+  unarchive: src={{ redmine_glob_root_dir }}/redmine-{{ redmine_version }}.tar.gz dest={{ redmine_glob_root_dir }} copy=no owner=root group=root creates={{ redmine_glob_root_dir }}/redmine-{{ redmine_version }}/Rakefile
+  register: redmine_install
+  tags: redmine
+
+- name: Create the right path for the application.
+  file: src={{ redmine_glob_root_dir }}/redmine-{{ redmine_version }} dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }} state=link
+  tags: redmine
+
+- name: Install the database configuration
+  template: src=redmine-database.yml.j2 dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/config/database.yml owner=root group={{ redmine_group }} mode=0440
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+  tags: redmine
+
+- name: Install the configuration file. Needed to send email
+  copy: src=redmine-configuration.yml dest=/{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/config/configuration.yml owner=root group={{ redmine_group }} mode=0440
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+  tags: redmine
+
+- name: Install the gems required by redmine
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; bundle install --without development test sqlite mysql
+  tags: redmine
+
+- name: Generate the secret token
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; rake generate_secret_token ; chmod 440 {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/config/initializers/secret_token.rb ; chgrp {{ redmine_group }} {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/config/initializers/secret_token.rb
+  args:
+    creates: '{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/config/initializers/secret_token.rb'
+  tags: redmine
+
+- name: Initialize the DB
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; RAILS_ENV=production rake db:migrate
+  when: redmine_install.changed
+  tags: redmine
+
+- name: Install the defauld DB data
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; RAILS_ENV=production REDMINE_LANG=en rake redmine:load_default_data
+  when: redmine_install.changed
+  tags: redmine
+
+- name: Install the packages needed by plugins or to build plugins required gems
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - libxslt1-dev
+  tags: redmine
+
+# The themes come from http://www.redminecrm.com/
+- name: Install some optional themes
+  unarchive: src={{ item }}-theme.zip dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/public/themes creates={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/public/themes/{{ item }}
+  with_items:
+    - a1
+    - circle
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+  tags: redmine
+
+- name: Add unicorn to the redmine Gemfile
+  copy: dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/Gemfile.local content='gem "unicorn"\n' owner={{ redmine_user }} group={{ redmine_group }}
+  when: ruby_use_unicorn
+  tags: [ 'redmine', 'unicorn' ]
+
+- name: Upgrade rake to fix all the gems mess
+  shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; bundle update rake
+  tags: redmine
+
+- name: Fix the permission of some files
+  file: dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/{{ item }} owner={{ redmine_user }} group={{ redmine_group }}
+  with_items:
+    - Gemfile
+    - Gemfile.lock
+  tags: redmine
+
+- name: Ensure that redmine can write into some directories
+  file: dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/{{ item }} state=directory owner={{ redmine_user }} group={{ redmine_group }}
+  with_items:
+    - files
+    - log
+    - tmp
+    - public/plugin_assets
+  notify:
+    change the redmine permissions recursively
+  tags: redmine
+
+- name: Install a logrotate script to take care of the ever growing production.log file
+  template: src=redmine-logrotate.j2 dest=/etc/logrotate.d/redmine-{{ redmine_inst_name }} owner=root group=root mode=0444
+  tags: [ 'redmine', 'logrotate' ]
+

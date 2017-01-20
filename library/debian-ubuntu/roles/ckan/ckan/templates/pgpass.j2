@@ -1,0 +1,8 @@
+# Loop psql_db_data to add multiple databases
+{% if psql_db_data is defined %}
+{% for db in psql_db_data %}
+{%if db.pwd is defined %}
+{{ psql_db_host }}:{{ psql_db_port }}:{{ db.name }}:{{ db.user }}:{{ db.pwd }}
+{% endif %}
+{% endfor %}
+{% endif %}

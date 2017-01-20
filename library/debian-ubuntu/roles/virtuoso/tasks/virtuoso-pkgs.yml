@@ -1,0 +1,25 @@
+---
+- name: Install the virtuoso comsode.eu repository key
+  apt_key: url={{ virtuoso_external_repo_key }} state=present
+  when: virtuoso_from_external_repo
+  tags: virtuoso
+  
+- name: Install the virtuoso comsode.eu repository config
+  apt_repository: repo='{{ virtuoso_external_repo }}' state=present update_cache=yes
+  when: virtuoso_from_external_repo
+  tags: virtuoso
+
+- name: Disable the virtuoso comsode.eu repository config if we do not want to install from it
+  apt_repository: repo='{{ virtuoso_external_repo }}' state=absent update_cache=yes
+  when: not virtuoso_from_external_repo
+  tags: virtuoso
+
+- name: Install the virtuoso packages
+  apt: name={{ item }} state={{ virtuoso_pkg_state }}
+  with_items: virtuoso_pkg_list
+  tags: virtuoso
+
+- name: Install the virtuoso optional packages
+  apt: name={{ item }} state={{ virtuoso_pkg_state }}
+  with_items: virtuoso_optional_pkgs
+  tags: virtuoso

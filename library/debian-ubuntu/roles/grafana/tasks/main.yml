@@ -1,0 +1,19 @@
+---
+- name: Install the grafana repo key
+  apt_key: url={{ grafana_repo_key }} state=present
+  tags: [ 'grafana' ]
+
+- name: Install the grafana deb repository
+  apt_repository: repo='{{ grafana_repo }}' state=present update_cache=yes
+  tags: [ 'grafana' ]
+
+- name: Install the grafana deb packages
+  apt: name='{{ item }}' state=present
+  with_items: '{{ grafana_packages }}'
+  tags: [ 'grafana' ]
+  
+- name: Ensure that grafana is enabled and running
+  service: name=grafana-server state=started enabled=yes
+  when: grafana_enabled
+  tags: [ 'grafana' ]
+  

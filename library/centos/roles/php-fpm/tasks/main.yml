@@ -1,0 +1,9 @@
+---
+- include: php-service.yml
+- include: php-fpm.yml
+  when: not php_install_rh_scl
+- include: php-rh-sclfpm.yml
+  when: php_install_rh_scl
+
+
+

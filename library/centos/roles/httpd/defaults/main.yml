@@ -1,0 +1,74 @@
+---
+httpd_service_enabled: True
+httpd_pkg_state: latest
+httpd_base_conf_dir: /etc/httpd
+httpd_base_document_root: /var/www
+httpd_document_root: '{{ httpd_base_document_root }}/html'
+
+httpd_main_packages:
+  - httpd
+  - httpd-tools
+  - mod_ssl
+
+httpd_listen_ports:
+  - 80
+  - 443
+
+httpd_user: apache
+httpd_group: apache
+httpd_server_admin: root@localhost
+
+httpd_base_document_root_override: None
+httpd_base_document_root_access: 'denied'
+
+httpd_document_root_options: 'Indexes FollowSymLinks'
+httpd_document_root_override: 'None'
+httpd_document_root_access: 'granted'
+
+httpd_cgi_enabled: False
+httpd_sendfile_enabled: 'on'
+httpd_mmap_enabled: 'on'
+httpd_use_canonicalname: 'off'
+httpd_servertokens: 'OS'
+httpd_hostname_lookups: 'off'
+httpd_default_charset: 'UTF-8'
+httpd_languages:
+  - en
+  - it
+
+httpd_timeout: 60
+httpd_keepalive_enabled: True
+httpd_keepalive_timeout: 5
+httpd_keepalive_requests: 100
+
+# Options: prefork, worker, event
+httpd_mpm_mode: "worker"
+httpd_startservers: 8
+httpd_maxclients: 300
+httpd_min_spare: 25
+httpd_max_spare: 75
+httpd_max_requests_per_child: 0
+httpd_threads_per_child: 25
+httpd_serverlimit: 256
+
+httpd_modules:
+  - { name: 'systemd' }
+  - { name: 'alias' }
+  - { name: 'allowmethods' }
+  - { name: 'auth_basic' }
+  - { name: 'deflate' }
+  - { name: 'headers' }
+  - { name: 'include' }
+  - { name: 'log_config' }
+  - { name: 'logio' }
+  - { name: 'mime_magic' }
+  - { name: 'mime' }
+  - { name: 'remoteip' }
+  - { name: 'reqtimeout' }
+  - { name: 'rewrite' }
+  - { name: 'setenvif' }
+  - { name: 'socache_memcache' }
+  - { name: 'socache_shmcb' }
+  - { name: 'unixd' }
+  - { name: 'vhost_alias' }
+  

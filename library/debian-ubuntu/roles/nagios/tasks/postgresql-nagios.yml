@@ -1,0 +1,35 @@
+---
+- name: Ensure that the isti local nagios plugins directory exists
+  file: dest={{ nagios_isti_plugdir }} owner=root group=root state=directory
+  tags:
+    - nrpe
+    - nagios
+
+- name: Install the postgresql backup nagios check
+  copy: src=check_postgresql_backup dest={{ nagios_isti_plugdir }}/check_postgresql_backup owner=root group=root mode=0555
+  tags:
+    - nrpe
+    - nagios
+
+- name: Install the packages needed to check postgres via nagios
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - check-postgres
+  tags:
+    - nrpe
+    - nagios
+
+- name: Install the sudoers file needed by some nagios checks
+  template: src=postgresql-sudoers.j2 dest=/etc/sudoers.d/postgresql owner=root group=root mode=440
+  tags:
+    - nrpe
+    - nagios
+
+- name: Install the nrpe configuration for check_postgres
+  template: src=postgresql-nrpe.cfg.j2 dest=/etc/nagios/nrpe.d/postgresql-nrpe.cfg owner=root group=root mode=444
+  notify:
+    - Reload NRPE server
+  tags:
+    - nrpe
+    - nagios
+

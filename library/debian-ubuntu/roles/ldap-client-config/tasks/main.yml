@@ -1,0 +1,33 @@
+---
+- name: Install the ldap utilities
+  apt: pkg={{ item }} state={{ pkg_state }}
+  with_items:
+    - ldapscripts
+    - libpam-ldap
+  tags: ldap-client
+
+- name: Write the ldap client configuration file
+  template: src=ldap.conf-old.j2 dest=/etc/ldap.conf mode=444 owner=root group=root
+  when: is_ubuntu_less_than_trusty
+  tags: ldap-client
+
+- name: Write the ldap client configuration file
+  template: src=ldap.conf.j2 dest=/etc/ldap/ldap.conf mode=444 owner=root group=root
+  when: is_trusty
+  tags: ldap-client
+
+- name: set the ldapscripts.conf uri
+  action: configfile path=/etc/ldapscripts/ldapscripts.conf key=SERVER value='{{ ldap_uri }}' syntax=shell
+  when: is_trusty
+  tags: ldap-client
+
+- name: set the ldapscripts.conf bind dn
+  action: configfile path=/etc/ldapscripts/ldapscripts.conf key=BINDDN value='cn=admin,{{ ldap_base_dn }}' syntax=shell
+  when: is_trusty
+  tags: ldap-client
+    
+- name: set the ldapscripts.conf dn suffix
+  action: configfile path=/etc/ldapscripts/ldapscripts.conf key=SUFFIX value='{{ ldap_base_dn }}' syntax=shell
+  when: is_trusty
+  tags: ldap-client
+    

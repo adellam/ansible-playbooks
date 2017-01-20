@@ -1,0 +1,6 @@
+---
+
+- name: couchbase swappiness
+  sysctl: name=vm.swappiness value={{ couchbase_swappiness }} state=present reload=yes
+  tags:
+    - couchbase_swap

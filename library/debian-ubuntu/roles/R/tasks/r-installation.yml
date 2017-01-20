@@ -1,0 +1,134 @@
+---
+- name: Manage the cran repository key
+  apt_key: id=E084DAB9 keyserver=keyserver.ubuntu.com state={{ r_install_cran_repo }}
+  tags: [ 'r_software', 'r_repo', 'r_repo_key' ]
+
+- name: Manage the cran repository definition
+  apt_repository: repo='deb http://cran.rstudio.com/bin/linux/ubuntu {{ ansible_distribution_release }}/' state={{ r_install_cran_repo }} update_cache=yes
+  tags: [ 'r_software', 'r_repo' ]
+
+- name: Remove the hold state from the debian R packages
+  shell: apt-mark unhold {{ item }}
+  with_items: '{{ r_base_packages_hold_list | default([]) }}'
+  when: r_base_packages_hold_list is defined
+  ignore_errors: True
+  tags: [ 'r_software', 'r_pkg', 'r_pkg_hold' ]
+
+- name: Install the R base packages.
+  apt: pkg={{ item }} state={{ r_packages_main_state }} force=yes update_cache=yes cache_valid_time=3600
+  with_items: '{{ r_base_packages_list }}'
+  tags: [ 'r_software', 'r_pkg' ]
+
+- name: When we install specific R deb packages, put them on hold
+  shell: apt-mark hold {{ item }}
+  with_items: '{{ r_base_packages_hold_list| default([]) }}'
+  when: r_base_specific_version
+  ignore_errors: True
+  tags: [ 'r_software', 'r_pkg', 'r_pkg_hold' ]
+
+- name: Install the R additional modules from the deb repo
+  apt: pkg={{ item }} state={{ r_packages_state }} force=yes
+  with_items: '{{ r_plugins_packages_list | default([]) }}'
+  when: r_plugins_from_deb
+  tags: [ 'r_software', 'r_pkg' ]
+
+- name: Configure the default CRAN mirror
+  template: src=Rprofile.site.j2 dest=/etc/R/Rprofile.site owner=root group=root mode=0444
+  when: r_install_cran_repo == 'present'
+  tags: [ 'r_software', 'r_profile', 'r_pkg' ]
+  
+- name: Install some packages needed by R packages when installed from source
+  apt: pkg={{ item }} state={{ r_packages_state }} update_cache=yes force=yes
+  with_items: '{{ r_distribution_required_packages | default([]) }}'
+  tags: [ 'r_software', 'r_pkg', 'r_deps' ]
+  
+- name: Ensure that the R packages sources directory exists
+  file: dest={{ r_source_plugins_dest_dir }} state=directory owner=root group=root
+  when: r_plugins_from_sources is defined
+  tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_version' ]
+
+- name: Install R packages from the cran sources repo or from an alternative repository, latest available version. First try
+  command: >
+    Rscript --slave --no-save --no-restore-history -e "if (! ('{{ item.name }}' %in% installed.packages()[,'Package'])) { install.packages(pkgs='{{ item.name }}', repos=c('{{ item.repo | default ('https://cloud.r-project.org') }}/')); print('Added'); } else { print('Already installed'); }"
+  register: install_plugins_result
+  failed_when: "install_plugins_result.rc != 0 or 'had non-zero exit status' in install_plugins_result.stderr"
+  changed_when: "'Added' in install_plugins_result.stdout"
+  with_items: '{{ r_plugins_list_to_install | default([]) }}'
+  ignore_errors: True
+  tags: [ 'r_software', 'r_pkg', 'r_plugins' ]
+
+- name: Get the R packages sources that need to be installed
+  get_url: url={{ item.url }} dest={{ r_source_plugins_dest_dir }}
+  with_items: '{{ r_plugins_from_sources | default([]) }}'
+  tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_version' ]
+  
+- name: Install R packages from the cran sources, specific versions. First round
+  command: >
+    Rscript --slave --no-save --no-restore-history -e "if (! ('{{ item.name }}' %in% installed.packages()[,'Package'])) { install.packages('{{ r_source_plugins_dest_dir }}/{{ item.source }}', repos = NULL, type='source'); print('Added'); } else if (packageVersion('{{ item.name }}') != '{{ item.version }}') { install.packages('{{ r_source_plugins_dest_dir }}/{{ item.source }}', repos = NULL, type='source'); print('Added'); } else { print('Already Installed'); }"
+  register: install_s_plugins_result
+  failed_when: "install_s_plugins_result.rc != 0 or 'had non-zero exit status' in install_s_plugins_result.stderr"
+  changed_when: '"Added" in install_s_plugins_result.stdout'
+  with_items: '{{ r_plugins_from_sources | default([]) }}'
+  ignore_errors: True
+  tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_version' ]
+
+- name: Install R packages from the cran sources, specific versions. Second round, to avoid circular dependencies
+  command: >
+    Rscript --slave --no-save --no-restore-history -e "if (! ('{{ item.name }}' %in% installed.packages()[,'Package'])) { install.packages('{{ r_source_plugins_dest_dir }}/{{ item.source }}', repos = NULL, type='source'); print('Added'); } else if (packageVersion('{{ item.name }}') != '{{ item.version }}') { install.packages('{{ r_source_plugins_dest_dir }}/{{ item.source }}', repos = NULL, type='source'); print('Added'); } else { print('Already Installed'); }"
+  register: install_s_plugins_result
+  failed_when: "install_s_plugins_result.rc != 0 or 'had non-zero exit status' in install_s_plugins_result.stderr"
+  changed_when: '"Added" in install_s_plugins_result.stdout'
+  with_items: '{{ r_plugins_from_sources | default([]) }}'
+  when: ( install_s_plugins_result | failed )
+  tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_version' ]
+
+- name: Install R packages from the cran sources repo or from an alternative repository, latest available version. Second try
+  command: >
+    Rscript --slave --no-save --no-restore-history -e "if (! ('{{ item.name }}' %in% installed.packages()[,'Package'])) { install.packages(pkgs='{{ item.name }}', repos=c('{{ item.repo | default ('https://cloud.r-project.org') }}/')); print('Added'); } else { print('Already installed'); }"
+  register: install_plugins_result
+  failed_when: "install_plugins_result.rc != 0 or 'had non-zero exit status' in install_plugins_result.stderr"
+  changed_when: "'Added' in install_plugins_result.stdout"
+  with_items: '{{ r_plugins_list_to_install | default([]) }}'
+  when: ( install_plugins_result | failed )
+  tags: [ 'r_software', 'r_pkg', 'r_plugins' ]
+
+- name: Install R packages from github
+  command: >
+    Rscript --slave --no-save --no-restore-history -e "if (! ('{{ item.plugin_name }}' %in% installed.packages()[,'Package'])) { require(devtools); require(methods) ; options(repos='{{ r_cran_mirror_site }}/') ; install_github('{{ item.github_user }}/{{ item.plugin_name }}'); print('Added'); } else { print('Already Installed'); }"
+  register: install_github_plugins_result
+  failed_when: "install_github_plugins_result.rc != 0 or 'had non-zero exit status' in install_github_plugins_result.stderr"
+  changed_when: "'Added' in install_github_plugins_result.stdout"
+  with_items: '{{ r_plugins_from_github | default([]) }}'
+  tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_github' ]
+  ignore_errors: True
+
+- name: Install R packages from the cran sources, specific versions. First round
+  command: >
+    Rscript --slave --no-save --no-restore-history -e "if (! ('{{ item.name }}' %in% installed.packages()[,'Package'])) { install.packages('{{ r_source_plugins_dest_dir }}/{{ item.source }}', repos = NULL, type='source'); print('Added'); } else if (packageVersion('{{ item.name }}') != '{{ item.version }}') { install.packages('{{ r_source_plugins_dest_dir }}/{{ item.source }}', repos = NULL, type='source'); print('Added'); } else { print('Already Installed'); }"
+  register: install_s_plugins_result
+  failed_when: "install_s_plugins_result.rc != 0 or 'had non-zero exit status' in install_s_plugins_result.stderr"
+  changed_when: '"Added" in install_s_plugins_result.stdout'
+  with_items: '{{ r_plugins_from_sources | default([]) }}'
+  ignore_errors: True
+  tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_version' ]
+
+- name: Install R packages from the cran sources, specific versions. Second round, to avoid circular dependencies
+  command: >
+    Rscript --slave --no-save --no-restore-history -e "if (! ('{{ item.name }}' %in% installed.packages()[,'Package'])) { install.packages('{{ r_source_plugins_dest_dir }}/{{ item.source }}', repos = NULL, type='source'); print('Added'); } else if (packageVersion('{{ item.name }}') != '{{ item.version }}') { install.packages('{{ r_source_plugins_dest_dir }}/{{ item.source }}', repos = NULL, type='source'); print('Added'); } else { print('Already Installed'); }"
+  register: install_s_plugins_result
+  failed_when: "install_s_plugins_result.rc != 0 or 'had non-zero exit status' in install_s_plugins_result.stderr"
+  changed_when: '"Added" in install_s_plugins_result.stdout'
+  with_items: '{{ r_plugins_from_sources | default([]) }}'
+  when: ( install_s_plugins_result | failed )
+  tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_version' ]
+
+- name: Remove R unwanted packages
+  command: >
+    Rscript --slave --no-save --no-restore-history -e "if (! ('{{ item }}' %in% installed.packages()[,'Package'])) { print('Not installed'); } else { remove.packages(pkgs='{{ item }}'); print('Removed'); }"
+  register: remove_plugins_result
+  failed_when: remove_plugins_result.rc != 0
+  changed_when: "'Removed' in remove_plugins_result.stdout"
+  with_items: '{{ r_plugins_list_to_remove | default([]) }}'
+  when: r_plugins_list_to_remove is defined
+  tags: [ 'r_software', 'r_pkg', 'r_plugins' ]
+

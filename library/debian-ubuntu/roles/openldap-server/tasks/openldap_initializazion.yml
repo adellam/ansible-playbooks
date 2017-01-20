@@ -1,0 +1,41 @@
+---
+- name: Create a basic configuration
+  debconf: name=slapd question='{{ item.question }}' value='{{ item.value }}' vtype='{{ item.vtype }}'
+  with_items: '{{ slapd_debconf_params }}'
+  when: openldap_service_enabled
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf' ]
+
+- name: Generate the local admin password
+  shell: slappasswd -h {SSHA} -s {{ slapd_admin_pwd }} > /root/.slapdadmin ; chmod 400 /root/.slapdadmin
+  args:
+    creates: /root/.slapdadmin
+  when: slapd_admin_pwd is defined
+  register: admin_pass_file
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf' ]
+
+- name: Copy the ldif template to set the admin password
+  template: src=adminpwd.ldif.j2 dest=/etc/ldap/adminpwd_ldif.tmpl
+  when: slapd_admin_pwd is defined
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf' ]
+
+- name: Create the ldif file to set the admin password
+  shell: ADMIN_PASS=$( cat /root/.slapdadmin ); sed -e "s/@ADMINPWD@/${ADMIN_PASS}/" /etc/ldap/adminpwd_ldif.tmpl > /etc/ldap/adminpwd.ldif ; chmod 400 /etc/ldap/adminpwd.ldif
+  when: slapd_admin_pwd is defined
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf' ]
+
+- name: Finally set the admin password
+  shell: ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /etc/ldap/adminpwd.ldif
+  when: ( admin_pass_file | changed )
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf' ]
+
+- name: Install some additional schemas
+  shell: ldapadd -Q -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/{{ item }} ; touch /etc/ldap/schema/.{{ item }}.installed
+  args:
+    creates: '/etc/ldap/schema/{{ item }}.installed'
+  with_items: '{{ openldap_additional_schemas | default([]) }}'
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf' ]
+
+- name: Install the default environment for slapd
+  template: src=slapd-default.j2 dest=/etc/default/slapd owner=root group=root mode=0644
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf' ]
+  

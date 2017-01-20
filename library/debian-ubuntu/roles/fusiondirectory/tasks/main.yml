@@ -1,0 +1,6 @@
+---
+- include: manage-fd-repos.yml
+- include: manage-fd-packages.yml
+- include: manage-fd-schemas.yml
+  when: fusiondirectory_schemas_install
+

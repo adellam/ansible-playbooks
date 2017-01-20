@@ -1,0 +1,35 @@
+---
+- name: Install the bind packages to setup a dns server
+  yum: name={{ item }} state={{ bind_pkg_state }}
+  with_items: bind_packages
+  tags: [ 'bind', 'nameserver' ]
+
+- name: Install the bind packages to setup a dns server in a chroot environment
+  yum: name={{ item }} state={{ bind_pkg_state }}
+  with_items: bind_chroot_packages
+  when: bind_use_chroot
+  tags: [ 'bind', 'nameserver' ]
+
+- name: Start and enable the bind service
+  service: name=named state=started enabled=yes
+  when:
+    - bind_service_enabled
+    - not bind_use_chroot
+  tags: [ 'bind', 'nameserver' ]
+
+- name: Start and enable the chroot bind service
+  service: name=named-chroot state=started enabled=yes
+  when:
+    - bind_service_enabled
+    - bind_use_chroot
+  tags: [ 'bind', 'nameserver' ]
+
+- name: Stop and disable the bind service
+  service: name=named state=stopped enabled=no
+  when: not bind_service_enabled
+  tags: [ 'bind', 'nameserver' ]
+
+- name: Stop and disable the chroot bind service
+  service: name=named-chroot state=stopped enabled=no
+  when: not bind_use_chroot
+  tags: [ 'bind', 'nameserver' ]

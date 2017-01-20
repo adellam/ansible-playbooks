@@ -1,0 +1,116 @@
+---
+- name: Remove the smartgears distribution archive to force un upgrade
+  file: dest={{ item }} state=absent
+  with_items:
+    - '{{ smartgears_user_home }}/{{ smartgears_file }}'
+    - '{{ smartgears_user_home }}/smartgears-distribution-{{ smartgears_distribution_version }}'
+  when: smartgears_force_install
+  tags: [ 'smartgears', 'tomcat' ]
+
+- name: Unarchive the smartgears distribution
+  become: True
+  become_user: '{{ smartgears_user }}'
+  unarchive: copy=no src={{ smartgears_url }} dest={{ smartgears_user_home }} creates={{ smartgears_user_home }}/smartgears-distribution-{{ smartgears_distribution_version }}
+  register: new_smartgears_distribution
+  with_items: '{{ tomcat_m_instances }}'
+  when: not item.skip_smartgears
+  tags: [ 'smartgears', 'tomcat' ]
+
+- name: Stop the smartgears container before launching the upgrade script
+  become: True
+  become_user: '{{ smartgears_user }}'
+  shell: /home/{{ smartgears_user }}/stopContainer.sh
+  when: smartgears_upgrade
+  tags: [ 'smartgears', 'tomcat', 'stop_smartgears_service' ]
+
+- name: Install the additional tomcat default file
+  template: src=tomcat-instance-default.j2 dest=/etc/default/tomcat-instance-{{ item.http_port }}.local
+  with_items: '{{ tomcat_m_instances }}'
+  when: not item.skip_smartgears 
+  notify: Restart smartgears
+  tags: [ 'smartgears', 'tomcat', 'smartgears_env' ]
+
+- name: Set the additional tomcat default file as the smartgears user .bashrc
+  become: True
+  become_user: '{{ smartgears_user }}'
+  template: src=tomcat-instance-default.j2 dest={{ item.user_home }}/.bashrc mode=0444
+  with_items: '{{ tomcat_m_instances }}'
+  when: not item.skip_smartgears 
+  tags: [ 'smartgears', 'tomcat', 'smartgears_env' ]
+
+- name: Install the smartgears app
+  shell: cd {{ item.user_home }}/smartgears-distribution-{{ smartgears_distribution_version }} ; . /{{ item.user_home }}/.bashrc  ; ./install -s tomcat ; chown -R gcube:gcube '{{ item.user_home }}/smartgears-distribution-{{ smartgears_distribution_version }}' '{{ item.user_home }}/SmartGears/' '{{ item.user_home }}/tomcat/lib/' '{{ item.user_home }}/tomcat/webapps/'
+  with_items: '{{ tomcat_m_instances }}'
+  when:
+    - ( new_smartgears_distribution | changed )
+    - not item.skip_smartgears
+  register: install_smartgears_app
+  notify: Restart smartgears
+  tags: [ 'smartgears', 'tomcat' ]
+
+- name: Create the directory where we put the smartgears configuration snippets
+  become: True
+  become_user: '{{ smartgears_user }}'
+  file: dest={{ smartgears_user_home }}/.containerxml state=directory
+  tags: [ 'smartgears', 'smartgears_conf', 'tomcat' ]
+
+- name: Install the token generator class
+  copy: src=TokenGenerator.class dest=/usr/local/lib/TokenGenerator.class owner=root group=root mode=0644
+  tags: [ 'smartgears', 'smartgears_conf', 'tomcat' ]
+
+- name: Install the script that fetches the scope tokens
+  template: src=get-scopes.j2 dest=/usr/local/bin/get-scopes owner=root group={{ smartgears_user }} mode=0750
+  with_items: '{{ tomcat_m_instances }}'
+  tags: [ 'smartgears', 'smartgears_conf', 'tomcat' ]
+
+- name: Install the file containing the scopes list
+  template: src=scopes.list.j2 dest=/usr/local/etc/scopes.list owner=root group={{ smartgears_user }} mode=0444
+  tags: [ 'smartgears', 'smartgears_conf', 'tomcat' ]
+
+- name: Install the smartgears template configuration. First part
+  become: True
+  become_user: '{{ smartgears_user }}'
+  template: src=container.xml.j2 dest={{ smartgears_user_home }}/.containerxml/1-container.xml
+  with_items: '{{ tomcat_m_instances }}'
+  tags: [ 'smartgears', 'smartgears_conf', 'tomcat' ]
+
+- name: Install the smartgears template configuration file. Third part
+  become: True
+  become_user: '{{ smartgears_user }}'
+  template: src=container-end.xml.j2 dest={{ smartgears_user_home }}/.containerxml/3-container.xml
+  with_items: '{{ tomcat_m_instances }}'
+  tags: [ 'smartgears', 'smartgears_conf', 'tomcat' ]
+
+- name: Get the scope tokens from the authorization service and assemble the container.xml file
+  become: True
+  become_user: '{{ smartgears_user }}'
+  shell: /usr/local/bin/get-scopes {{ gcube_admin_token | default(omit) }}
+  when: gcube_admin_token is defined
+  tags: [ 'smartgears', 'smartgears_conf', 'tomcat' ]
+
+- name: Remove the smartgears application state if the configuration changed
+  file: dest={{ smartgears_install_path }}/state state=absent
+  when: smartgears_remove_state
+  notify: Restart smartgears 
+  tags: [ 'smartgears', 'smartgears_conf', 'tomcat' ]
+
+- name: Install the script that manages the smartgears loglevel
+  template: src=change-logback-loglevel.sh.j2 dest=/usr/local/bin/change-logback-loglevel owner=root group=root mode=0755
+  with_items: '{{ tomcat_m_instances }}'
+  when: not item.skip_smartgears 
+  tags: [ 'smartgears', 'smartgears_loglevel', 'tomcat' ]
+
+- name: Change the smartgears log level
+  become: True
+  become_user: '{{ smartgears_user }}'
+  shell: /usr/local/bin/change-logback-loglevel
+  tags: [ 'smartgears', 'tomcat', 'smartgears_loglevel' ]
+
+- name: Remove some wrong symbolic links created by the install/upgrade script
+  file: dest={{ smartgears_install_path }}/state state=absent
+  with_items:
+    - '{{ smartgears_install_path }}/lib/lib'
+    - '{{ smartgears_install_path }}/apps/webapps'
+  when: smartgears_upgrade
+  tags: [ 'smartgears', 'smartgears_conf', 'tomcat' ]
+

@@ -1,0 +1,24 @@
+---
+- name: Install the phusion passenger repo key
+  apt_key: id=561F9B9CAC40B2F7 keyserver=keyserver.ubuntu.com state=present
+  register: update_apt_cache
+  when: ruby_use_mod_passenger
+  tags: [ 'ruby', 'redmine', 'passenger' ]
+
+- name: Install the phusion passenger repo
+  apt_repository: repo='deb https://oss-binaries.phusionpassenger.com/apt/passenger {{ ansible_distribution_release }} main' state=present update_cache=yes
+  when: ruby_use_mod_passenger
+  tags: [ 'ruby', 'redmine', 'passenger' ]
+
+- name: Install the apache mod_passenger package
+  apt: pkg=libapache2-mod-passenger state=present
+  when: ruby_use_mod_passenger
+  notify: apache2 reload
+  tags: [ 'ruby', 'redmine', 'passenger' ]
+
+- name: Install the mod-passenger configuration
+  apache2_module: name=passenger state=present
+  when: ruby_use_mod_passenger
+  notify: apache2 reload
+  tags: [ 'ruby', 'redmine', 'passenger' ]
+

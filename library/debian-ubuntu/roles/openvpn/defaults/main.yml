@@ -1,0 +1,95 @@
+---
+openvpn_enabled: True
+openvpn_enable_system_forward: True
+openvpn_pkg_state: latest
+openvpn_pkgs:
+  - openvpn
+
+# Authentication choices
+openvpn_cert_auth_enabled: True
+openvpn_username_pam_auth: False
+
+openvpn_radius_auth: False
+openvpn_radius_pkg:
+  - openvpn-auth-radius
+
+# With openvpn-auth-ldap. Broken on Ubuntu trusty  
+openvpn_ldap_auth: False
+openvpn_ldap_pkg:
+  - openvpn-auth-ldap
+
+openvpn_ldap_perl_auth: False
+openvpn_perl_pkg:
+  - libnet-ldap-perl
+
+# Server con parameters
+openvpn_conf_dir: /etc/openvpn
+openvpn_conf_name: openvpn.conf
+  
+openvpn_mode: server
+openvpn_dev: tun
+openvpn_port: 1194
+openvpn_protocol: udp
+openvpn_server_net: '192.168.254.0 255.255.255.0'
+openvpn_push_routes:
+  - '192.168.253.0 255.255.255.0'
+
+#openvpn_push_settings:
+#  - "dhcp-option DNS 10.66.0.4"
+
+openvpn_tls_server: True
+openvpn_dh: /etc/openvpn/dh2048.pem
+openvpn_tls_auth: '/etc/openvpn/ta.key 0'
+openvpn_install_alternative_ca: False
+openvpn_alternative_ca_name: ca.pem
+openvpn_ca_dir: False
+openvpn_ca: '/var/lib/acme/live/{{ ansible_fqdn }}/chain'
+openvpn_cert: '/var/lib/acme/live/{{ ansible_fqdn }}/cert'
+openvpn_key: '/var/lib/acme/live/{{ ansible_fqdn }}/privkey'
+
+openvpn_ha: False
+# Not a real master. It is only the host where the dh.pem and ta.key are generated
+openvpn_master_host: 'localhost'
+openvpn_is_master_host: False 
+
+openvpn_compression_enabled: False
+openvpn_keepalive: '10 120'
+
+openvpn_max_clients: 100
+openvpn_run_unprivileged: True
+openvpn_unprivileged_user: nobody
+openvpn_unprivileged_group: nogroup
+openvpn_letsencrypt_managed: True
+
+openvpn_verbosity_log: 3
+openvpn_mute_after: 20
+
+# LDAP conf
+openvpn_ldap_uri: 'ldap:'
+openvpn_ldap_host: ldap.example.org
+openvpn_ldap_url: '{{ openvpn_ldap_uri }}//{{ openvpn_ldap_host }}'
+openvpn_ldap_nonanon_bind: False
+openvpn_ldap_binddn: uid=admin
+openvpn_ldap_bindpwd: test
+openvpn_ldap_ca: '{{ openvpn_ca }}'
+openvpn_ldap_use_ca_dir: False
+openvpn_ldap_ca_dir: /etc/ssl/certs
+openvpn_ldap_starttls: False
+openvpn_ldap_tls_auth: False
+openvpn_ldap_tls_cert: '{{ openvpn_cert }}'
+openvpn_ldap_tls_key: '{{ openvpn_key }}'
+openvpn_ldap_tls_ciphersuite: 'ALL:!ADH:@STRENGTH'
+# LDAP auth
+openvpn_ldap_base_dn: 'ou=People,dc=example,dc=org'
+openvpn_ldap_user_search: '(&(uid=%u))'
+openvpn_ldap_require_group: False
+# See https://github.com/threerings/openvpn-auth-ldap/issues/7
+openvpn_ldap_without_posix_groups: True  
+openvpn_ldap_group_base: 'ou=Groups,dc=example,dc=org'
+openvpn_ldap_group_filter: '(|(cn=developers)(cn=artists))'
+openvpn_ldap_group_member_attr: uniqueMember
+
+# Perl LDAP conf
+openvpn_ldap_perl_auth_ssl: True
+openvpn_ldap_perl_auth_sslport: 636
+openvpn_ldap_perl_auth_group: vpn_ldap_posix_group

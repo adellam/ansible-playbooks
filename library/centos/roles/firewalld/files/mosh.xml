@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>Mosh SSH service</short>
+  <description>This allows mosh to send and receive datagram connections.</description>
+  <port protocol="udp" port="60000"/>
+  <port protocol="udp" port="60001"/>
+  <port protocol="udp" port="60002"/>
+  <port protocol="udp" port="60003"/>
+  <port protocol="udp" port="60004"/>
+  <port protocol="udp" port="60005"/>
+  <port protocol="udp" port="60006"/>
+  <port protocol="udp" port="60007"/>
+  <port protocol="udp" port="60008"/>
+  <port protocol="udp" port="60009"/>
+  <port protocol="udp" port="60010"/>
+</service>

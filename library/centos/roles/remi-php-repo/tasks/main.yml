@@ -1,0 +1,17 @@
+---
+- name: "*** Install the Remi PHP repo ***"
+  yum: name={{ php_remi_repo_url }} state=installed
+  when: php_remi_repo_install
+  tags: [ 'php', 'remi' ]
+  
+- name: "*** Enable the base Remi repo ***"
+  ini_file: dest=/etc/yum.repos.d/remi.repo section=remi option=enabled value=1
+  with_items: php_remi_repo_version
+  when: php_remi_repo_install
+  tags: [ 'php', 'remi' ]
+
+- name: "*** Enable the additional Remi PHP repo ***"
+  ini_file: dest=/etc/yum.repos.d/remi.repo section={{ item.name }} option=enabled value={{ item.value }}
+  with_items: php_remi_repo_version
+  when: php_remi_repo_install
+  tags: [ 'php', 'remi' ]

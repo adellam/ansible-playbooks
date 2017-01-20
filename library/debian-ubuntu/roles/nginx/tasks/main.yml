@@ -1,0 +1,20 @@
+---
+- include: nginx.yml
+- include: nginx-config.yml
+- include: nginx-virtualhosts.yml
+  when: nginx_use_common_virthost
+- include: nginx-letsencrypt.yml
+  when: letsencrypt_acme_install is defined and letsencrypt_acme_install
+- include: pam-ldap.yml
+
+- name: Ensure that the webserver is running and enabled at boot time
+  service: name=nginx state=started enabled=yes
+  when: nginx_enabled
+  ignore_errors: True
+  tags: nginx
+
+- name: Ensure that the webserver is stopped and disabled
+  service: name=nginx state=stopped enabled=no
+  when: not nginx_enabled
+  ignore_errors: True
+  tags: nginx

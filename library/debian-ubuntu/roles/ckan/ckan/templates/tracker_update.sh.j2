@@ -1,0 +1,17 @@
+#!/bin/bash
+
+LOCK_DIR={{ ckan_logdir }}
+LOCK_FILE=$LOCK_DIR/.index_rebuild.lock
+. {{ ckan_virtenv }}/bin/activate
+
+if [ -f $LOCK_FILE ] ; then
+    echo 'A lock file is present, exiting'
+    exit 2
+fi
+
+echo "cron pid: ${$}" > $LOCK_FILE
+paster --plugin=ckan tracking update         -c {{ ckan_config_file }}
+paster --plugin=ckan search-index rebuild -r -c {{ ckan_config_file }}
+
+rm -f $LOCK_FILE
+exit 0

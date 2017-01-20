@@ -1,0 +1,23 @@
+---
+- name: Fix rsyslog behaviour on some ubuntu machines disabling the kernel logger
+  lineinfile: dest=/etc/rsyslog.conf regexp="\\$ModLoad\ imklog" line="#$ModLoad imklog" backup=yes
+  when:
+    - is_precise and ansible_kernel != "3.2.0-4-amd64"
+    - is_not_trusty
+  notify: Restart rsyslog
+  tags: rsyslog
+
+- name: Enable the kernel logger on ubuntu >= 12.04 and kernel major version >= 3
+  lineinfile: dest=/etc/rsyslog.conf line="$ModLoad imklog " insertafter="\\$ModLoad\ imuxsock" backup=yes
+  when:
+    - is_precise and ansible_kernel == "3.2.0-4-amd64"
+    - is_trusty
+  notify: Restart rsyslog
+  tags: rsyslog
+
+- name: Install custom rsyslog rules
+  template: src=10-custom_rules.conf.j2 dest=/etc/rsyslog.d/10-custom_rules.conf owner=root group=root mode=0444
+  when: default_rsyslog_custom_rules is defined
+  notify: Restart rsyslog
+  tags: rsyslog
+  

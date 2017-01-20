@@ -1,0 +1,6 @@
+---
+ckan_solr_port: 8983
+solr_multicore: True
+solr_cores:
+  - collection1
+

@@ -1,0 +1,11 @@
+---
+vagrant_install: False
+vagrant_package_from_site: False
+vagrant_site_version: 1.7.4
+vagrant_url: 'https://dl.bintray.com/mitchellh/vagrant/vagrant_{{ vagrant_site_version }}_x86_64.deb'
+virtualbox_version: 5.0
+
+vagrant_package_list:
+  - 'linux-headers-{{ ansible_kernel }}'
+  - 'virtualbox-{{ virtualbox_version }}'
+

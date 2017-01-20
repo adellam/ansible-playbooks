@@ -1,0 +1,38 @@
+---
+
+# Fail2ban
+# Needed by the fail2ban template
+# ban time in seconds. 86400 == 1 day
+f2b_ban_time: 86400
+f2b_findtime: 600
+f2b_maxretry: 5
+f2b_ddos_findtime: 120
+f2b_ddos_maxretry: 200
+f2b_default_backend: auto
+f2b_usedns: warn
+f2b_dest_email: 'sysadmin@{{ domain_name }}'
+f2b_sender_email: 'sysadmin@{{ domain_name }}'
+f2b_default_banaction: iptables-multiport
+# Default action: ban. Not send email
+f2b_default_action: action_
+f2b_default_iptableschain: INPUT
+f2b_ssh_enabled: true
+f2b_ssh_ddos_enabled: true
+f2b_apache_ddos_enabled: false
+f2b_apache_auth_enabled: false
+f2b_apache_noscript_enabled: false
+f2b_apache_overflow_enabled: false
+f2b_php_url_popen: false
+f2b_nginx_auth_enabled: false
+f2b_nginx_ddos_enabled: false
+f2b_vsftpd_enabled: false
+f2b_vsftpd_logpath: /var/log/vsftpd.log
+f2b_recidive_enabled: true
+# 604800: one week
+f2b_recidive_findtime: 604800
+# 14515200 24 weeks
+f2b_recidive_ban_time: 14515200
+
+f2b_packages:
+  - fail2ban
+  - iptables

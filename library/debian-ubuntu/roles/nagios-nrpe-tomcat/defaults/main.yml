@@ -1,0 +1,8 @@
+---
+
+check_tomcat_deps:
+  - libwww-perl
+  - liblwp-mediatypes-perl
+  - liblwp-useragent-determined-perl
+  - liblwp-protocol-https-perl
+  - libxml-xpath-perl

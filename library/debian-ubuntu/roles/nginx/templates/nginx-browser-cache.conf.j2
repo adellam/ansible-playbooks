@@ -1,0 +1,27 @@
+# include inside a 'server' directive
+# 
+location ~* \.(?:manifest|appcache|html?|xml|json)$ {
+    expires {{ nginx_html_cache_expire }};
+}
+
+{% if nginx_feed_cache_expire_enabled %}
+#
+location ~* \.(?:rss|atom)$ {
+  expires {{ nginx_feed_cache_expire }};
+  add_header Cache-Control "{{ nginx_cache_control }}";
+}
+{% endif %}
+
+#
+location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc)$ {
+  expires {{ nginx_media_cache_expire }};
+  access_log off;
+  add_header Cache-Control "{{ nginx_cache_control }}";
+}
+
+#
+location ~* \.(?:css|js)$ {
+  expires {{ nginx_css_js_cache_expire }};
+  access_log off;
+  add_header Cache-Control "{{ nginx_cache_control }}";
+}

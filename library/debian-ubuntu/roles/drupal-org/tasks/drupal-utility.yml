@@ -1,0 +1,26 @@
+---
+- block:
+    - name: Install a cron job that runs the maintenance tasks
+      cron: name="Drupal maintenance tasks"
+            minute=0
+            hour=4
+            job="curl https://{{ item.virthost }}/cron/OUznPey7M292D0YaTmLrdEKzA8yON3W7opBgrCZMMd0e5d4J8etqjqLOinD0Hs5s8rWa-Pk9mA?absolute=1"
+            user={{ item.user }}
+      with_items: '{{ phpfpm_pools }}'
+
+  when: drupal_maintenance_cron
+  tags: [ 'drupal', 'drupal_cron' ]
+
+- block:
+    - name: Remove the maintenance tasks cron job
+      cron: name="Drupal maintenance tasks"
+            minute=0
+            hour=4
+            job="curl https://{{ item.virthost }}/cron/OUznPey7M292D0YaTmLrdEKzA8yON3W7opBgrCZMMd0e5d4J8etqjqLOinD0Hs5s8rWa-Pk9mA?absolute=1"
+            user={{ item.user }}
+            state=absent
+      with_items: '{{ phpfpm_pools }}'
+
+  when: not drupal_maintenance_cron
+  tags: [ 'drupal', 'drupal_cron' ]
+

@@ -1,0 +1,63 @@
+---
+- name: Install the cassandra apt key
+  raw: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 350200F2B999A372
+  when: cassandra_install_from_external_repo
+  tags: cassandra
+
+- name: Install the cassandra repository
+  copy: content="deb http://debian.datastax.com/community stable main" dest=/etc/apt/sources.list.d/cassandra.sources.list owner=root group=root mode=0444 update_cache=yes
+  when: cassandra_install_from_external_repo
+  tags: cassandra
+
+- name: Install a specific version of cassandra server
+  apt: pkg={{ item }}={{ cassandra_version }} state=present
+  with_items:
+    - cassandra
+  when:
+    - cassandra_install_from_external_repo
+    - cassandra_install_packages
+    - not cassandra_latest_version
+  tags: cassandra
+
+- name: Install a specific version of cassandra tools
+  apt: pkg={{ item }}={{ cassandra_version }} state=present
+  with_items:
+    - cassandra-tools
+  when:
+    - cassandra_install_from_external_repo
+    - cassandra_install_packages
+    - not cassandra_latest_version
+  tags: cassandra
+
+- name: hold the version of cassandra server
+  action: shell apt-mark hold {{ item }}
+  with_items:
+    - cassandra
+    - cassandra-tools
+  when:
+    - cassandra_install_from_external_repo
+    - cassandra_install_packages
+    - not cassandra_latest_version
+  tags: cassandra
+
+- name: Install the latest version of cassandra server
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - cassandra
+    - cassandra-tools
+  when:
+    - cassandra_install_from_external_repo
+    - cassandra_install_packages
+    - cassandra_latest_version
+  tags: cassandra
+
+- name: Ensure cassandra is started and enabled
+  service: name=cassandra state=started enabled=yes
+  when: cassandra_start_server
+  tags: cassandra
+
+- name: Ensure cassandra is stopped and disabled
+  service: name=cassandra state=stopped enabled=no
+  when: not cassandra_start_server
+  tags: cassandra
+

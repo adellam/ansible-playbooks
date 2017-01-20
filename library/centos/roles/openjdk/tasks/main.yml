@@ -1,0 +1,24 @@
+---
+- block:
+    - name: Remove OpenJDK
+      yum: pkg=java-{{ item.0 }}-{{ item[1] }} state={{ openjdk_pkg_state }}
+      with_nested:
+        - '{{ openjdk_version }}'
+        - '{{ openjdk_pkgs }}'
+      notify: Set the default OpenJDK
+
+    - name: Set fact jdk_installed
+      set_fact: jdk_installed=true
+
+  when: openjdk_install
+  tags: [ 'jdk', 'openjdk' ]
+
+- block:
+    - name: Remove OpenJDK
+      yum: pkg=java-{{ item.0 }}-{{ item[1] }} state=absent
+      with_nested:
+        - '{{ openjdk_version }}'
+        - '{{ openjdk_pkgs }}'
+
+  when: not openjdk_install
+  tags: [ 'jdk', 'openjdk' ]

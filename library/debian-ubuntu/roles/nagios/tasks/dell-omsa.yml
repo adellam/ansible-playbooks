@@ -1,0 +1,97 @@
+---
+# The internal repository is used for the check-openmanage nagios plugin:
+# http://folk.uio.no/trondham/software/check_openmanage.html
+- name: research infrastructures system repository on ubuntu
+  apt_repository: repo='deb http://ppa.research-infrastructures.eu/system stable main'
+  when: is_ubuntu
+  register: update_apt_cache
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install the NeMIS internal repository apt key
+  apt_key: url=http://ppa.research-infrastructures.eu/system/keys/system-archive.asc state=present
+  tags: [ 'dell', 'nagios' ]
+
+- name: research infrastructures system repository on debian
+  copy: src={{ item }} dest=/etc/apt/sources.list.d/{{ item }}
+  with_items:
+    - research-infrastructures.eu.system.list
+  when: is_debian
+  register: update_apt_cache
+  tags: [ 'dell', 'nagios' ]
+
+- name: Update apt cache
+  apt: update_cache=yes
+  when: ( update_apt_cache | changed )
+  tags: [ 'dell', 'nagios' ]
+
+#- action: apt_key id=1285491434D8786F state=present
+- name: Install the Dell OMSA repository apt key
+  apt_key: keyserver=pool.sks-keyservers.net id=1285491434D8786F
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install the Dell apt repository
+  template: src={{ item }}.j2 dest=/etc/apt/sources.list.d/{{ item }}
+  with_items:
+    - linux.dell.com.sources.list
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install the Dell OMSA packages dependencies
+  apt: pkg={{ item }} state=installed force=yes update_cache=yes
+  with_items: '{{ nagios_dell_omsa_deps }}'
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install other Dell OMSA packages dependencies
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - python-requests
+  register: requests_pkg
+  ignore_errors: True
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install the python-pip package if requests is not available as a package
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - python-pip
+  when: requests_pkg|failed
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install the python-requests package via pip if it s not available as package
+  pip: name={{ item }} state=latest use_mirrors=no
+  with_items:
+    - requests
+  when: requests_pkg|failed
+  tags: [ 'dell', 'nagios' ]
+
+- name: Get the old libssl0.9.8_9.9.8 needed by del Dell OMSA utilities on debian 7
+  get_url: url=http://ppa.research-infrastructures.eu/dell-legacy/libssl0.9.8_0.9.8o-4squeeze14_amd64.deb dest=/var/lib/libssl0.9.8_0.9.8o-4squeeze14_amd64.deb
+  when: is_debian7
+  register: libssl_legacy
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install libssl0.9.8_0.9.8o-4squeeze14_amd64.deb on debian 7
+  shell: /usr/bin/dpkg -i /var/lib/libssl0.9.8_0.9.8o-4squeeze14_amd64.deb
+  when: ( libssl_legacy | changed )
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install the main Dell OMSA package
+  apt: pkg={{ item }} state={{ nagios_dell_omsa_pkg_state }} force=yes
+  with_items:
+    - syscfg
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install the Dell OMSA packages
+  apt: pkg={{ item }} state={{ nagios_dell_omsa_pkg_state }} force=yes
+  with_items: '{{ nagios_dell_omsa_pkgs }}'
+  notify: Start Dell OMSA
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install some standalone plugins
+  copy: src={{ item }} dest={{ nagios_isti_plugdir }}/{{ item }} owner=root group=nagios mode=0750
+  with_items: '{{ nagios_dell_standalone_checks }}'
+  tags: [ 'dell', 'nagios' ]
+
+- name: Install a cron job that removes the leaked semaphores created by the nagios check of Dell hardware status
+  copy: src={{ item }} dest=/etc/cron.daily/{{ item }} owner=root group=root mode=0555
+  with_items:
+    - cleanup-leaked-ipvsems.sh
+  tags: [ 'dell', 'nagios' ]

@@ -1,0 +1,74 @@
+---
+#
+# Note that the Ubuntu package use as data directory /var/lib/couchdb
+# That path is fixed inside /etc/init/couchdb.conf
+#
+# About replication
+# - couchdb replication is defined per database with a document put in the _replication db
+#   on version 1.6
+#
+
+# Set it to true if you want the old 1.6 release
+couchdb_use_old_package: True
+couchdb_ssl_enabled: False
+
+couchdb_pkg_state: installed
+couchdb_pkg_version: 1.6.1-0ubuntu5
+couchdb_ppa: "ppa:couchdb/stable"
+couchdb_pkgs:
+  - couchdb={{ couchdb_pkg_version }}
+  - curl
+
+couchdb_enabled: True
+couchdb_http_port: 5984
+couchdb_https_port: 6984
+couchdb_bind_address: 127.0.0.1
+couchdb_local_ini_d: /etc/couchdb
+couchdb_open_files: 4096
+couchdb_log_level: info
+
+couchdb_set_admin: False
+#couchdb_admin_pwd: Put it in a vault file
+couchdb_admin_users:
+  - { user: 'admin', pwd: '{{ couchdb_admin_pwd }}', state: 'present' }
+
+couchdb_default_options:
+  - { section: 'httpd', option: 'bind_address', value: '{{ couchdb_bind_address }}', state: 'present' }
+  - { section: 'couch_httpd_auth', option: 'require_valid_user', value: 'true', state: 'present' }
+#  - { section: 'httpd', option: 'config_whitelist', value: '"[{httpd,config_whitelist},{log,level}]"', state: 'present' }
+  - { section: 'log', option: 'include_sasl', value: 'true', state: 'present' }
+  - { section: 'log', option: 'level', value: '{{ couchdb_log_level }}', state: 'present' }
+
+couchdb_ssl_options:
+  - { section: 'daemons', option: 'httpsd', value: '"{couch_httpd, start_link, [https]}"', state: 'present' }
+  - { section: 'daemons', option: 'httpd', value: '"{couch_httpd, start_link, []}"', state: 'absent' }
+  - { section: 'ssl', option: 'cert_file', value: '{{ pki_dir }}/ssl/{{ ansible_fqdn }}.pem', state: 'present' }
+  - { section: 'ssl', option: 'key_file', value: '{{ pki_dir }}/ssl/{{ ansible_fqdn }}.key', state: 'present' }
+  - { section: 'ssl', option: 'cacert_file', value: 'accounting-{{ pki_dir }}/ssl/{{ ansible_fqdn }}.pem', state: 'present' }
+  - { section: 'ssl', option: 'port', value: '{{ couchdb_https_port }}', state: 'present' }
+  - { section: 'ssl', option: 'ssl_certificate_max_depth', value: '3', state: 'present' }
+  - { section: 'ssl', option: 'verify_ssl_certificates', value: 'False', state: 'present' }
+
+couchdb_ssl_default_remove:
+  - { section: 'daemons', option: 'httpd', value: '"{couch_httpd, start_link, []}"', state: 'absent' }
+
+couchdb_disable_ssl_options:
+  - { section: 'daemons', option: 'httpsd', value: '"{couch_httpd, start_link, [https]}"', state: 'absent' }
+  - { section: 'daemons', option: 'httpd', value: '"{couch_httpd, start_link, []}"', state: 'present' }
+  
+couchdb_replicator_options:
+  - { section: 'replicator', option: 'db', value: '_replicator', state: 'present' }
+  - { section: 'replicator', option: 'use_checkpoints', value: 'true', state: 'present' }
+  - { section: 'replicator', option: 'worker_processes', value: '2', state: 'present' }
+  - { section: 'replicator', option: 'http_connections', value: '15', state: 'present' }
+
+# Use this to set your options
+#couchdb_custom_options:
+#  - { section: 'httpd', option: 'bind_address', value: '{{ couchdb_bind_address }}', state: 'present' }
+#  - { section: 'httpd', option: 'config_whitelist', value: '[{httpd,config_whitelist}, {log,level}]', state: 'present' }
+
+couchdb_ganglia_url: http://localhost:5984/_stats
+# If set, http basic auth is used for the connection
+#couchdb_ganglia_url_username: '{{ couchdb_ganglia_user}}'
+#couchdb_ganglia_url_password: '{{ couchdb_ganglia_user_pwd }}'
+couchdb_ganglia_refresh_rate: 60

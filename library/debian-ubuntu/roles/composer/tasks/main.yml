@@ -1,0 +1,23 @@
+---
+- block:
+    - name: Install the script that downloads and installs composer
+      template: src=composer-installer.j2 dest=/usr/local/sbin/composer-installer owner=root group=root mode=0750
+      
+    - name: Install composer
+      shell: /usr/local/sbin/composer-installer
+      args:
+        creates: '{{ composer_dest_dir }}/{{ composer_exec_name }}'
+
+  when: composer_install
+  tags: [ 'php', 'composer' ]
+
+- block:
+    - name: Remove the composer installer script
+      file: dest=/usr/local/sbin/composer-installer state=absent
+      
+    - name: Remove composer
+      file: dest='{{ composer_dest_dir }}/{{ composer_exec_name }}' state=absent
+
+  when: not composer_install
+  tags: [ 'php', 'composer' ]
+

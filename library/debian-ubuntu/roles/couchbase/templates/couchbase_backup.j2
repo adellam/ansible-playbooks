@@ -1,0 +1,10 @@
+#!/bin/bash
+
+LOG_FILE={{ couchbase_backup_dest_dir }}/couchbase_backup.log
+
+COUCH_URL="http://{{ ansible_fqdn }}:{{ couchbase_console_port }}/"
+
+{{ couchbase_backup_command }} $COUCH_URL {{ couchbase_backup_dest_dir }}/ -m {{ couchbase_backup_type }} -u {{ couchbase_backup_user }} -p {{ couchbase_backup_password }} > $LOG_FILE 2>&1
+
+exit $?
+

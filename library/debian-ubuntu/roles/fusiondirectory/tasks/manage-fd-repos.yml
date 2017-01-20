@@ -1,0 +1,29 @@
+---
+- block:
+
+    - name: Get the Fusion Directory repo key
+      apt_key: id={{ fusiond_repo_key }} keyserver={{ fusiond_gpg_repo }}
+
+    - name: Install the Fusion Directory repo
+      apt_repository: repo={{ fusiond_repo }}
+
+    - name: Install the Fusion Directory debian extras repo
+      apt_repository: repo={{ fusiond_extra_repo }}
+
+  when: fusiondirectory_install
+  tags: fusiondirectory
+  
+- block:
+
+    - name: Remove the Fusion Directory repo key
+      apt_key: id={{ fusiond_repo_key }} keyserver={{ fusiond_gpg_repo }} state=absent
+
+    - name: Remove the Fusion Directory repo
+      apt_repository: repo={{ fusiond_repo }} state=absent
+
+    - name: Remove the Fusion Directory debian extras repo
+      apt_repository: repo={{ fusiond_extra_repo }} state=absent update_cache=yes
+
+  when: not fusiondirectory_install
+  tags: fusiondirectory
+  

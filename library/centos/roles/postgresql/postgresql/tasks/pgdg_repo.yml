@@ -1,0 +1,32 @@
+---
+- block:
+  - name: Install the pgsql pgdg repository
+    yum: name={{ centos_pgdg_repo_url }} state={{ psql_pkg_state }}
+
+  - name: install the postgresql packages from the pgdg repository
+    yum: pkg={{ item }} state={{ psql_pkg_state }}
+    with_items: '{{ psql_pgdg_packages }}'
+
+  - name: Init the db if needed
+    command: /usr/pgsql-{{ psql_version }}/bin/postgresql{{ psql_shortver }}-setup initdb
+    args:
+      creates: '{{ psql_data_dir }}/postgresql.conf'
+
+  - name: Ensure that the pgdg postgresql server is started and enabled
+    service: name='postgresql-{{ psql_version }}' state=started enabled=yes
+
+  when: psql_enabled
+  tags: [ 'centos', 'repo', 'postgresql' ]
+
+- block:
+  - name: Ensure that the pgdg postgresql server is stopped and disabled
+    service: name='postgresql-{{ psql_version }}' state=stopped enabled=no
+    when: psql_install_scl_version
+    tags: postgresql
+
+  - name: Remove the postgresql packages from the pgdg repository
+    yum: pkg={{ item }} state=absent
+    with_items: '{{ psql_pgdg_packages }}'
+
+  when: not psql_enabled
+  tags: [ 'centos', 'repo', 'postgresql' ]

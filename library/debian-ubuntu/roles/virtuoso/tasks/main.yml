@@ -1,0 +1,6 @@
+---
+- include: virtuoso-pkgs.yml
+- include: virtuoso-conf.yml
+- include: manage-service.yml
+- include: virtuoso-dba-user.yml
+

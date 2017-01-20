@@ -1,0 +1,4 @@
+---
+- name: restart opencpu
+  service: name=opencpu state=restarted
+  when: opencpu_enabled

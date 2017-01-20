@@ -1,0 +1,16 @@
+---
+- block:
+    - name: Unpack the zulip distribution
+      unarchive: src={{ zulip_download_url }} dest=/srv remote_src=yes
+
+    - name: Setup a link for the ssl certificate file
+      file: src={{ letsencrypt_acme_certs_dir }}/fullchain dest={{ zulip_ssl_cert_file }} state=link
+      when: letsencrypt_acme_install
+
+    - name: Setup a link for the ssl key file
+      file: src={{ letsencrypt_acme_certs_dir }}/privkey dest={{ zulip_ssl_key_file }} state=link
+      when: letsencrypt_acme_install
+
+  when: zulip_install
+  tags: [ 'zulip' ]
+

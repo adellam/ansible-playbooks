@@ -1,0 +1,50 @@
+#
+command[global_check_disk]={{ nagios_plugins_dir }}/check_disk -w {{ nagios_check_disk_w }}% -c {{ nagios_check_disk_c }}% -X tmpfs -X proc -X sysfs -X devpts -X dev -A -i /mnt/.*
+
+command[global_check_load]={{ nagios_plugins_dir }}/check_load -w 20,15,10 -c 35,30,25
+command[global_check_memory]={{ nagios_plugins_dir }}/check_memory -u G -w 5% -c 1%
+command[global_check_swap]={{ nagios_plugins_dir }}/check_swap -w 20% -c 5%
+command[global_check_zombie_procs]={{ nagios_plugins_dir }}/check_procs -w 5 -c 10 -s Z
+command[global_check_total_procs]={{ nagios_plugins_dir }}/check_procs -w 800 -c 1000 
+
+# Ganglia gmond server
+command[global_check_gmond]={{ nagios_plugins_dir }}/check_procs -w 1:1 -c 1:1 -C gmond
+
+# Munin node
+command[global_check_munin]={{ nagios_plugins_dir }}/check_procs -w 1:1 -c 1:1 -C munin-node
+
+# Show number and username of the logged users
+{% if nagios_multiple_allowed_users %}
+command[global_show_users]={{ nagios_isti_plugdir }}/show_users -a {% if nagios_multiple_users_allow_root %}root,{% endif %}{% for u in users_system_users %}{{ u.login }}{% if not loop.last %},{% endif %}{% endfor %}
+{% else %}
+command[global_show_users]={{ nagios_isti_plugdir }}/show_users -a {{ nagios_allowed_users }}
+{% endif %}
+
+# Generic script that monitors the existance of a given processes list
+command[global_check_system_pp]={{ nagios_isti_plugdir }}/check_system_pp
+
+# Linux RAID check
+#command[global_check_linux_raid]={{ nagios_isti_plugdir }}/check_linux_raid
+{% if nagios_soft_raid_mdstat is defined and nagios_soft_raid_mdstat %}
+command[global_check_linux_raid]={{ nagios_plugins_dir }}/check_raid -p mdstat
+{% else %}
+command[global_check_linux_raid]={{ nagios_plugins_dir }}/check_raid
+{% endif %}
+
+# Disks S.M.A.R.T. check
+command[global_check_smart]={{ nagios_isti_plugdir }}/check_smart -d $ARG1$ -i $ARG2$
+
+# Network interfaces
+command[global_net_interfaces]={{ nagios_isti_plugdir }}/check_netint.pl -K -f -e
+
+# Restart ntp (via handler)
+command[global_restart_ntp]=/usr/bin/sudo /etc/init.d/ntp start
+
+# Restart gmond (via handler)
+command[global_restart_gmond]=/usr/bin/sudo /etc/init.d/ganglia-monitor start
+
+# Restart munin node (via handler)
+command[global_restart_munin]=/usr/bin/sudo /etc/init.d/munin-node start
+
+
+

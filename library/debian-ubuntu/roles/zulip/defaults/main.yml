@@ -1,0 +1,7 @@
+---
+zulip_install: False
+zulip_download_url: 'https://www.zulip.com/dist/releases/{{ zulip_distrib_file }}'
+zulip_distrib_file: zulip-server-latest.tar.gz
+zulip_ssl_cert_file: /etc/ssl/certs/zulip.combined-chain.crt
+zulip_ssl_key_file: /etc/ssl/private/zulip.key
+

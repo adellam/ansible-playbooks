@@ -1,0 +1,36 @@
+---
+fusiondirectory_install: False
+fusiondirectory_schemas_install: True
+# We use the debian wheezy repo for Ubuntu precise and Ubuntu trusty
+fusiond_repo: 'deb http://repos.fusiondirectory.org/debian-wheezy wheezy main'
+fusiond_extra_repo: 'deb http://repos.fusiondirectory.org/debian-extra wheezy main'
+fusiond_repo_key: 62B4981F
+fusiond_gpg_repo: keys.gnupg.net
+
+fusiondirectory_main_pkgs:
+  - fusiondirectory-archive-keyring
+  - fusiondirectory
+
+fusiondirectory_main_plugins:
+  - fusiondirectory-plugin-nagios
+  - fusiondirectory-plugin-ldapmanager
+  - fusiondirectory-plugin-ssh
+
+fusiondirectory_main_schemas:
+  - fusiondirectory-plugin-nagios-schema
+  - fusiondirectory-schema
+  - fusiondirectory-plugin-ssh-schema
+
+fusiondirectory_ldap_schemas:
+  - core-fd.schema
+  - core-fd-conf.schema
+  - ldapns.schema
+  - template-fd.schema
+  - openssh-lpk.schema
+  - nagios-fd-conf.schema
+  - netways.schema
+
+#fusiondirectory_plugins:
+
+#fusiondirectory_schemas:
+

@@ -1,0 +1,24 @@
+---
+- name: Restart denyhosts
+  service: name=denyhosts state=restarted
+
+- name: reload munin-node
+  service: name=munin-node state=restarted
+
+- name: Enable libvirt munin plugins
+  command: munin-libvirt-plugins-detect ; /etc/init.d/munin-node restart
+
+# NB: to be tested. Better to transform it in a module
+- name: Update the list of active munin plugins
+  command: munin-node-configure --suggest --shell | sh ; /etc/init.d/munin-node restart
+
+- name: apt update
+  apt: update_cache=yes
+
+- name: Restart rsyslog
+  service: name=rsyslog state=restarted
+
+- name: Update the CA bundle list
+  shell: update-ca-certificates
+  tags: ca
+

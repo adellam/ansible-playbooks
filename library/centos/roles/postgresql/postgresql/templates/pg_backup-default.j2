@@ -1,0 +1,31 @@
+PG_BACKUP_ENABLED={{ pg_backup_enabled }}
+{% if psql_install_scl_version %}
+PG_VERSION='{{ psql_shortver }}'
+PG_SERVICE='rh-postgresql{{ psql_shortver }}-postgresql'
+PG_DUMP_BIN='/opt/rh/rh-postgresql{{ psql_shortver }}/root/usr/bin/pg_dump'
+{% else %}
+PG_VERSION='{{ psql_version }}'
+PG_SERVICE='postgresql-{{ psql_version }}'
+PG_DUMP_BIN='{{ pg_backup_pgdump_bin }}'
+{% endif %}
+PG_BCK_BIN='{{ pg_backup_bin }}'
+{% if pg_backup_use_nagios %}
+USE_NAGIOS={{ pg_backup_use_nagios }}
+{% else %}
+USE_NAGIOS=no
+{% endif %}
+LOG_DIR='{{ pg_backup_logdir }}'
+LOG_FILE='{{ pg_backup_logfile}}'
+N_DAYS_TO_SPARE='{{ pg_backup_retain_copies }}'
+BUILD_DBLIST='{{ pg_backup_build_db_list }}'
+{% if pg_backup_db_list is defined %}
+DB_LIST="{{ pg_backup_db_list }}"
+{% else %}
+DB_LIST="{% for db in psql_db_data %}{{ db.name }} {% endfor %}"
+{% endif %}
+PG_USE_AUTH='{{ pg_backup_use_auth }}'
+PG_PASS_FILE='{{ pg_backup_pass_file }}'
+BACKUPDIR='{{ pg_backup_destdir }}'
+{% if psql_install_scl_version %}
+RH_PSQL='rh-postgresql{{ psql_shortver }}'
+{% endif %}

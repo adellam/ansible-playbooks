@@ -1,0 +1,61 @@
+---
+- block:
+    
+    - name: Install the keepalived repository
+      apt_repository: repo={{ keepalived_repo }}
+
+    - name: Install the keepalived package
+      apt: name={{ item }} state={{ keepalived_pkg_state }}  update_cache=yes
+      with_items: '{{ keepalived_pkgs }}'
+
+    - name: Install the keepalived configuration
+      template: src=keepalived.conf.j2 dest=/etc/keepalived/keepalived.conf
+      notify: restart keepalived
+
+    - name: Install the keepalived notify scripts
+      template: src=keepalived_notify.sh.j2 dest={{ item.notify }} owner=root group=root mode=0754
+      with_items: '{{ keepalived_instances }}'
+      
+    - name: Install the keepalived NRPE nagios check
+      copy: src=check_keepalived_state dest={{ nagios_plugins_dir }}/check_keepalived_state  owner=root group=root mode=0555
+      with_items: '{{ keepalived_instances }}'
+      when: keepalived_nagios_check
+
+    - name: Install the keepalived NRPE command configuration
+      template: src=keepalived-nrpe.cfg.j2 dest={{ nrpe_include_dir }}/keepalived-nrpe.cfg  owner=root group=root mode=0444
+      notify: Reload NRPE server
+      when: keepalived_nagios_check
+
+    - name: Ensure that keepalived is started and enabled
+      service: name=keepalived state=started enabled=yes
+      when: keepalived_enabled
+
+    - name: Ensure that keepalived is stopped and disabled
+      service: name=keepalived state=stopped enabled=no
+      when: not keepalived_enabled
+
+  tags: keepalived
+  when: keepalived_install
+
+
+- block:
+    
+    - name: Remove the keepalived package if we do not want it
+      apt: name={{ item }} state=absent
+      with_items: '{{ keepalived_pkgs }}'
+
+    - name: Remove the keepalived notify scripts
+      file: dest={{ item.notify }} state=absent
+      with_items: '{{ keepalived_instances }}'
+
+    - name: Remove the keepalived NRPE check
+      file: dest={{ nagios_plugins_dir }}/check_keepalived_state state=absent
+      with_items: '{{ keepalived_instances }}'
+
+    - name: Remove the keepalived NRPE command configuration
+      file: dest={{ nrpe_include_dir }}/keepalived-nrpe.cfg state=absent
+      notify: Reload NRPE server 
+
+  tags: keepalived
+  when: not keepalived_install
+

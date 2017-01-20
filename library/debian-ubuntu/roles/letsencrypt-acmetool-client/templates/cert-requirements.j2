@@ -1,0 +1,20 @@
+satisfy:
+  names:
+{% for d in letsencrypt_acme_domains %}
+    - {{ d }}
+{% endfor %}
+
+request:
+  challenge:
+    http-ports:
+      - {{ letsencrypt_acme_standalone_port }}
+
+key:
+  type: {{ letsencrypt_acme_key_type }}
+{% if letsencrypt_acme_key_type == 'rsa' %}
+  rsa-size: {{ letsencrypt_acme_rsa_key_size }}
+{% else %}
+  ecdsa-curve: {{ letsencrypt_acme_ecdsa_curve }}
+{% endif %}
+
+

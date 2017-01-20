@@ -1,0 +1,30 @@
+---
+- name: Install the fail2ban custom jail file
+  template: src=jail.local.j2 dest=/etc/fail2ban/jail.local owner=root group=root mode=444
+  notify: Restart fail2ban
+  tags: fail2ban
+
+- name: Install the fail2ban apache ddos filter
+  template: src=apache-ddos-filter.conf.j2 dest=/etc/fail2ban/filter.d/apache-ddos-filter.conf owner=root group=root mode=0444
+  when: f2b_apache_ddos_enabled
+  notify: Restart fail2ban
+  tags: [ 'fail2ban', 'f2b_apache_ddos' ]
+
+- name: Install the fail2ban apache ddos rule
+  template: src=apache-ddos-jail.conf.j2 dest=/etc/fail2ban/jail.d/apache-ddos-jail.conf owner=root group=root mode=0444
+  when: f2b_apache_ddos_enabled
+  notify: Restart fail2ban
+  tags: [ 'fail2ban', 'f2b_apache_ddos' ]
+
+- name: Install the fail2ban nginx ddos filter
+  template: src=nginx-ddos-filter.conf.j2 dest=/etc/fail2ban/filter.d/nginx-ddos-filter.conf owner=root group=root mode=0444
+  when: f2b_nginx_ddos_enabled
+  notify: Restart fail2ban
+  tags: [ 'fail2ban', 'f2b_apache_ddos' ]
+
+- name: Install the fail2ban nginx ddos rule
+  template: src=nginx-ddos-jail.conf.j2 dest=/etc/fail2ban/jail.d/nginx-ddos-jail.conf owner=root group=root mode=0444
+  when: f2b_nginx_ddos_enabled
+  notify: Restart fail2ban
+  tags: [ 'fail2ban', 'f2b_apache_ddos' ]
+

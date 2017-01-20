@@ -1,0 +1,42 @@
+---
+openldap_pkg_state: present
+openldap_service_enabled: True
+openldap_pkg_list:
+  - slapd
+  - ldapvi
+  - ldap-utils
+  - ldapscripts
+  - db-util
+
+openldap_slapd_services: 'ldap:/// ldapi:///'
+openldap_slapd_tcp_port: 389
+openldap_slapd_ssl_port: 636
+openldap_slapd_ssl_only: False
+
+openldap_db_dir: /var/lib/ldap
+# Schemas automatically added:
+# core.ldif
+# cosine.ldif
+# inetorgperson.ldif
+# nis.ldif
+#openldap_additional_schemas:
+#  - dyngroup.ldif
+
+openldap_cleaner_cron_job: False
+openldap_letsencrypt_managed: False
+
+openldap_letsencrypt_ldif:
+  - olcSSL.ldif
+
+# Set slapd_admin_pwd in a vault file
+slapd_debconf_params:
+  - { question: 'slapd/no_configuration', value: 'false', vtype: 'boolean' }
+  - { question: 'shared/organization', value: 'Organization', vtype: 'text' }
+  - { question: 'slapd/purge_database', value: 'false', vtype: 'boolean' }
+  - { question: 'slapd/allow_ldap_v2', value: 'true', vtype: 'boolean' }
+  - { question: 'slapd/backend', value: 'HDB', vtype: 'select' }
+  - { question: 'slapd/domain', value: 'DNS Domain Name', vtype: 'text' }
+
+# openldap_allowed_clients:
+#   - ip/32
+#   - net/24

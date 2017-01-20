@@ -1,0 +1,57 @@
+---
+virtuoso_enabled: True
+virtuoso_from_external_repo: False
+virtuoso_external_repo_key: 'http://packages.comsode.eu/key/odn.gpg.key'
+virtuoso_external_repo: 'deb http://packages.comsode.eu/debian wheezy main'
+virtuoso_pkg_state: installed
+virtuoso_version: 6.1
+virtuoso_user: virtuoso
+virtuoso_base_dir: '/var/lib/virtuoso-opensource-{{ virtuoso_version }}'
+virtuoso_db_dir: '{{ virtuoso_base_dir }}/db'
+virtuoso_error_log: '{{ virtuoso_db_dir }}/virtuoso.log'
+virtuoso_log_dir: '/var/log/virtuoso-opensource-{{ virtuoso_version }}'
+virtuoso_server_port: 1111
+virtuoso_ssl_server_port: 2111
+virtuoso_http_server: 8890
+virtuoso_http_server_root: '/var/lib/virtuoso-opensource-{{ virtuoso_version }}/vsp'
+virtuoso_vad_install_dir: '/usr/share/virtuoso-opensource-{{ virtuoso_version }}/vad'
+virtuoso_dirsallowed: "'., {{ virtuoso_vad_install_dir }}/, {{ virtuoso_log_dir }}/'"
+virtuoso_isql: /usr/bin/isql-vt
+
+#virtuoso_dba_pwd: set it in a vault file
+
+virtuoso_defaults:
+  - { key: 'DBPATH', value: '"{{ virtuoso_db_dir }}"' }
+  - { key: 'RUN', value: '"yes"' }
+  - { key: 'DAEMONUSER', value: '{{ virtuoso_user }}' }
+
+virtuoso_ini_opts:
+  - { section: 'Database', option: 'DatabaseFile', value: '{{ virtuoso_db_dir }}/virtuoso.db' }
+  - { section: 'Database', option: 'LockFile', value: '{{ virtuoso_db_dir }}/virtuoso.lck' }
+  - { section: 'Database', option: 'TransactionFile', value: '{{ virtuoso_db_dir }}/virtuoso.trx' }
+  - { section: 'Database', option: 'xa_persistent_file', value: '{{ virtuoso_db_dir }}/virtuoso.pxa' }
+  - { section: 'Database', option: 'ErrorLogFile', value: '{{ virtuoso_error_log }}' }
+  - { section: 'TempDatabase', option: 'DatabaseFile', value: '{{ virtuoso_db_dir }}/virtuoso-temp.db' }
+  - { section: 'TempDatabase', option: 'TransactionFile', value: '{{ virtuoso_db_dir }}/virtuoso-temp.trx' }
+  - { section: 'HTTPServer', option: 'ServerRoot', value: '{{ virtuoso_http_server_root }}' }
+  - { section: 'Parameters', option: 'ServerPort', value: '{{ virtuoso_server_port }}' }
+  - { section: 'Parameters', option: 'DirsAllowed', value: '{{ virtuoso_dirsallowed }}' }
+
+virtuoso_set_more_ini_opts: False
+#virtuoso_more_ini_opts:
+ 
+virtuoso_pkg_list:
+  - virtuoso-opensource
+  - virtuoso-server
+  - virtuoso-vad-isparql
+  - virtuoso-vad-bpel
+  - virtuoso-vad-rdfmappers
+  - virtuoso-vad-conductor
+  - virtuoso-vsp-startpage
+
+virtuoso_install_optional_pkgs: False
+virtuoso_optional_pkgs:
+  - virtuoso-vad-demo
+  - virtuoso-vad-sparqldemo
+  - virtuoso-vad-tutorial
+  - virtuoso-vad-doc

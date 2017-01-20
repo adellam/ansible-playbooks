@@ -1,0 +1,9 @@
+---
+centos_install_epel: true
+centos_epel_repo_url: epel-release
+centos_pkg_state: latest
+
+centos_install_release_scl: False
+
+rh_install_elrepo: false
+rh_elrepo_repo_url: "http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm"

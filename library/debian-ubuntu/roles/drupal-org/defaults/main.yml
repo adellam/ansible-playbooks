@@ -1,0 +1,37 @@
+---
+drupal_install: False
+drupal_install_deb: False
+drupal_maintenance_cron: False
+drupal_major: 8
+drupal_version: '{{ drupal_major_ver }}.1.7'
+drupal_dist_name: 'drupal-{{ drupal_version }}'
+drupal_dist_file: '{{ drupal_dist_name }}.tar.gz'
+drupal_tar_url: 'http://ftp.drupal.org/files/projects/{{ drupal_dist_file }}'
+drupal_php_user: drupal
+drupal_download_dir: /srv/drupal
+drupal_install_dir: /var/www
+http_user: www-data
+http_group: '{{ http_user }}'
+
+# If you use the PHP ppa to install php 5.6, also install those packages:
+#
+#  - 'php{{ php_version }}-xml'
+#  - 'php{{ php_version }}-mbstring'
+#  - php-ssh2
+drupal_php_prereq:
+  - 'php{{ php_version }}-json'
+  - 'php{{ php_version }}-intl'
+  - 'php{{ php_version }}-cli'
+  - 'php{{ php_version }}-mysqlnd'
+  - 'php{{ php_version }}-gd'
+  - 'php{{ php_version }}-json'
+  - 'php{{ php_version }}-curl'
+  - php-apc
+  - php-pear
+  - php-date
+  - php-xml-serializer
+  - imagemagick
+
+drupal_install_drush: False
+drupal_drush_version: '{{ drupal_major }}.*'
+drupal_drush_download_url: 'https://s3.amazonaws.com/files.drush.org/drush.phar'

@@ -1,0 +1,30 @@
+
+postfix_enabled: True
+
+postfix_biff: "no"
+postfix_append_dot_mydomain: "no"
+postfix_mynetworks: 127.0.0.1
+postfix_relay_host: postfix.example.org
+#postfix_relay_port: 587
+postfix_smtpd_tls_enabled: False
+postfix_smtpd_use_tls: "no"
+postfix_smtpd_tls_cert_file: /etc/pki/ssl/certs/postfix.cert
+postfix_smtpd_tls_key_file: /etc/pki/ssl/private/postfix.key
+#postfix_ca_file: /etc/ssl/certs/ca-bundle.trust.crt
+postfix_inet_protocols: all
+# Client authentication.
+# See http://www.postfix.org/SASL_README.html
+postfix_smtp_sasl_auth_enable: "yes"
+# Options: noanonymous, noplaintext
+postfix_smtp_sasl_security_options: noanonymous
+postfix_smtp_sasl_tls_security_options: '{{ postfix_smtp_sasl_security_options }}'
+postfix_smtp_sasl_mechanism_filter: plain, login
+#postfix_smtp_relay_user: postfix_relay_user
+#postfix_smtp_relay_pwd: metti-qua-la-password
+
+postfix_relay_pkg_list:
+  - postfix
+  - cyrus-sasl-lib
+  - cyrus-sasl-plain
+  - cyrus-sasl-md5
+

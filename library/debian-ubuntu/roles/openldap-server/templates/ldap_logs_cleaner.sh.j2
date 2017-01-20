@@ -1,0 +1,5 @@
+#!/bin/bash
+
+db_archive -v -d -h {{ openldap_db_dir }} > /var/log/ldap_cleaner 2>&1
+exit 0
+

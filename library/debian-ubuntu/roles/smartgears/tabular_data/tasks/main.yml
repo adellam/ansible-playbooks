@@ -1,0 +1,25 @@
+---
+- block:
+
+    - name: Remove the old tabulardata files
+      file: path={{ smartgears_instance_path }}/webapps/{{ tabular_data_name }} state=absent
+      when: ( tabular_data_install ) or ( smartgears_upgrade )
+
+  
+    # NOTE: Install as the smartgears user so we do not mess with the permissions
+    - name: Get the tabular-data-service 
+      get_url: url={{ tabular_data_url }} dest={{ smartgears_user_home }}/{{ tabular_data_file }}
+      when: tabular_data_install
+  
+    - name: Create the tabular data  working directory
+      file: path={{ smartgears_instance_path }}/webapps/{{ tabular_data_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
+      when: tabular_data_install
+  
+    - name: Unarchive the tabular data  war
+      unarchive: copy=no src={{ smartgears_user_home }}/{{ tabular_data_file }} dest={{ smartgears_instance_path }}/webapps/{{ tabular_data_name }} creates={{ smartgears_instance_path }}/webapps/{{ tabular_data_name }}/WEB-INF/lib
+      when: tabular_data_install
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  tags: [ 'smartgears', 'tabular_data', 'tomcat' ]

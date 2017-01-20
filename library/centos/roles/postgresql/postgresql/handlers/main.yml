@@ -1,0 +1,25 @@
+---
+- name: Restart postgresql
+  service: name='postgresql-{{ psql_version }}' state=restarted
+  when:
+    - psql_enabled
+    - psql_install_from_pgdg_repo
+
+- name: Reload postgresql
+  service: name='postgresql-{{ psql_version }}' state=reloaded
+  when:
+    - psql_enabled
+    - psql_install_from_pgdg_repo
+
+- name: Restart postgresql
+  service: name='rh-postgresql{{ psql_shortver }}-postgresql' state=restarted
+  when:
+    - psql_enabled
+    - psql_install_scl_version
+
+- name: Reload postgresql
+  service: name='rh-postgresql{{ psql_shortver }}-postgresql' state=reloaded
+  when:
+    - psql_enabled
+    - psql_install_scl_version
+

@@ -1,0 +1,18 @@
+
+Best practices:
+
+- Use a boolean variable for each plugin to decide if it has to be installed or removed.
+
+- Provide a task to remove a plugin
+
+
+
+To delete a plugin:
+
+1. Downgrade the database 
+
+   cd /srv/redmine/d4science; bundle exec rake redmine:plugins:migrate NAME=plugin_name VERSION=0 RAILS_ENV=production
+
+2. Remove the plugin from the plugins folder (/srv/redmine/d4science/plugins/plugin_name)
+
+3. Restart unicorn (or web server)

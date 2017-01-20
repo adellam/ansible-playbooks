@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [  -f /etc/sysconfig/pg_backup ] ; then
+    . /etc/sysconfig/pg_backup
+else
+    PG_BACKUP_ENABLED=True
+    LOG_DIR=/var/log/postgresql
+    LOG_FILE=$LOG_DIR/postgresql-backup.log
+    PG_BCK_BIN=/usr/local/sbin/postgresql-backup
+fi
+
+if [  ! -d $LOG_DIR  ] ; then
+    mkdir -p $LOG_DIR
+fi
+
+if [ '$PG_BACKUP_ENABLED' == 'True' ] ; then
+    if [ -x /etc/cron.daily/duplicity_backup ] ; then
+        echo "duplicity backups active. Exiting" > $LOG_FILE
+        exit 0
+    else
+        $PG_BCK_BIN > $LOG_FILE 2>&1
+    fi
+else
+    echo "Postgresql backups administratively disabled" > $LOG_FILE
+fi
+
+exit 0
+
+

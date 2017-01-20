@@ -1,0 +1,9 @@
+---
+- name: Install the ssh keys for the authorized users
+  authorized_key: user=root key="{{ item }}" state=present
+  with_items: '{{ root_authorized_ssh_key }}'
+  when: root_authorized_ssh_key is defined
+  tags:
+    - pubkeys
+    - ssh_keys
+

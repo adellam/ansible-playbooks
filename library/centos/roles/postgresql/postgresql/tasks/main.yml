@@ -1,0 +1,18 @@
+---
+- include: pgdg_repo.yml
+  when:
+    - psql_install_from_pgdg_repo
+    - not psql_install_scl_version
+- include: scl_repo.yml
+  when:
+    - not psql_install_from_pgdg_repo
+    - psql_install_scl_version
+- include: packages.yml
+- include: postgresql-backup.yml
+- include: disable-service.yml
+  when: not psql_enabled
+- include: configure-access.yml
+  when: psql_enabled
+- include: manage_pg_db.yml
+  when: psql_enabled
+

@@ -1,0 +1,6 @@
+---
+- include: drupal-main.yml
+  when: drupal_install
+- include: drupal-utility.yml
+- include: drush.yml
+  when: drupal_install_drush

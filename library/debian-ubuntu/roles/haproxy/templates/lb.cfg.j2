@@ -1,0 +1,4 @@
+# Check the haproxy backends status
+command[lb_check_bk_status]=/usr/bin/sudo {{ nagios_isti_plugdir }}/check_haproxy_stats -s {{ haproxy_admin_socket }} -w {{ haproxy_nagios_check_w }} -c {{ haproxy_nagios_check_c }}
+
+

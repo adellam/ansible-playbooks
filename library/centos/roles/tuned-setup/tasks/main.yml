@@ -1,0 +1,15 @@
+---
+- name: Enable the tuned service when we want it active
+  service: name=tuned state=started enabled=yes
+  when: centos_tuned_enabled
+  tags: [ 'centos', 'bootstrap', 'tuned' ]
+
+- name: Disable the tuned service if we do not want it
+  service: name=tuned state=stopped enabled=no
+  when: not centos_tuned_enabled
+  tags: [ 'centos', 'bootstrap', 'tuned' ]
+
+- name: Activate the tuned profile we chose
+  command: tuned-adm profile {{ centos_tuned_profile }}
+  when: centos_tuned_enabled
+  tags: [ 'centos', 'bootstrap', 'tuned' ]

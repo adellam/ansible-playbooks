@@ -1,0 +1,7 @@
+---
+- name: Ensure that the vsftpd service is stopped and disabled
+  service: name=vsftpd state=stopped enabled=no
+  tags:
+    - ftp
+    - vsftpd
+  

@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: '../../library/roles/composer', when: drupal_install_drush }
+

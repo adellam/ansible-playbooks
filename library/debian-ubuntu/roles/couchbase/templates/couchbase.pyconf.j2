@@ -1,0 +1,171 @@
+modules {
+  module {
+    name = "couchbase_{{ item }}"
+    language = "python"
+  }
+}
+
+collection_group {
+  collect_every = 40
+  time_threshold = 50
+  metric {
+    name  = "avg_disk_commit_time"
+    title = "{{ item }}_avg_disk_commit_time"
+  }
+  metric {
+    name  = "avg_disk_update_time"
+    title = "{{ item }}_avg_disk_update_time"
+  }
+  metric {
+    name  = "cas_hits"
+    title = "{{ item }}_cas_hits"
+  }
+  metric {
+    name  = "cas_misses"
+    title = "{{ item }}_cas_misses"
+  }
+  metric {
+    name  = "couch_docs_actual_disk_size"
+    title = "{{ item }}_couch_docs_actual_disk_size"
+  }
+  metric {
+    name  = "couch_views_disk_size"
+    title = "{{ item }}_couch_views_disk_size"
+  }
+  metric {
+    name  = "couch_views_ops"
+    title = "{{ item }}_couch_views_ops"
+  }
+  metric {
+    name  = "cpu_idle_ms"
+    title = "{{ item }}_cpu_idle_ms"
+  }
+  metric {
+    name  = "cpu_utilization_rate"
+    title = "{{ item }}_cpu_utilization_rate"
+  }
+  metric {
+    name  = "curr_connections"
+    title = "{{ item }}_curr_connections"
+  }
+  metric {
+    name  = "curr_items"
+    title = "{{ item }}_curr_items"
+  }
+  metric {
+    name  = "curr_items_tot"
+    title = "{{ item }}_curr_items_tot"
+  }
+  metric {
+    name  = "decr_hits"
+    title = "{{ item }}_decr_hits"
+  }
+  metric {
+    name  = "decr_misses"
+    title = "{{ item }}_decr_misses"
+  }
+  metric {
+    name  = "delete_hits"
+    title = "{{ item }}_delete_hits"
+  }
+  metric {
+    name  = "delete_misses"
+    title = "{{ item }}_delete_misses"
+  }
+  metric {
+    name  = "disk_commit_count"
+    title = "{{ item }}_disk_commit_count"
+  }
+  metric {
+    name  = "disk_commit_total"
+    title = "{{ item }}_disk_commit_total"
+  }
+  metric {
+    name  = "disk_update_count"
+    title = "{{ item }}_disk_update_count"
+  }
+  metric {
+    name  = "disk_update_total"
+    title = "{{ item }}_disk_update_total"
+  }
+  metric {
+    name  = "disk_write_queue"
+    title = "{{ item }}_disk_write_queue"
+  }
+  metric {
+    name  = "evictions"
+    title = "{{ item }}_evictions"
+  }
+  metric {
+    name  = "get_hits"
+    title = "{{ item }}_get_hits"
+  }
+  metric {
+    name  = "get_misses"
+    title = "{{ item }}_get_misses"
+  }
+  metric {
+    name  = "hibernated_requests"
+    title = "{{ item }}_hibernated_requests"
+  }
+  metric {
+    name  = "hibernated_waked"
+    title = "{{ item }}_hibernated_waked"
+  }
+  metric {
+    name  = "hit_ratio"
+    title = "{{ item }}_hit_ratio"
+  }
+  metric {
+    name  = "incr_hits"
+    title = "{{ item }}_incr_hits"
+  }
+  metric {
+    name  = "incr_misses"
+    title = "{{ item }}_incr_misses"
+  }
+  metric {
+    name  = "mem_actual_free"
+    title = "{{ item }}_mem_actual_free"
+  }
+  metric {
+    name  = "mem_actual_used"
+    title = "{{ item }}_mem_actual_used"
+  }
+  metric {
+    name  = "mem_free"
+    title = "{{ item }}_mem_free"
+  }
+  metric {
+    name  = "mem_total"
+    title = "{{ item }}_mem_total"
+  }
+  metric {
+    name  = "mem_used"
+    title = "{{ item }}_mem_used"
+  }
+  metric {
+    name  = "misses"
+    title = "{{ item }}_misses"
+  }
+  metric {
+    name  = "ops"
+    title = "{{ item }}_ops"
+  }
+  metric {
+    name  = "swap_total"
+    title = "{{ item }}_swap_total"
+  }
+  metric {
+    name  = "swap_used"
+    title = "{{ item }}_swap_used"
+  }
+  metric {
+    name  = "vb_total_queue_age"
+    title = "{{ item }}_vb_total_queue_age"
+  }
+  metric {
+    name  = "xdc_ops"
+    title = "{{ item }}_xdc_ops"
+  }
+}

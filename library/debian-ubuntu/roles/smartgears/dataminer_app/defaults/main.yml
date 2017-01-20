@@ -1,0 +1,11 @@
+---
+dataminer_app_install: False
+dataminer_app_upgrade: False
+
+# dev or prod
+dataminer_product: prod
+dataminer_zip_url: 'http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-analysis/DataMinerConfiguration/webapp/{{ dataminer_product }}/wps.zip'
+
+dataminer_52north_webapp_name: wps
+
+dataminer_data_file_from_thredds: 'http://thredds.d4science.org/thredds/fileServer/public/netcdf/gebco_08_OCEANS_CLIMATOLOGY_METEOROLOGY_ATMOSPHERE_.nc'

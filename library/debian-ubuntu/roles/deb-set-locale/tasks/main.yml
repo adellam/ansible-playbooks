@@ -1,0 +1,16 @@
+---
+- block:
+    - name: Define the locales to be generated
+      debconf: name=locales question='locales/locales_to_be_generated' value='{{ deb_locales }}' vtype='multiselect'
+
+    - name: Update the locale default
+      debconf: name=locales question='locales/default_environment_locale' value='{{ deb_default_locale }}' vtype='select'
+
+    - name: Generate the locales
+      locale_gen: name={{ item }} state=present
+      with_items: '{{ deb_locales_list }}'
+
+    - name: Set the default locale
+      shell: update-locale LANG={{ deb_default_locale }}
+
+  tags: locale

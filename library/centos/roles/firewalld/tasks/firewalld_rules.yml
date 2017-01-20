@@ -1,0 +1,186 @@
+---
+- name: Ensure that the service is enabled and started
+  service: name=firewalld state=started enabled=yes
+  notify: Restart fail2ban
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Set the firewalld default zone.
+  command: firewall-cmd --set-default-zone={{ firewalld_default_zone }}
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Open the ssh service to the world. We rely on fail2ban to stop unauthorized accesses
+  firewalld: service=ssh zone={{ firewalld_default_zone }} permanent=False state=enabled
+  when: firewalld_ssh_enabled_on_default_zone
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Save the firewalld ssh rule
+  firewalld: service=ssh zone={{ firewalld_default_zone }} permanent=True state=enabled
+  when: firewalld_ssh_enabled_on_default_zone
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Assign interfaces to firewalld zones if needed
+  command: firewall-cmd --zone={{ item.zone }} --change-interface={{ item.interface }}
+  with_items: '{{ firewalld_zones_interfaces | default(omit) }}'
+  when:
+    - firewalld_zones_interfaces is defined
+    - item.interface is defined
+    - item.zone is defined
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+  
+- name: Set interfaces to firewalld zones as permanent if needed
+  command: firewall-cmd --permanent --zone={{ item.zone }} --change-interface={{ item.interface }}
+  with_items: '{{ firewalld_zones_interfaces | default(omit) }}'
+  when:
+    - firewalld_zones_interfaces is defined
+    - item.interface is defined
+    - item.zone is defined
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+  
+- name: Manage services firewalld rules. Services names must be in /etc/services
+  firewalld: service={{ item.service }} zone={{ item.zone }} permanent=False state={{ item.state }}
+  with_items: '{{ firewalld_rules }}'
+  when:
+    - firewalld_rules is defined
+    - item.service is defined
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Save the services that need to be permanent
+  firewalld: service={{ item.service }} zone={{ item.zone }} permanent={{ item.permanent }} state={{ item.state }}
+  with_items: '{{ firewalld_rules }}'
+  when:
+    - firewalld_rules is defined
+    - item.service is defined
+    - item.permanent
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Manage ports firewalld rules
+  firewalld: port={{ item.port }}/{{ item.protocol }} zone={{ item.zone }} permanent=False state={{ item.state }}
+  with_items: '{{ firewalld_rules }}'
+  when:
+    - firewalld_rules is defined
+    - item.port is defined
+    - item.protocol is defined
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Save the ports firewalld rules that need to be permanent
+  firewalld: port={{ item.port }}/{{ item.protocol }} zone={{ item.zone }} permanent={{ item.permanent }} state={{ item.state }}
+  with_items: '{{ firewalld_rules }}'
+  when:
+    - firewalld_rules is defined
+    - item.port is defined
+    - item.permanent
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Manage rich_rules firewalld rules
+  firewalld: rich_rule='{{ item.rich_rule }}' zone={{ item.zone }} permanent=False state={{ item.state }}
+  with_items: '{{ firewalld_rules }}'
+  when:
+    - firewalld_rules is defined
+    - item.rich_rule is defined
+  notify: Reload firewall config
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Save the rich_rules firewalld rules that need to be permanent
+  firewalld: rich_rule='{{ item.rich_rule }}' zone={{ item.zone }} permanent={{ item.permanent }} state={{ item.state }}
+  with_items: '{{ firewalld_rules }}'
+  when:
+    - firewalld_rules is defined
+    - item.rich_rule is defined
+    - item.permanent
+  notify: Reload firewall config
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Enable the firewall-cmd direct passthrough rules
+  shell: touch /etc/firewalld/.{{ item.label }} ; firewall-cmd  --direct --passthrough {{ item.action }}
+  with_items: '{{ firewalld_direct_rules }}'
+  args:
+    creates: /etc/firewalld/.{{ item.label }}
+  when:
+    - firewalld_direct_rules is defined
+    - item.action is defined
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Set the firewall-cmd direct passthrough rules as permanent ones
+  command: firewall-cmd --direct --permanent --passthrough {{ item.action }}
+  with_items: '{{ firewalld_direct_rules }}'
+  when:
+    - firewalld_direct_rules is defined
+    - item.action is defined
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Add new not yet defined services, if any. They need an additional task to really install a meaningful service config file
+  command: firewall-cmd --new-service={{ item.name }} --permanent
+  args:
+    creates: '/etc/firewalld/services/{{ item.name }}.xml'
+  with_items: '{{ firewalld_new_services }}'
+  when: firewalld_new_services is defined
+  notify: Reload firewall config
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Install the custom firewall services
+  copy: src={{ item.name }}.xml dest=/etc/firewalld/services/{{ item.name }}.xml
+  with_items: '{{ firewalld_new_services }}'
+  when: firewalld_new_services is defined
+  notify: Reload firewall config
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+
+- name: Manage the custom services firewalld rules.
+  firewalld: service={{ item.name }} zone={{ item.zone }} permanent={{ item.permanent }} state={{ item.state }}
+  with_items: '{{ firewalld_new_services }}'
+  when:
+    - firewalld_new_services is defined
+    - item.name is defined
+  notify: Reload firewall config
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+

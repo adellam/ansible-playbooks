@@ -1,0 +1,16 @@
+---
+#
+# This role adds users to a system
+# The users can access if their ssh key is provided
+# Users can have sudo privileges if the 'admin' property is 'true'
+# admin users can also directly log as root when 'user_admin_can_log_as_root' is set to 'true'
+
+users_sudoers_group: sudo
+users_sudoers_create_group: False
+users_sudoers_create_sudo_conf: False
+users_home_dir: /home
+users_default_password: '*'
+users_update_password: 'on_create'
+#users_system_users:
+#  - { login: 'foo', name: "Foo Bar", home: '{{ users_home_dir }}', createhome: 'yes', ssh_key: '{{ foo_ssh_key }}', shell: '/bin/bash', admin: False, log_as_root: False }
+

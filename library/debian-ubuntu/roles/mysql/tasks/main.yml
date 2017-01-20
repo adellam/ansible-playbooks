@@ -1,0 +1,12 @@
+---
+- include: packages.yml
+- include: mysql-conf.yml
+  when: mysql_enabled
+- include: manage-mysql-service.yml
+- include: configure_root_access.yml
+  when: mysql_enabled
+- include: manage_my_db.yml
+  when: mysql_enabled
+- include: mysql-backup.yml
+  when: mysql_enabled
+

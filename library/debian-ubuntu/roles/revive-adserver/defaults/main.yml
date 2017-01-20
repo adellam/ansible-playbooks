@@ -1,0 +1,33 @@
+---
+revive_pkg_state: latest
+
+revive_ad_version: 3.2.4
+
+revive_ad_download_url: 'http://download.revive-adserver.com/revive-adserver-{{ revive_ad_version }}.tar.gz'
+revive_ad_install_dir: '/opt'
+revive_ad_dir: '{{ revive_ad_install_dir }}/revive-adserver/'
+revive_ad_dest_dir: '{{ revive_ad_dir }}/ad'
+revive_ad_images_dest_dir: '/srv/images'
+revive_ad_user: revive
+revive_maintenance_path: '{{ revive_ad_dest_dir }}/scripts/maintenance/maintenance.php'
+revive_automatic_maintenance: True
+revive_domain: example.com
+
+revive_ad_php_modules:
+  - php-xml-parser
+  - php5-memcache
+  - php5-memcached
+  - php5-apcu
+  - libphp-pclzip
+
+revive_db_server: pgsql  
+revive_ad_php_db_server_modules:
+  - 'php5-{{ revive_db_server }}'
+
+revive_writable_dirs:
+  - var
+  - var/cache
+  - var/plugins
+  - var/templates_compiled
+  - plugins
+  - www/admin/plugins

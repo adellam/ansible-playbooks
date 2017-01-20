@@ -1,0 +1,204 @@
+#!/bin/bash
+
+export PATH="$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+
+RETVAl=
+PARAMS=$#
+ACTION=$1
+PROCNUM=$$
+OLDPROC=
+OLDPROC_RUNNING=
+LOCKDIR=/var/run
+LOCK_FILE=$LOCKDIR/.update_r_pkgs.lock
+TMP_FILES_DIR=/var/tmp/r_pkgs_update
+# We cannot answer questions
+DEBIAN_FRONTEND=noninteractive
+R_CRAN_MIRROR={{ r_cran_mirror_site }}
+R_PKGS_FROM_SVN={{ r_package_updater_via_subversion }}
+R_PKGS_SVN_DIR=RPackagesManagement
+R_PKGS_SVN_URL={{ r_package_updater_subversion_repo }}
+R_PKGS_SVN_BASE_DIR={{ r_packages_svn_base_dir }}
+# - debian packages list format:
+# one package per line
+DEB_PKGS_SKIP=0
+DEBIAN_PKGS_LIST_URL={{ r_debian_packages_list_url | default('') }}
+PKGS_LIST=
+# - R packages list format:
+# name[:mirror]
+CRAN_PKGS_SKIP=0
+R_PKGS_LIST_URL={{ r_cran_packages_list_url | default('') }}
+R_PKGS_LIST=
+# - R packages from github list format:
+# - owner/package
+GITHUB_PKGS_SKIP=0
+R_PKGS_FROM_GITHUB_LIST_URL={{ r_github_packages_list_url | default('') }}
+R_PKGS_GITHUB=
+
+trap "logger 'update_r_packages: trap intercepted, exiting.' ; cleanup" SIGHUP SIGINT SIGTERM
+
+function cleanup() {
+    logger "update_r_packages: cleaning up"
+    rm -f $LOCK_FILE
+    rm -fr $TMP_FILES_DIR
+}
+
+function usage() {
+    if [ $PARAMS -ne 1 ] ; then
+        echo "Need at least an argument: 'upgrade' or 'install'."
+        echo "- 'upgrade' installs new packages and upgrades the existin ones when needed."        
+        echo "- 'install' installs new packages."        
+        cleanup
+        exit 1
+    fi
+}
+
+function get_args() {
+    if [ "$ACTION" != "upgrade" -a "$ACTION" != "install" ] ; then
+        usage
+    fi
+}
+
+function fail() {
+    logger "update_r_packages: Something went wrong, exiting."
+    cleanup
+    exit 1
+}
+
+
+function init_env() {
+    if [ -f $LOCK_FILE ] ; then
+        OLDPROC=$( cat $LOCK_FILE )
+        OLDPROC_RUNNING=$( ps auwwx |  grep -v grep | grep $OLDPROC )
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ] ; then
+            logger "update_r_packages: $OLDPROC_RUNNING"
+            logger "update_r_packages: another process is running, exiting."
+            exit 0
+        else
+            logger "update_r_packages: lock file exist but the process not. Continuing."
+            rm -fr $TMP_FILES_DIR
+        fi
+    fi
+    RETVAL=
+    echo "$PROCNUM" > $LOCK_FILE
+    mkdir -p $TMP_FILES_DIR
+}
+
+function get_data_files() {
+    logger "update_r_packages: get the single files from http."
+    # Get the packages list
+    if [ -z $DEBIAN_PKGS_LIST_URL ] ; then
+        DEB_PKGS_SKIP=1
+        logger "update_r_packages: the debian packages list is not available."
+    else
+        PKGS_LIST=$( mktemp $TMP_FILES_DIR/rdebs.XXXXXXX )
+        logger "update_r_packages: getting the debian packages list."
+        wget -q -o /dev/null -O $PKGS_LIST $DEBIAN_PKGS_LIST_URL
+    fi
+    if [ -z $R_PKGS_LIST_URL ] ; then
+        CRAN_PKGS_SKIP=1
+        logger "update_r_packages: the CRAN packages list is not available."
+    else
+        R_PKGS_LIST=$( mktemp $TMP_FILES_DIR/rpkgs.XXXXXXX )
+        logger "update_r_packages: getting the R packages list that will be installed from CRAN"
+        wget -q -o /dev/null -O $R_PKGS_LIST $R_PKGS_LIST_URL
+    fi
+    if [ -z $R_PKGS_FROM_GITHUB_LIST_URL ] ; then
+        GITHUB_PKGS_SKIP=1
+        logger "update_r_packages: the Github packages list is not available."
+    else
+        R_PKGS_GITHUB=$( mktemp $TMP_FILES_DIR/rpkgsgithub.XXXXXXX )
+        logger "update_r_packages: getting the R packages list that will be installed from github"
+        wget -q -o /dev/null -O $R_PKGS_GITHUB $R_PKGS_FROM_GITHUB_LIST_URL
+    fi
+}
+
+function get_data_files_from_svn() {
+    logger "update_r_packages: files from a SVN repo."
+    if [ -d $R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR ] ; then
+        logger "update_r_packages: SVN update"
+        cd $R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR
+        svn update >/dev/null 2>&1
+    else
+        cd $R_PKGS_SVN_BASE_DIR
+        logger "update_r_packages: first SVN checkout."
+        svn co $R_PKGS_SVN_URL >/dev/null 2>&1
+    fi
+    PKGS_LIST=$R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR/r_deb_pkgs.txt
+    R_PKGS_LIST=$R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR/r_cran_pkgs.txt
+    R_PKGS_GITHUB=$R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR/r_github_pkgs.txt
+}
+
+function debian_pkgs() {
+    if [ $DEB_PKGS_SKIP -eq 0 ] ; then
+        # Update the apt cache and install the packages in non interactive mode
+        logger "update_r_packages: Installing the debian dependencies"
+        if [ -z "$(find /var/cache/apt/pkgcache.bin -mmin -360)" ]; then
+            apt-get update -q >/dev/null 2>&1
+        else
+            logger "update_r_packages: APT cache not updated"
+        fi
+        xargs -a <(awk '/^\s*[^#]/' "$PKGS_LIST") -r -- apt-get install -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" >/var/log/update_r_debs.log 2>&1
+    else
+        logger "update_r_packages: skipping the debian packages installation"
+    fi
+}
+
+function r_cran_pkgs() {
+    if [ $CRAN_PKGS_SKIP -eq 0 ] ; then
+        logger "update_r_packages: Installing R packages from CRAN"
+        for l in $( cat $R_PKGS_LIST ) ; do
+            pkg=$( echo $l | cut -d : -f 1 )
+            is_mirror_ret=
+            is_mirror=$( echo $l | grep ':' )
+            is_mirror_ret=$?
+            if [ $is_mirror_ret -eq 0 ] ; then
+                mirror=$( echo $l | cut -d : -f 2 )
+            else
+                mirror=$R_CRAN_MIRROR
+            fi
+            if [ "$ACTION" == "upgrade" ] ; then
+                Rscript --slave --no-save --no-restore-history -e "install.packages(pkgs='$pkg', repos=c('$mirror/'));"
+            else
+                Rscript --slave --no-save --no-restore-history -e "if (! ('$pkg' %in% installed.packages()[,'Package'])) { install.packages(pkgs='$pkg', repos=c('$mirror/')); }"
+            fi
+        done
+    else
+        logger "update_r_packages: skipping the R CRAN packages installation"
+    fi
+}
+
+function r_github_pkgs() {
+    if [ $GITHUB_PKGS_SKIP -eq 0 ] ; then
+        logger "update_r_packages: Installing R packages from Github"
+        for l in $( cat $R_PKGS_GITHUB ) ; do
+            pkg=$( echo $l | cut -d "/" -f 2 )
+            user=$( echo $l | cut -d "/" -f 1 )
+            if [ "$ACTION" == "upgrade" ] ; then
+                Rscript --slave --no-save --no-restore-history -e "require(devtools); require(methods); install_github('$l');"
+            else
+                Rscript --slave --no-save --no-restore-history -e "if (! ('$pkg' %in% installed.packages()[,'Package'])) { require(devtools); require(methods) ; install_github('$l'); }"
+            fi
+        done
+    else
+        logger "update_r_packages: skipping the R GitHub packages installation"
+    fi
+}
+
+#########
+# Main
+#
+
+usage
+get_args
+init_env
+if [ $R_PKGS_FROM_SVN == 'True' ] ; then
+    get_data_files_from_svn
+else
+    get_data_files
+fi
+debian_pkgs
+r_cran_pkgs
+r_github_pkgs
+cleanup
+exit 0

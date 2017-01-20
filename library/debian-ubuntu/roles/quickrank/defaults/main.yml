@@ -1,0 +1,13 @@
+---
+quickrank_install: False
+
+quickrank_git_url: 'https://github.com/hpclab/quickrank'
+quickrank_git_force_pull: True
+quickrank_package_list:
+  - gcc-5
+  - g++-5
+  - libboost1.55-all-dev
+  - git
+  - python-software-properties
+  - cmake
+  

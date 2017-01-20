@@ -1,0 +1,81 @@
+---
+- name: Install the drupal php prerequisites
+  apt: name={{ item }} state=latest update_cache=yes cache_valid_time=3600
+  with_items: '{{ drupal_php_prereq }}'
+  tags: drupal
+
+- name: Ensure that the download and install dirs exist
+  file: path={{ item }} state=directory
+  with_items:
+    - '{{ drupal_download_dir }}'
+    - '{{ drupal_install_dir }}'
+  tags: drupal
+  
+- name: Download the drupal tar file
+  get_url: url={{ drupal_tar_url }} dest={{ drupal_download_dir }}
+  when: not drupal_install_deb
+  register: drupal_download
+  tags: drupal
+
+- name: Install the drupal deb package
+  apt: name=drupal state=installed
+  when: drupal_install_deb
+  tags: [ 'drupal', 'drupal_deb' ]
+
+- name: Unpack the drupal tar file
+  unarchive: copy=no src={{ drupal_download_dir }}/{{ drupal_dist_file }} dest={{ drupal_download_dir }}
+  when: ( drupal_download | changed )
+  tags: drupal
+
+- name: Move the drupal files to the right place
+  command: cp -a {{ drupal_download_dir }}/{{ drupal_dist_name }} {{ drupal_install_dir }}/{{ item.virthost }}
+  args:
+    creates: '{{ drupal_install_dir }}/{{ item.virthost }}/index.php'
+  with_items: '{{ phpfpm_pools }}'
+  when: ( drupal_download | changed )
+  register: unpack_drupal
+  tags: drupal
+
+- name: Create the default settings file
+  command: cp {{ drupal_install_dir }}/{{ item.virthost }}/sites/default/default.settings.php {{ drupal_install_dir }}/{{ item.virthost }}/sites/default/settings.php
+  args:
+    creates: '{{ drupal_install_dir }}/{{ item.virthost }}/sites/default/settings.php'
+  with_items: '{{ phpfpm_pools }}'
+  when:
+    - ( unpack_drupal | changed )
+    - '{{ drupal_major_ver }} >= 8'
+  tags: drupal
+
+- name: Create the default services file
+  command: cp {{ drupal_install_dir }}/{{ item.virthost }}/sites/default/default.services.yml {{ drupal_install_dir }}/{{ item.virthost }}/sites/default/services.yml
+  args:
+    creates: '{{ drupal_install_dir }}/{{ item.virthost }}/sites/default/services.yml'
+  with_items: '{{ phpfpm_pools }}'
+  when:
+    - ( unpack_drupal | changed )
+    - '{{ drupal_major_ver }} >= 8'
+  tags: drupal
+
+- name: Create the files directory
+  file: dest={{ drupal_install_dir }}/{{ item.virthost }}/sites/default/files owner={{ item.user }} group={{ item.group }} mode=0775 state=directory
+  with_items: '{{ phpfpm_pools }}'
+  when: ( unpack_drupal | changed )
+  tags: drupal
+
+- name: Set the correct ownership of the drupal files
+  file: dest={{ drupal_install_dir }}/{{ item.virthost }} owner={{ item.user }} group={{ item.group }} recurse=yes state=directory
+  with_items: '{{ phpfpm_pools }}'
+  when: ( unpack_drupal | changed )
+  tags: drupal
+
+- name: Set the correct ownership of the drupal modules directory
+  file: dest={{ drupal_install_dir }}/{{ item.virthost }}/modules owner={{ item.user }} group={{ http_group }} recurse=yes state=directory mode=0775
+  with_items: '{{ phpfpm_pools }}'
+  when: ( unpack_drupal | changed )
+  tags: drupal
+
+- name: Remove the original drupal unpacked distribution
+  file: dest={{ drupal_download_dir }}/{{ drupal_dist_name }} state=absent
+  when: ( unpack_drupal | changed )
+  tags: drupal
+

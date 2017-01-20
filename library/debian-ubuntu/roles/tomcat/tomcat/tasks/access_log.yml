@@ -1,0 +1,6 @@
+---
+- name: Install a logrotate entry for the access log file
+  template: src=tomcat_access.logrotate.j2 dest=/etc/logrotate.d/tomcat_access owner=root group=root mode=0644
+  when: tomcat_access_log_enabled
+  tags: tomcat
+

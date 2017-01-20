@@ -1,0 +1,3 @@
+---
+- name: Solr Restart
+  service: name=tomcat-instance-{{ ckan_solr_port }} state=restarted

@@ -1,0 +1,65 @@
+---
+- name: Install the required packages needed by the external varnish repo
+  apt: pkg={{ item }} state=present
+  with_items: '{{ varnish_repo_requirements }}'
+  when: varnish_repo
+  tags: varnish
+
+- name: Get the varnish repo key
+  apt_key: url=https://repo.varnish-cache.org/GPG-key.txt state=present
+  when: varnish_repo
+  register: varnish_repo_list
+  tags: varnish
+
+- name: Define the varnish repository
+  apt_repository: repo='deb {{ varnish_repo_url }}' state=present
+  when: varnish_repo
+  register: varnish_repo_list
+  tags: varnish
+
+- name: Update the apt cache if needed
+  apt: update_cache=yes
+  when: ( varnish_repo_list | changed )
+  tags: varnish
+  
+- name: Install the varnish package
+  apt: pkg={{ item }} state={{ varnish_pkg_state }}
+  with_items: '{{ varnish_pkg_name }}'
+  tags: varnish
+
+- name: Configure some kernel parameters via sysctl
+  sysctl: name={{ item.name }} value={{ item.value }} sysctl_file=/etc/sysctl.d/{{ varnish_sysctl_file }} reload=yes state=present
+  with_items: '{{ varnish_sysctl_kernel_parameters }}'
+  when: varnish_set_sysctl_params
+  tags: [ 'varnish', 'varnishconf', 'sysctl' ]
+
+- name: Install the varnish parameters file. The config file needs to be set by a local task
+  template: src={{ item }}.j2 dest=/etc/default/varnish owner=root group=root mode=0444
+  with_items:
+    - varnish.params
+  notify: Restart varnish
+  tags: [ 'varnish', 'varnishconf' ]
+
+- name: Install the varnish systemd unit in debian 8
+  template: src={{ item }}.systemd.j2 dest=/etc/systemd/system/{{ item }} owner=root group=root mode=0444
+  with_items:
+    - varnish.service
+  notify: Restart varnish
+  when: is_debian8
+  register: install_varnish_unit
+  tags: [ 'varnish', 'varnishconf' ]
+
+- name: Reload the systemd unit when changed
+  command: systemctl daemon-reload
+  when: ( install_varnish_unit | changed )
+  tags: [ 'varnish', 'varnishconf' ]
+
+- name: Ensure that the varnish service is started and enabled
+  service: name=varnish state=started enabled=yes
+  when: varnish_enabled
+  tags: varnish
+
+- name: Ensure that the varnish service is stopped and disabled
+  service: name=varnish state=stopped enabled=no
+  when: not varnish_enabled
+  tags: varnish

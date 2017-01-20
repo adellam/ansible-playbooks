@@ -1,0 +1,5 @@
+---
+- name: Reload OpenVPN
+  service: name=openvpn state=reloaded
+  when: openvpn_enabled
+

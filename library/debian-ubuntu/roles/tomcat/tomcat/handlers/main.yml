@@ -1,0 +1,12 @@
+---
+- name: tomcat restart
+  service: name='tomcat{{ tomcat_version }}' state=restarted sleep=20
+  when: tomcat_service_enabled
+
+- name: enable tomcat
+  service: name='tomcat{{ tomcat_version }}' state=started enabled=yes
+  when: tomcat_service_enabled
+
+- name: disable tomcat
+  service: name='tomcat{{ tomcat_version }}' state=started enabled=no
+  when: not tomcat_service_enabled

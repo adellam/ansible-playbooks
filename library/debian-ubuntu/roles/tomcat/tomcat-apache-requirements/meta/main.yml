@@ -1,0 +1,8 @@
+---
+#dependencies:
+#  - role: '../../library/roles/oracle-jdk'
+#  - role: '../../library/roles/apache'
+#  - role: '../../library/roles/tomcat'
+#    when: tomcat_m_instances is not defined
+#  - role: '../../library/roles/tomcat-multiple-instances'
+#    when: tomcat_m_instances

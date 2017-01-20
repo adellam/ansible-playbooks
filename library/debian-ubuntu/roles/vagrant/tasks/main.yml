@@ -1,0 +1,26 @@
+---
+- name: Get the package from the vagrant site
+  get_url: url='{{ vagrant_url }}' dest=/opt/vagrant_{{ vagrant_site_version }}_x86_64.deb
+  when: vagrant_package_from_site
+  tags: [ 'vagrant', 'virtualbox' ]
+
+- name: Install the virtualbox repository key
+  apt_key: url=https://www.virtualbox.org/download/oracle_vbox.asc state=present
+  when: vagrant_package_from_site
+  tags: [ 'vagrant', 'virtualbox' ]
+
+- name: Install the virtualbox repository
+  apt_repository: repo='deb http://download.virtualbox.org/virtualbox/debian {{ ansible_distribution_release }} contrib' state=present update_cache=yes
+  when: vagrant_package_from_site
+  tags: [ 'vagrant', 'virtualbox' ]
+
+- name: Install the virtualbox package and vagrant requirements
+  apt: name={{ item }} state={{ pkg_state }}
+  with_items: vagrant_package_list
+  tags: [ 'vagrant', 'virtualbox' ]
+
+- name: Install the package from the vagrant site
+  apt: deb=/opt/vagrant_{{ vagrant_site_version }}_x86_64.deb
+  when: vagrant_package_from_site
+  tags: [ 'vagrant', 'virtualbox' ]
+

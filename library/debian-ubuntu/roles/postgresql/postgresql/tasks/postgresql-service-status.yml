@@ -1,0 +1,11 @@
+---
+- name: Ensure that the postgresql server is started
+  service: name=postgresql state=started enabled=yes
+  when: postgresql_enabled
+  tags: [ 'postgresql', 'postgres' ]
+
+- name: Ensure that the postgresql server is stopped and disabled
+  service: name=postgresql state=stopped enabled=no
+  when: not postgresql_enabled
+  tags: [ 'postgresql', 'postgres' ]
+

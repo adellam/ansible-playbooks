@@ -1,0 +1,5 @@
+---
+- include: dataminer-upgrade.yml
+  when: dataminer_app_upgrade
+- include: dataminer-app.yml
+- include: install-gcube-key.yml

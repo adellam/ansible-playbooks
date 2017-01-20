@@ -1,0 +1,9 @@
+# Include this one inside a "server" directive listening on port 80, this way:
+# include /etc/nginx/snippets/letsencrypt-proxy.conf;
+    location ^~ /.well-known/acme-challenge {
+        proxy_pass http://127.0.0.1:{{ letsencrypt_acme_standalone_port | default('4402') }}/.well-known/acme-challenge;
+        access_log /var/log/nginx/letsencrypt_acmetool_access.log;
+        error_log /var/log/nginx/letsencrypt_acmetool_error.log;
+    }
+
+

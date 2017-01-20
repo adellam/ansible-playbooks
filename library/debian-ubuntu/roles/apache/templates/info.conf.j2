@@ -1,0 +1,20 @@
+<IfModule mod_info.c>
+
+	# Allow remote server configuration reports, with the URL of
+	#  http://servername/server-info (requires that mod_info.c be loaded).
+	# Uncomment and change the "192.0.2.0/24" to allow access from other hosts.
+	#
+    <Location {{ apache_info_location }}>
+        SetHandler server-info
+        Require local
+        {% if nagios_monitoring_server_ip is defined %}
+        {% for addr in nagios_monitoring_server_ip %}
+        Require ip {{ addr }}
+        {% endfor %}
+        {% endif %}
+        {% for addr in apache_info_allowed_hosts %}
+        Require ip {{ addr }}
+        {% endfor %}
+    </Location>
+
+</IfModule>

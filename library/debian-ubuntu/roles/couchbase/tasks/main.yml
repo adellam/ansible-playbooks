@@ -1,0 +1,6 @@
+---
+- include: couchbase.yml
+- include: swappiness.yml
+- include: ganglia-plugin.yml
+  when: ganglia_enabled
+

@@ -1,0 +1,7 @@
+---
+#
+# Define the following variables to manage additional disks and mount points
+additional_disks: False
+#disks_and_mountpoints_list:
+#  - { mountpoint: '/data', device: 'xvda3', fstype: 'xfs', opts: 'noatime', state: 'mounted', create_filesystem: True }
+

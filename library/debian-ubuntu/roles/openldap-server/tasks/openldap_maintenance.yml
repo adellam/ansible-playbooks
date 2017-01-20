@@ -1,0 +1,14 @@
+---
+- name: Install a script that removes the old transaction logs
+  template: src=ldap_logs_cleaner.sh.j2 dest=/usr/local/bin/ldap_logs_cleaner owner=root group=root mode=0500
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'ldap_db_cleaner' ]
+
+- name: Install a cron job to run the ldap cleaner daily
+  cron: name="LDAP transaction logs cleaner" hour="0" job="/usr/local/bin/ldap_logs_cleaner"
+  when: openldap_cleaner_cron_job
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'ldap_db_cleaner' ]
+
+- name: Install the cron job that runs the ldap cleaner
+  cron: name="LDAP transaction logs cleaner" state=absent
+  when: not openldap_cleaner_cron_job
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'ldap_db_cleaner' ]

@@ -1,0 +1,46 @@
+---
+- name: Install the unicorn ruby-on-rails service and its dependencies
+  gem: name={{ item }} state=latest
+  with_items: '{{ unicorn_gems }}'
+  when: ruby_use_unicorn
+  tags: [ 'ruby', 'redmine', 'unicorn' ]
+
+- name: Create the unicorn log directory
+  file: dest={{ unicorn_log_dir }} state=directory owner={{ redmine_user }} group={{ redmine_user }} mode=0750
+  tags: [ 'ruby', 'redmine', 'unicorn' ]
+  
+- name: Create the unicorn pid directory
+  file: dest=/var/run/unicorn state=directory owner={{ redmine_user }} group={{ redmine_user }} mode=0750
+  tags: [ 'ruby', 'redmine', 'unicorn' ]
+  
+- name: Install the unicorn startup file for redmine
+  copy: src=redmine.init dest=/etc/init.d/redmine owner=root group=root mode=0755
+  when: ruby_use_unicorn
+  tags: [ 'ruby', 'redmine', 'unicorn', 'unicorn_init' ]
+
+- name: Install the unicorn defaults file
+  template: src=unicorn-redmine.default.j2 dest=/etc/default/unicorn-redmine owner=root group=root mode=0644
+  notify: Reload unicorn when needed
+  tags: [ 'ruby', 'redmine', 'unicorn', 'unicorn_init', 'unicorn_conf' ]
+  
+- name: Install the unicorn logrotate file
+  template: src=unicorn-logrotate.j2 dest=/etc/logrotate.d/unicorn-redmine owner=root group=root mode=0644
+  tags: [ 'ruby', 'redmine', 'unicorn', 'unicorn_logrotate', 'unicorn_conf' ]
+
+- name: Install the unicorn config
+  template: src=unicorn.conf.rb.j2 dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/config/unicorn.conf.rb owner=root group=root mode=0644
+  when: ruby_use_unicorn
+  notify: Reload unicorn when needed
+  tags: [ 'ruby', 'redmine', 'unicorn', 'unicorn_conf' ]
+
+- name: Install the needed apache modules
+  apache2_module: name={{ item }} state=present
+  with_items: '{{ unicorn_apache_modules }}'
+  when: ruby_use_unicorn
+  notify: apache2 reload
+  tags: [ 'ruby', 'redmine', 'unicorn' ]
+
+- name: Ensure that the unicorn service is enabled and running
+  service: name=redmine state=started enabled=yes
+  when: ruby_use_unicorn
+  tags: [ 'ruby', 'redmine', 'unicorn' ]

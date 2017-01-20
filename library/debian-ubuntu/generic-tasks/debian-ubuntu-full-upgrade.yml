@@ -1,0 +1,12 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+  vars_files:
+    - ../vars/isti-global.yml
+  tasks:
+   - name: Update the apt cache
+     apt: update_cache=yes
+   - name: Run full upgrade
+     apt: upgrade=full
+

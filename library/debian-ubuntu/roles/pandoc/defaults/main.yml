@@ -1,0 +1,7 @@
+---
+pandoc_install: False
+
+pandoc_pkg_version: 1.17.1
+pandoc_pkg_file: 'pandoc-{{ pandoc_pkg_version }}-2-amd64.deb'
+pandoc_pkg_url: 'https://github.com/jgm/pandoc/releases/download/{{ pandoc_pkg_version }}/{{ pandoc_pkg_file }}'
+

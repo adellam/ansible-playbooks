@@ -1,0 +1,6 @@
+---
+- name: Disable some unneeded services
+  service: name={{ item }} state=stopped enabled=no
+  with_items: '{{ services_to_be_disabled }}'
+  when: disable_some_not_needed_services
+  tags: [ 'bootstrap', 'disable_services' ]

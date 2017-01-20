@@ -1,0 +1,5 @@
+---
+is_sweeper_se_plugin_install: False
+is_sweeper_se_plugin_ver: 1.0.0-4.0.0-128833
+is_sweeper_se_plugin_name: 'is-sweeper-se-plugin-{{ is_sweeper_se_plugin_ver }}-jar-with-dependencies.jar'
+is_sweeper_se_plugin_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/information-system/is-sweeper-se-plugin/{{ is_sweeper_se_plugin_ver }}/{{ is_sweeper_se_plugin_name }}'

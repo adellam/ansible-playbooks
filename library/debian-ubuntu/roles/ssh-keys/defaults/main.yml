@@ -1,0 +1,11 @@
+---
+manage_root_ssh_keys: True
+
+# Use the list when you want to give access to non root users
+ssh_users_list:
+  - name: ''
+    authorized_keys:
+      - ''
+# And set the following variable to true:
+non_root_users: False
+

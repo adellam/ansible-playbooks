@@ -1,0 +1,45 @@
+#!/bin/bash
+
+USER="$1"
+HDIR="{{ r_connector_usershome }}$USER" 
+# We use logger to log directly to syslog
+LOG_PREFIX="r-connector rusersadd:"
+# 0: allowed
+# 1: not allowed
+ALLOW_LOCAL_USERS=1
+RPROFILE_FILE='{{ r_connector_rprofile_path }}/{{ r_connector_rprofile_filename }}'
+
+if [ -d $HDIR ] ; then
+    logger "$LOG_PREFIX user $HDIR directory exists"
+    exit 0
+else 
+    if id -u $USER >/dev/null 2>&1
+    then
+        logger "$LOG_PREFIX ldap user $USER first login"
+        sudo /bin/mkdir -p $HDIR
+        sudo /bin/chown -R $USER $HDIR
+        sudo /bin/chmod g-wr,o-rwx $HDIR
+        sudo /usr/bin/touch $HDIR/{{ r_connector_userconfig }}
+        sudo /bin/chmod 660 $HDIR/{{ r_connector_userconfig }}
+        #sudo /bin/chgrp -R {{ smartgears_user }} $HDIR
+        sudo /bin/chgrp {{ smartgears_user }} $HDIR
+        sudo /bin/chown {{ smartgears_user }}:{{ smartgears_user }} $HDIR/{{ r_connector_userconfig }}
+        sudo /bin/ln -s $RPROFILE_FILE $HDIR/{{ r_connector_rprofile_filename }}
+        exit 0
+    else
+        logger "$LOG_PREFIX user $USER does not exist locally and is not an ldap user"
+        if [ $ALLOW_LOCAL_USERS -eq 1 ] ; then
+            logger "$LOG_PREFIX non ldap users not allowed, refusing to create the user."
+            exit 1
+        else
+            logger "$LOG_PREFIX non ldap users allowed, adding the user $USER locally"
+            sudo /usr/sbin/useradd -m -s /bin/false -g {{ smartgears_user }} $USER
+            sudo /bin/chmod g+ws $HDIR
+            sudo /usr/bin/touch $HDIR/{{ r_connector_userconfig }}
+            sudo /bin/chmod 660 $HDIR/{{ r_connector_userconfig }}
+            sudo /bin/chgrp -R {{ smartgears_user }} $HDIR
+            sudo /bin/ln -s $RPROFILE_FILE $HDIR/{{ r_connector_rprofile_filename }}
+            exit 0
+        fi
+    fi
+fi

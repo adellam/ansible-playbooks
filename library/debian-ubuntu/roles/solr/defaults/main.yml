@@ -1,0 +1,32 @@
+---
+# solr
+solr_install: False
+solr_http_port: 8983
+
+solr_version: 5.5.3
+solr_service: -solr
+solr_config_name: hindex
+solr_shards: 1
+solr_instance: '{{ solr_service }}'
+solr_log_level: INFO
+solr_http_port_1: '{{ solr_http_port }}'
+solr_zoo_port: 9983
+solr_zoo_port_1: 9984
+solr_zoo_port_2: 9985
+solr_jmx_port_1: 8601
+solr_user: solr
+solr_group: solr
+# We need to define this one because we are using the tomcat multiple instances role
+solr_base_dir: /opt/solr-files
+solr_data_dir: '{{ solr_base_dir }}/solr'
+solr_heap:  1024M
+solr_mode: solrcloud
+solr_download_dir: '{{ solr_base_dir }}/download'
+solr_zookeeper_data_dir: '{{ solr_data_dir }}/zoo_data'
+solr_install_collection1: False
+solr_download_url: 'http://www-eu.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz'
+solr_jar_files:
+  - contrib/analysis-extras/lib/icu4*.jar
+  - contrib/analysis-extras/lucene-libs/lucene-analyzers-icu*.jar
+
+

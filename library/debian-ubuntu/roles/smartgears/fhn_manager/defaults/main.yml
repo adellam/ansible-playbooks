@@ -1,0 +1,8 @@
+---
+fhn_manager_install: False
+smart_executor_install:  False
+fhn_manager_version: 1.2.1-4.2.0-139966
+fhn_manager_name: fhn-manager-service
+fhn_manager_file: '{{ fhn_manager_name }}-{{ fhn_manager_version }}.war'
+fhn_manager_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/resources/federation/{{fhn_manager_name}}/{{ fhn_manager_version }}/{{ fhn_manager_file }}'
+

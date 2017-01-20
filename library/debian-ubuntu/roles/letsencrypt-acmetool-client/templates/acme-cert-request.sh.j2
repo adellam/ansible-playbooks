@@ -1,0 +1,28 @@
+#!/bin/bash
+
+TMP_DIR=/var/tmp/acmetool
+BASE_DIR=/var/lib/acme
+RETVAL=
+
+if [ -d $BASE_DIR/keys/fakeselfsignedcert -a -d $BASE_DIR/certs/fakeselfsignedcert ] ; then
+    mkdir -p $TMP_DIR/{keys,certs}
+    mv $BASE_DIR/keys/fakeselfsignedcert $TMP_DIR/keys
+    mv $BASE_DIR/certs/fakeselfsignedcert $TMP_DIR/certs
+    /bin/rm live/{{ ansible_fqdn }}
+    {{ letsencrypt_acme_command }} {{ letsencrypt_acme_command_opts }} quickstart
+fi
+
+{{ letsencrypt_acme_command }} {{ letsencrypt_acme_command_opts }} reconcile
+RETVAL=$?
+
+if [ -d $TMP_DIR ] ; then
+    if [ $RETVAL -ne 0 ] ; then
+        mv $TMP_DIR/keys/fakeselfsignedcert $BASE_DIR/keys
+        mv $TMP_DIR/certs/fakeselfsignedcert $BASE_DIR/certs
+        cd $BASE_DIR/live
+        ln -s ../certs/fakeselfsignedcert {{ ansible_fqdn }}
+    fi
+    rm -fr $TMP_DIR
+fi
+
+exit $RETVAL

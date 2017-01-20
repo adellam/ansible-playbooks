@@ -1,0 +1,93 @@
+---
+#
+# IMPORTANT: the template will be used on a task that refers 'phpfpm_pools' inside a 'with_items' loop. So
+# the variables into the template are all 'item.XXX'
+#
+phpfpm_service_enabled: True
+phpfpm_remove_php_module: True
+
+# centos-release-scl or Remi repository are needed if we want a newer php version instead of the default one
+# Ensure that we have
+# centos_install_release_scl: True
+# if we want the RH SCL package
+php_install_rh_scl: False
+php_rh_scl_shortver: 56
+php_rh_scl_major: 5
+php_rh_scl_minor: 6
+php_rh_scl_version: '{{ php_rh_scl_major }}.{{ php_rh_scl_minor }}'
+php_rh_scl_confdir: '/etc/opt/rh/rh-php{{ php_rh_scl_shortver }}'
+php_remi_repo_url: 'http://rpms.remirepo.net/enterprise/remi-release-7.rpm'
+php_remi_enable_repo: True
+php_shortver: 56
+
+php_ini_values:
+  - { option: 'upload_max_filesize', value: '4096M' }
+  - { option: 'post_max_size', value: '4096M' }
+  - { option: 'mbstring.func_overload', value: '0' }
+  - { option: 'always_populate_raw_post_data', value: '-1' }
+  - { option: 'default_charset', value: 'UTF-8' }
+  - { option: 'output_buffering', value: '0' }
+
+phpfpm_php_variables:
+  - { prop: 'session.gc_maxlifetime', value: 1440 }
+  - { prop: 'session.cache_expire', value: 180 }
+
+php_conf_dir: /etc
+# Main config file settings
+phpfpm_log_dir: /var/log/php-fpm
+phpfpm_rh_scl_log_dir: '/var/opt/rh/rh-php{{ php_rh_scl_shortver }}/log/php-fpm'
+# It can be 'syslog'
+phpfpm_error_logfile: '{{ phpfpm_log_dir }}/error.log'
+phpfpm_rh_scl_error_logfile: '{{ phpfpm_rh_scl_log_dir }}/error.log'
+phpfpm_syslog_facility: daemon
+phpfpm_syslog_ident: php-fpm
+phpfpm_log_level: notice
+phpfpm_emergency_restart_threshold: 5
+phpfpm_emergency_restart_interval: 2m
+phpfpm_process_control_timeout: 10s
+phpfpm_set_process_max: False
+phpfpm_process_max: 256
+phpfpm_set_event_mechanism: False
+phpfpm_event_mechanism: epoll
+
+# Pools settings
+phpfpm_default_pool_name: "www"
+phpfpm_remove_default_pool: False
+phpfpm_use_default_template: True
+phpfpm_create_users: False
+phpfpm_default_user: apache
+phpfpm_default_group: apache
+phpfpm_default_homedir: /dev/null
+phpfpm_default_createhome: 'no'
+phpfpm_default_listen: "127.0.0.1:9000"
+phpfpm_default_allowed_clients: "127.0.0.1"
+phpfpm_default_pm: "dynamic"
+phpfpm_default_pm_max_children: "50"
+phpfpm_default_pm_start_servers: "3"
+phpfpm_default_pm_min_spare_servers: "1"
+phpfpm_default_pm_max_spare_servers: "10"
+phpfpm_default_pm_max_requests: "10000"
+phpfpm_default_pm_status_enabled: False
+phpfpm_default_pm_status_path: "/status"
+phpfpm_default_ping_enabled: False
+phpfpm_default_ping_path: "/ping"
+phpfpm_default_ping_response: '{{ phpfpm_default_pool_name }}'
+phpfpm_default_display_errors: "off"
+phpfpm_default_log_errors: "on"
+phpfpm_default_memory_limit: "64M"
+phpfpm_default_request_terminate_timeout: "60s"
+phpfpm_default_slowlog_timeout: "20s"
+phpfpm_default_rlimit_files: "1024"
+phpfpm_default_extensions: ".php"
+phpfpm_default_context: '/'
+phpfpm_session_prefix: '/var/lib/php-fpm/session'
+phpfpm_rh_scl_session_prefix: '/var/opt/rh/rh-php{{ php_rh_scl_shortver }}/lib/php/session'
+
+php_fpm_packages:
+  - 'php-fpm'
+
+php_rh_scl_packages:
+  - 'rh-php{{ php_rh_scl_shortver }}-php-fpm'
+  
+phpfpm_pools:
+  - { pool_name: '{{ phpfpm_default_pool_name }}', app_context: '{{ phpfpm_default_context }}', user: '{{ phpfpm_default_user }}', group: '{{ phpfpm_default_group }}', listen: '{{ phpfpm_default_listen }}', allowed_clients: '{{ phpfpm_default_allowed_clients }}', pm: '{{ phpfpm_default_pm }}', pm_max_children: '{{ phpfpm_default_pm_max_children }}', pm_start_servers: '{{ phpfpm_default_pm_start_servers }}', pm_min_spare: '{{ phpfpm_default_pm_min_spare_servers }}', pm_max_spare: '{{ phpfpm_default_pm_max_spare_servers }}', pm_max_requests: '{{ phpfpm_default_pm_max_requests }}', pm_status_enabled: '{{ phpfpm_default_pm_status_enabled }}', pm_status_path: '{{ phpfpm_default_pm_status_path }}', ping_enabled: '{{ phpfpm_default_ping_enabled }}', ping_path: '{{ phpfpm_default_ping_path }}', ping_response: '{{ phpfpm_default_ping_response }}', display_errors: '{{ phpfpm_default_display_errors }}', log_errors: '{{ phpfpm_default_log_errors }}', memory_limit: '{{ phpfpm_default_memory_limit }}', slowlog_timeout: '{{ phpfpm_default_slowlog_timeout }}', rlimit_files: '{{ phpfpm_default_rlimit_files }}', php_extensions: '{{ phpfpm_default_extensions }}' }

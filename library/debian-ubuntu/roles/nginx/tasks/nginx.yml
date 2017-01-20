@@ -1,0 +1,22 @@
+---
+- name: Install the Ubuntu PPA for nginx
+  apt_repository: repo='{{ nginx_ppa_repo }}' update_cache=yes
+  when:
+    - nginx_use_ppa
+    - "'{{ ansible_distribution }}' == 'Ubuntu'"
+  tags: [ 'nginx', 'nginx_ppa' ]
+
+- name: Install the nginx web server
+  apt: pkg={{ item }} state={{ nginx_package_state }} update_cache=yes cache_valid_time=1800
+  with_items:
+    - nginx-full
+  when: not nginx_use_ldap_pam_auth
+  tags: nginx
+
+- name: Install the nginx web server if we need ldap auth via pam
+  apt: pkg={{ item }} state={{ nginx_package_state }} update_cache=yes cache_valid_time=1800
+  with_items: 
+    - nginx-extras
+  when: nginx_use_ldap_pam_auth
+  tags: nginx
+

@@ -1,0 +1,8 @@
+---
+- name: Install pam service for nginx
+  copy: src=nginx.pam dest=/etc/pam.d/{{ nginx_pam_svc_name }}
+  notify: Reload nginx
+  when: nginx_use_ldap_pam_auth
+  tags:
+    - nginx
+

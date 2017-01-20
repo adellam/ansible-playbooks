@@ -1,0 +1,6 @@
+{% if default_rsyslog_custom_rules is defined %}
+{% for entry in default_rsyslog_custom_rules %}
+{{ entry }}
+{% endfor %}
+{% endif %}
+

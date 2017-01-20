@@ -1,0 +1,24 @@
+---
+vsftpd_enabled: True
+vsftpd_pkgs:
+  - vsftpd
+
+vsftpd_blacklist_files:
+  - chroot_list
+  - ftpusers
+  - user_list
+
+vsftpd_anonymous: False
+vsftpd_anonymous_enable: 'NO'
+vsftpd_anonymous_upload: False
+vsftpd_anonymous_upload_enabled: 'NO'
+vsftpd_local: True
+vsftpd_local_enable: 'YES'
+vsftpd_write_enable: 'YES'
+vsftpd_banner: '{{ ansible_fqdn }}'
+vsftpd_enable_chroot: False
+vsftpd_chroot_local_users: 'YES'
+vsftpd_chroot_list_enable: 'YES'
+vsftpd_text_userdb_names: 'YES'
+vsftpd_pasv_min_port: 19000
+vsftpd_pasv_max_port: 19999

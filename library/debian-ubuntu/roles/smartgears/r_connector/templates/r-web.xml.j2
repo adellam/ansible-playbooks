@@ -1,0 +1,29 @@
+<web-app>
+	<context-param>
+		<param-name>usersHome</param-name>
+		<param-value>{{ r_connector_usershome }}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>filename</param-name>
+		<param-value>{{ r_connector_userconfig }}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>addUserScript</param-name>
+		<param-value>{{ r_connector_adduserscript }}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>storedKeyPath</param-name>
+		<param-value>{{ r_connector_rstudio_cookie_key }}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>rStudioAddress</param-name>
+		<param-value>{{ ansible_fqdn }}</param-value>
+	</context-param>
+	<servlet>
+    	<servlet-name>org.gcube.data.analysis.rconnector.RConnector</servlet-name>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>org.gcube.data.analysis.rconnector.RConnector</servlet-name>
+        <url-pattern>/gcube/service/*</url-pattern>
+    </servlet-mapping>
+</web-app>

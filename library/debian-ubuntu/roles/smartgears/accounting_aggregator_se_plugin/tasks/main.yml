@@ -1,0 +1,15 @@
+---
+- name: Remove the old accounting aggregator plugin 
+  shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/accounting-aggregator-se-plugin-*-jar-with-dependencies.jar
+  when:  accounting_aggregator_se_plugin_upgrade
+  tags: [ 'smartgears', 'accounting_aggregator_se', 'tomcat' ]
+
+
+- name: Get the accounting aggregator plugin and install it inside the smart executor
+  become: True
+  become_user: '{{ smartgears_user }}'
+  get_url: url={{ accounting_aggregator_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
+  when: accounting_aggregator_se_plugin_install
+  notify: Restart smartgears
+  tags: [ 'smartgears', 'accounting_aggregator_se', 'tomcat' ]
+

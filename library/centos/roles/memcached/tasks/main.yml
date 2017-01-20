@@ -1,0 +1,31 @@
+---
+- name: Install the memcached package
+  yum: pkg={{ item }} state={{ mc_pkg_state }}
+  with_items:
+    - memcached
+  tags:
+    - memcache
+    - memcached
+
+- name: Install the memcached sysconfig file
+  template: src={{ item }}.sysconfig.j2 dest=/etc/sysconfig/{{ item }} owner=root group=root mode=0444
+  with_items:
+    - memcached
+  notify: Restart memcached
+  tags:
+    - memcache
+    - memcached
+
+- name: Ensure that the memcached service is started and enabled
+  service: name=memcached state=started enabled=yes
+  when: mc_enabled
+  tags:
+    - memcache
+    - memcached
+
+- name: Ensure that the memcached service is stopped and disabled
+  service: name=memcached state=stopped enabled=no
+  when: not mc_enabled
+  tags:
+    - memcache
+    - memcached

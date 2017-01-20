@@ -1,0 +1,6 @@
+{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/log/*.log {
+    missingok
+    notifempty
+    delaycompress
+    copytruncate
+}

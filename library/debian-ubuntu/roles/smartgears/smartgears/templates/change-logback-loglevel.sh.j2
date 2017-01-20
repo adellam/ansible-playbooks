@@ -1,0 +1,13 @@
+#!/bin/bash
+
+RETVAL=
+LOGLEVEL=$( xmlstarlet sel -t -v "/configuration/logger/@level"  {{ item.user_home }}/tomcat/lib/logback.xml | grep {{ smartgears_loglevel }} )
+RETVAL=$?
+
+if [ $RETVAL -ne 0 ] ; then
+    xmlstarlet ed -u "/configuration/logger[@level]/@level" -v {{ smartgears_loglevel }} {{ item.user_home }}/tomcat/lib/logback.xml > {{ item.user_home }}/tomcat/lib/logback.xml.new
+    /bin/mv {{ item.user_home }}/tomcat/lib/logback.xml.new {{ item.user_home }}/tomcat/lib/logback.xml
+fi
+
+exit 0
+

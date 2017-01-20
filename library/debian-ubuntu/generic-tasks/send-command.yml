@@ -1,0 +1,10 @@
+---
+- hosts: "{{ hosts_list }}"
+  remote_user: root
+  vars_files:
+    - ../vars/isti-global.yml
+  tasks:
+    - name: Send a shell command
+      shell: {{ shell_command }}
+      #shell: conntrack -D -p tcp --sport 443 -s 146.48.122.82
+

@@ -1,0 +1,19 @@
+---
+firewalld_enabled: True
+firewalld_default_zone: public
+firewalld_ssh_enabled_on_default_zone: True
+
+firewalld_rules:
+#  - { service: 'http', zone: 'public', permanent: 'true', state: 'enabled' }
+#  - { port: '9001', protocol: 'tcp', zone: 'public', permanent: 'true', state: 'enabled' }
+#  - { rich_rule: 'rule service name="ftp" audit limit value="1/m" accept', zone: 'public', permanent: 'true', state: 'enabled' }
+
+#firewalld_new_services:
+#  - { name: 'mosh', zone: 'public', permanent: 'true', state: 'enabled' }
+
+# We execute direct rules as they are written
+# firewalld_direct_rules:
+#   - { action: '--add-rule', parameters: 'ipv4 filter FORWARD 0 -s 136.243.21.126 --in-interface br0 -d 0/0 -j ACCEPT' }
+
+# firewalld_zones_interfaces:
+#  - { interface: 'eth1', zone: 'internal' }

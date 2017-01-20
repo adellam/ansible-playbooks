@@ -1,0 +1,33 @@
+---
+- name: Download the puppetlabs repo package
+  get_url: url='{{ foreman_puppetlabs_repo_url }}' dest=/srv/{{ foreman_puppetlabs_repo_pkg }}
+  register: puppetlabs_repo
+  tags: foreman
+
+- name: Install the puppetlabs repo package
+  apt: deb=/srv/{{ foreman_puppetlabs_repo_pkg }} update_cache=yes
+  when: puppetlabs_repo | changed
+  tags: foreman
+
+- name: Add the foreman repo keys
+  apt_key: url='{{ foreman_repo_key }}' state=present
+  
+- name: Add the foreman repos
+  apt_repository: repo='{{ item }}' update_cache=yes
+  with_items: '{{ foreman_repos }}'
+  tags: foreman
+
+- name: Install the ansible foreman plugin
+  apt: pkg={{ item }} state={{ foreman_pkg_state }}
+  with_items: '{{ foreman_ansible_plugin }}'
+  tags: foreman
+
+- name: Install the foreman installer
+  apt: pkg=foreman-installer state={{ foreman_pkg_state }}
+  register: foreman_installer_pkg
+  tags: foreman
+
+#- name: Run the foremann installer
+#  shell: foreman-installer
+#  when: foreman_installer_pkg | changed
+#  tags: foreman

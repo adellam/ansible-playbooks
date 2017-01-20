@@ -1,0 +1,54 @@
+---
+- name: Create the gitblit user
+  user: name={{ gitblit_user }} comment="Gitblit GIT server" home={{ gitblit_home }} createhome=True
+  tags: gitblit
+
+- name: Create a data directory for gitblit
+  file: dest={{ gitblit_data_dir }} state=directory owner={{ gitblit_user }} group={{ gitblit_user }} mode=0750
+  register: gitblit_data_dir_setup
+  tags: gitblit
+
+- name: Create a properties directory for gitblit
+  file: dest={{ gitblit_home }}/etc state=directory owner=root group={{ gitblit_user }} mode=0750
+  tags: gitblit
+
+- name: Get gitblit software
+  get_url: url={{ gitblit_url }} dest=/srv/{{ gitblit_file }}
+  tags: gitblit
+
+- name: Unpack the gitblit archive
+  unarchive: src=/srv/{{ gitblit_file }} dest=/srv/ creates=/srv/gitblit-{{ gitblit_version }}/gitblit.jar copy=no owner=root group=root 
+  tags: gitblit
+
+- name: Set up a link to the latest gitblit version
+  file: src=/srv/gitblit-{{ gitblit_version }} dest=/srv/gitblit/service state=link
+  tags: gitblit
+
+- name: Initialize the data directory
+  shell: cp -rp /srv/gitblit-{{ gitblit_version }}/data/* {{ gitblit_data_dir }} ; chown -R {{ gitblit_user }}:{{ gitblit_user }} {{ gitblit_data_dir }}
+  when: ( gitblit_data_dir_setup | changed )
+  tags: gitblit
+
+- name: Install the customized gitblit.properties file
+  template: src=gitblit.properties.j2 dest={{ gitblit_data_dir }}/gitblit.properties owner=root group={{ gitblit_user }} mode=0440
+  notify: Restart gitblit
+  tags: [ 'gitblit', 'gitblit_properties' ]
+
+- name: Install the gitblit startup script
+  copy: src=service-ubuntu.sh dest=/etc/init.d/gitblit owner=root group=root mode=0755
+  tags: gitblit
+
+- name: Install the gitblit startup defaults
+  template: src=gitblit-default.j2 dest=/etc/default/gitblit owner=root group=root mode=0444
+  notify: Restart gitblit
+  tags: gitblit
+
+- name: Ensure that gitblit is started and enabled
+  service: name=gitblit state=started enabled=yes
+  when: gitblit_enabled
+  tags: gitblit
+
+- name: Ensure that gitblit is stopped and disabled
+  service: name=gitblit state=stopped enabled=no
+  when: not gitblit_enabled
+  tags: gitblit

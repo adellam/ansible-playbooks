@@ -1,0 +1,21 @@
+---
+- name: Install the owncloud repository
+  get_url: url={{ centos_owncloud_repo_url }} dest=/etc/yum.repos.d/{{ centos_owncloud_repo_filename }}
+  when: not centos_owncloud_from_epel_repo
+  tags: [ 'centos', 'owncloud' ]
+
+# We use postgresql as backend
+- name: Install the owncloud packages and the needed plugins
+  yum: name={{ item }} state={{ owncloud_pkg_state }}
+  with_items: '{{ owncloud_packages }}'
+  tags: [ 'centos', 'owncloud' ]
+
+- name: Change the selinux config to permit apache connect to postgresql
+  seboolean: name={{ item }} state=yes persistent=yes
+  with_items: owncloud_selinux_settings
+  tags: [ 'centos', 'owncloud', 'selinux' ]
+
+- name: Configure selinux to permit owncloud write inside the configuration directory
+  seboolean: name=httpd_unified state=yes persistent=yes
+  tags: [ 'centos', 'owncloud', 'php', 'selinux' ]
+

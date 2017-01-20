@@ -1,0 +1,49 @@
+---
+varnish_version: 4.0
+varnish_repo: True
+varnish_repo_requirements:
+  - apt-transport-https
+varnish_repo_url: "https://repo.varnish-cache.org/debian/ {{ ansible_distribution_release }} varnish-{{ varnish_version }}"
+varnish_pkg_name: varnish
+varnish_pkg_state: present
+varnish_enabled: True
+
+varnish_instance_name: '{{ ansible_fqdn }}'
+varnish_listen_port: 6081
+varnish_admin_listen_port: 6082
+varnish_admin_listen_host: 127.0.0.1
+varnish_vcl_conf: /etc/varnish/default.vcl
+varnish_secret_file: /etc/varnish/secret
+varnish_pid_file: /var/run/varnish.pid
+varnish_n_files: 131072
+varnish_memlock: 82000
+varnish_static_c_timeout: 240s
+varnish_static_first_byte_timeout: 360s
+varnish_static_between_bytes_timeout: 360s
+varnish_min_threads: 10
+varnish_max_threads: 1000
+varnish_thread_timeout: 120
+# We are using 3000 in production
+varnish_static_max_connections: 200
+#
+# Choose if we want static disk based cache or volatile ram based one
+varnish_use_disk_cache: True
+varnish_storage_file: /var/lib/varnish/varnish_storage.bin
+# We are using 12288M in production
+varnish_storage_size: 1G
+#
+varnish_use_ram_cache: False
+# Expressed in MBs. We do not use it right now
+varnish_ram_cache_size: 512M
+# We are using 48000 in production
+varnish_ttl: 120
+varnish_user: varnish
+varnish_group: varnish
+varnish_purge_whitelist:
+  - 127.0.0.1
+
+varnish_set_sysctl_params: False
+varnish_sysctl_file: 30-varnish.conf
+varnish_sysctl_kernel_parameters:
+  - { name: 'net.core.rmem_max', value: '212992' }
+  - { name: 'net.core.wmem_max', value: '212992' }

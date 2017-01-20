@@ -1,0 +1,44 @@
+---
+- name: Install the duplicity package
+  yum: name=duplicity state=installed
+  tags: [ 'duplicity', 'duplicity_backup' ]
+
+- name: Install the duply wrapper
+  yum: name=duply state=installed
+  when: duplicity_install_duply
+  tags: [ 'duplicity', 'duply', 'duplicity_backup' ]
+
+- name: Install lftp if we want use ftps
+  yum: name=lftp state=installed
+  when: duplicity_use_ftps
+  tags: [ 'duplicity', 'duply', 'duplicity_backup' ]
+
+- name: Create the duply directory for the default profile
+  file: dest=/etc/duply/{{ duply_default_profile }} state=directory owner=root group=root mode=0700
+  when: duplicity_install_duply
+  tags: [ 'duplicity', 'duply', 'duplicity_backup' ]
+
+- name: Create the duply temp directory
+  file: dest={{ duplicity_temp_dir }} state=directory owner=root group=root mode=0700
+  when: duplicity_install_duply
+  tags: [ 'duplicity', 'duply', 'duplicity_backup' ]
+
+- name: Install the duply default profile configuration
+  template: src=duply-profile-conf.j2 dest=/etc/duply/{{ duply_default_profile }}/conf owner=root group=root mode=0400
+  when: duplicity_install_duply
+  tags: [ 'duplicity', 'duply', 'duplicity_backup' ]
+
+- name: Install the duply pre script
+  template: src=duply-pre-script.j2 dest=/etc/duply/{{ duply_default_profile }}/pre owner=root group=root mode=0500
+  when: duplicity_install_duply
+  tags: [ 'duplicity', 'duply', 'duplicity_backup' ]
+
+- name: Install the duply pattern files list
+  template: src=duply-exclude.j2 dest=/etc/duply/{{ duply_default_profile }}/exclude owner=root group=root mode=0400
+  when: duplicity_install_duply
+  tags: [ 'duplicity', 'duply', 'duplicity_backup' ]
+
+- name: Install the duply cron job
+  template: src=duplicity_backup.cron.j2 dest=/etc/cron.daily/duplicity_backup owner=root group=root mode=0555
+  when: duplicity_install_duply
+  tags: [ 'duplicity', 'duply', 'duplicity_backup' ]

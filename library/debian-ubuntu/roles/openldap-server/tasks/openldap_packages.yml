@@ -1,0 +1,18 @@
+---
+  
+- name: Install the openldap server packages
+  apt: name={{ item }} state={{ openldap_pkg_state }}
+  with_items: '{{ openldap_pkg_list }}'
+  tags: [ 'ldap_server', 'ldap' ]
+
+- name: Ensure that the slapd service is enabled and running
+  service: name=slapd state=started enabled=yes
+  when: openldap_service_enabled
+  tags: [ 'ldap_server', 'ldap' ]
+
+- name: Ensure that the slapd service is disabled and stopped
+  service: name=slapd state=stopped enabled=no
+  when: not openldap_service_enabled
+  tags: [ 'ldap_server', 'ldap' ]
+
+

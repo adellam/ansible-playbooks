@@ -1,0 +1,10 @@
+{{ phpfpm_logdir}}/*log {
+    missingok
+    notifempty
+    sharedscripts
+    delaycompress
+    postrotate
+        /usr/lib/php5/php5-fpm-reopenlogs
+    endscript
+}
+

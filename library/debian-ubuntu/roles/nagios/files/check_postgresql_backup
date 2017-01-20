@@ -1,0 +1,38 @@
+#!/bin/bash
+
+TIMESTAMP=$( date +%s )
+ONEDAY=86400
+RETVAL=0
+MSG=
+if [ -f /etc/default/pg_backup ] ; then
+    . /etc/default/pg_backup
+else
+    BACKUPDIR=/var/lib/pgsql/backups
+fi
+TIMESTAMP_LOG=$BACKUPDIR/.timestamp
+NAGIOS_LOG=$BACKUPDIR/.nagios-status
+
+function check_db_freshness() {
+    DB_LASTRUN=$( cat $TIMESTAMP_LOG )
+    FRESHNESS=$( echo "$TIMESTAMP - $DB_LASTRUN" | bc )
+    if [ $FRESHNESS -gt $ONEDAY ] ; then
+        MSG_FRESH="Dump older than 1 day ; "
+        RETVAL=1
+    fi
+}
+
+function check_dump_status() {
+    MSG_STATUS=$( grep FAILED $NAGIOS_LOG )
+    if [ $? -eq 0 ] ; then
+        RETVAL=2
+    else
+        MSG_STATUS="All dumps OK"
+    fi
+}
+
+check_db_freshness
+check_dump_status
+
+MSG="$MSG_FRESH $MSG_STATUS"
+echo -n $MSG
+exit $RETVAL

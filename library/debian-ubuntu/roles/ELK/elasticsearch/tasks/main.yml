@@ -1,0 +1,14 @@
+---
+- include: elasticsearch.yml
+- include: plugins.yml
+
+- name: Ensure that elasticsearch is enabled and running
+  service: name=elasticsearch state=started enabled=yes
+  when: elasticsearch_enabled
+  tags: [ 'ELK', 'elasticsearch', 'elk' ]
+  
+- name: Ensure that elasticsearch is disabled and stopped
+  service: name=elasticsearch state=stopped enabled=no
+  when: not elasticsearch_enabled
+  tags: [ 'ELK', 'elasticsearch', 'elk' ]
+  

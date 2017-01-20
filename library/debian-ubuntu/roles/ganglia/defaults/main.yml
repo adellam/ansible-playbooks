@@ -1,0 +1,19 @@
+# These are for reference only.
+# Define your own set of variables
+#
+#ganglia_gmond_cluster: "Ganglia Cluster"
+#ganglia_gmond_cluster_port: 8649
+#ganglia_gmond_mcast_addr: 239.2.11.71
+#ganglia_gmetad_host: ganglia-gmetad
+ganglia_gmond_send_metadata_interval: 600
+# Set it to yes if you need a buffer bigger than the default
+ganglia_set_rmem: False
+ganglia_udp_recv_buffer: 131070
+# Needed to build the correct firewall rules when jmxtrans is in use
+ganglia_gmond_use_jmxtrans: False
+# Used by other roles to install specific ganglia iptables rules or some specific ganglia plugins. Or not.
+ganglia_enabled: False
+ganglia_unicast_mode: False
+ganglia_unicast_networks:
+  - 0.0.0.0/0
+

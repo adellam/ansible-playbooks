@@ -1,0 +1,14 @@
+---
+- name: Create the acme hooks directory if it does not yet exist
+  file: dest={{ letsencrypt_acme_services_scripts_dir }} state=directory owner=root group=root
+  when:
+    - openvpn_letsencrypt_managed
+    - letsencrypt_acme_install
+  tags: [ 'openvpn', 'letsencrypt' ]
+
+- name: Install a script that fix the letsencrypt certificate for openvpn and then reload the service
+  copy: src=openvpn-letsencrypt-acme.sh dest={{ letsencrypt_acme_services_scripts_dir }}/openvpn owner=root group=root mode=4555
+  when:
+    - openvpn_letsencrypt_managed
+    - letsencrypt_acme_install
+  tags: [ 'openvpn', 'letsencrypt' ]

@@ -1,0 +1,39 @@
+---
+# Installation and cofiguration notes:
+# https://github.com/jfut/ganeti-rpm/blob/master/doc/install-rhel.rst
+#
+integ_ganeti_centos_version: 7
+integ_ganeti_repo_url: 'http://jfut.integ.jp/linux/ganeti/{{ integ_ganeti_centos_version }}/x86_64/integ-ganeti-release-{{ integ_ganeti_centos_version }}-1.el{{ integ_ganeti_centos_version }}.noarch.rpm'
+integ_ganeti_repo_file: '/etc/yum.repos.d/integ-ganeti.repo'
+integ_ganeti_repo:
+  - { name: 'integ-ganeti', value: '1' }
+
+# Ganeti needs packages from the elrepo repository. drbd, specifically
+rh_install_elrepo: True
+
+integ_ganeti_packages:
+  - ganeti
+
+integ_ganeti_drbd_packages:
+  - drbd84-utils
+  - kmod-drbd84
+
+ganeti_cluster_name: "gnt_cluster"
+ganeti_cluster: True
+ganeti_use_drbd: True
+ganeti_first_node: False
+ganeti_pkg_state: latest
+ganeti_link_int: br0
+ganeti_master_netdev: eth0
+ganeti_vg_name: vgxen
+ganeti_enabled_hypervisors: "kvm,lxc"
+ganeti_drbd_conf: "minor_count=128 usermode_helper=/bin/true"
+# ganeti does not use the libvirtd service
+virtualization_enable_libvirtd: False
+
+ganeti_drbd_sysctl_tuning:
+  - { name: 'net.ipv4.tcp_rmem', value: '131072 131072 10485760', state: 'present' }
+  - { name: 'net.ipv4.tcp_wmem', value: '131072 131072 10485760', state: 'present' }
+  - { name: 'vm.dirty_ratio', value: '10', state: 'present' }
+  - { name: 'vm.dirty_background_ratio', value: '4', state: 'present' }
+

@@ -1,0 +1,13 @@
+---
+- name: Create the isql script to change the dba default password
+  copy: content="set password dba {{ virtuoso_dba_pwd }};\n" dest={{ virtuoso_db_dir }}/.isql_change_dba_pwd owner={{ virtuoso_user }} group={{ virtuoso_user }} mode=0400
+  when: virtuoso_dba_pwd is defined
+  tags: [ 'virtuoso', 'virtuoso_conf' ]
+
+- name: Change the default dba password
+  shell: '{{ virtuoso_isql }} -H localhost -S {{ virtuoso_server_port }} -U dba -P dba < {{ virtuoso_db_dir }}/.isql_change_dba_pwd ; touch {{ virtuoso_db_dir }}/.dba_changed_password'
+  args:
+    creates:
+      '{{ virtuoso_db_dir }}/.dba_changed_password'
+  when: virtuoso_dba_pwd is defined
+  tags: [ 'virtuoso', 'virtuoso_conf' ]

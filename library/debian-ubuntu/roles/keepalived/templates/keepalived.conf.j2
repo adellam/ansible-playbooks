@@ -1,0 +1,49 @@
+{% for script in keepalived_scripts %}
+vrrp_script {{ script.name }} {
+        script "{{ script.script }}"
+        interval {{ script.interval | default(1) }}
+        weight {{ script.weight | default(2) }}
+        fall: {{ script.fall | default(3) }}
+        raise: {{ script.raise | default(2) }}
+        timeout: {{ script.timeout | default(5) }}
+}
+{% endfor %}
+
+{% for instance in keepalived_instances %}
+vrrp_instance {{ instance.name }} {
+        interface {{ instance.interface }}
+        {% if instance.state is defined %}
+        state {{ instance.state }}
+        {% endif %}
+        virtual_router_id {{ instance.vrouter_id }}
+        priority {{ instance.priority }}
+        {% if instance.notify is defined %}
+        notify {{ instance.notify }}
+        {% endif %}
+        {% if instance.nopreempt is defined and instance.nopreempt %}
+        nopreempt
+        {% endif %}
+        {% if instance.authentication is defined %}
+        authentication {
+            auth_type {{ instance.authentication }}
+            auth_pass {{ instance.authpass }}
+        {% endif %}
+        virtual_ipaddress {
+        {% for addr in instance.v_addr %}
+            {{ addr }}
+        {% endfor %}
+        }
+        track_script {
+        {% for trk in instance.track_script %}
+            {{ trk }}
+        {% endfor %}
+        }
+        {% if instance.track_interface is defined %}
+        track_interface {
+        {% for if in instance.track_interface %}
+            {{ if }}
+        {% endfor %}
+        }
+        {% endif %}
+}
+{% endfor %}

@@ -1,0 +1,7 @@
+---
+- name: Install a script that fix the letsencrypt certificate for haproxy and then reload the service
+  copy: src=haproxy-letsencrypt.sh dest={{ letsencrypt_services_scripts_dir }}/haproxy owner=root group=root mode=0550
+  when:
+    - haproxy_letsencrypt_managed
+    - letsencrypt_install
+  tags: [ 'haproxy', 'letsencrypt' ]

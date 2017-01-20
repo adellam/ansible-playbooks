@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+{% if item.shutdown_port == '-1' %}
+<Server port="{{ item.shutdown_port }}" shutdown="SHUTDOWN_PORT_DISABLED">
+{% else %}
+<Server port="{{ item.shutdown_port }}" shutdown="{{ tomcat_m_shutdown_pwd }}">
+ {% endif %}
+  <Listener className="org.apache.catalina.core.JasperListener" />
+  <!-- Prevent memory leaks due to use of particular java/javax APIs-->
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+  <GlobalNamingResources>
+    <Resource name="UserDatabase" auth="Container"
+              type="org.apache.catalina.UserDatabase"
+              description="User database that can be updated and saved"
+              factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+              pathname="conf/tomcat-users.xml" />
+  </GlobalNamingResources>
+
+  <Service name="Catalina">
+
+{% if item.http_enabled %}
+    <Executor name="tomcatThreadPool" namePrefix="catalina-exec-"
+        maxThreads="{{ item.max_threads }}" minSpareThreads="10"/>
+{% endif %}
+
+    <!-- A "Connector" represents an endpoint by which requests are received
+         and responses are returned. Documentation at :
+         Java HTTP Connector: /docs/config/http.html (blocking & non-blocking)
+         Java AJP  Connector: /docs/config/ajp.html
+         APR (HTTP/AJP) Connector: /docs/apr.html
+         Define a non-SSL HTTP/1.1 Connector on port 8080
+    -->
+{% if item.http_enabled %}
+    <!-- A http "Connector" using the shared thread pool-->
+    <Connector executor="tomcatThreadPool"
+	           enableLookups="false"
+               maxThreads="{{ item.max_threads }}" connectionTimeout="60000"
+	           URIEncoding="UTF-8" bindOnInit="false" address="{{ item.http_address }}"
+               port="{{ item.http_port }}" protocol="HTTP/1.1"
+               maxPostSize="{{ item.max_post_size | default(104857600) }}"
+               redirectPort="8443" />
+{% endif %}
+
+{% if item.ajp_enabled %}
+    <!-- Define an AJP 1.3 Connector on port {{ tomcat_ajp_port }} -->
+    <Connector port="{{ item.ajp_port }}" protocol="AJP/1.3" redirectPort="8443"
+	           enableLookups="false" address="{{ item.ajp_address }}"
+               maxThreads="{{ item.max_threads }}"
+               connectionTimeout="60000"
+               maxPostSize="{{ item.max_post_size | default(104857600) }}"
+	           URIEncoding="UTF-8" bindOnInit="false" />
+{% endif %}
+    
+    <Engine name="Catalina" defaultHost="localhost">
+
+      <!-- Use the LockOutRealm to prevent attempts to guess user passwords
+           via a brute-force attack -->
+      <Realm className="org.apache.catalina.realm.LockOutRealm">
+        <!-- This Realm uses the UserDatabase configured in the global JNDI
+             resources under the key "UserDatabase".  Any edits
+             that are performed against this UserDatabase are immediately
+             available for use by the Realm.  -->
+        <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+               resourceName="UserDatabase"/>
+      </Realm>
+
+      <Host name="localhost"  appBase="webapps"
+            {% if item.unpack is defined %}
+            unpackWARs="{{ item.unpack }}"
+            {% else %}
+            unpackWARs="False"
+            {% endif %}
+            {% if item.autodeploy is defined %}
+            autoDeploy="{{ item.autodeploy }}"
+            {% else %}
+            autoDeploy="False"
+            {% endif %}
+            >
+
+{% if item.access_log_enabled %}
+        <!-- Automatically substitutes the IP with the one contained
+             in the x-forwarded-for header if that header is set -->
+        <Valve className="org.apache.catalina.valves.RemoteIpValve" />
+        <!-- Access log processes all example.
+             Documentation at: /docs/config/valve.html
+             Note: The pattern used is equivalent to using pattern="combined" -->
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="localhost_access." suffix="log"
+               pattern="combined"
+	       rotatable="False"
+	       />
+{% endif %}
+      </Host>
+    </Engine>
+  </Service>
+</Server>

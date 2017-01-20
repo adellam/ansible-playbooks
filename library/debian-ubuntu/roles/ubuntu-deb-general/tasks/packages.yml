@@ -1,0 +1,73 @@
+---
+- name: Install the basic packages
+  apt: pkg=python-software-properties state=installed
+  tags: packages
+
+- name: Install software-properties-common if needed
+  apt: pkg=software-properties-common state=installed
+  when: is_ubuntu
+  tags: packages
+
+- name: Default the backports repository on debian 6
+  copy: src=backports-squeeze dest=/etc/apt/preferences.d/backports owner=root group=root mode=644
+  when: is_debian6
+  tags: squeeze-backports
+
+- name: Install the backports repository on debian 6
+  apt_repository: repo='deb http://http.debian.net/debian-backports squeeze-backports main' state=present update_cache=yes
+  when: is_debian6
+  tags: squeeze-backports
+
+- name: Default the backports repository on debian 7
+  copy: src=backports-wheezy dest=/etc/apt/preferences.d/backports owner=root group=root mode=644
+  when: is_debian7
+  tags: wheezy-backports
+
+- name: Install the backports repository on debian 7
+  apt_repository: repo='deb http://http.debian.net/debian wheezy-backports main' state=present update_cache=yes
+  when: is_debian7
+  tags: wheezy-backports
+
+- name: Install the backports repository on debian 8
+  apt_repository: repo='deb http://http.debian.net/debian jessie-backports main' state=present update_cache=yes
+  when: is_debian8
+  tags: jessie-backports
+
+# Debian 7 “Wheezy” from February 2016 to May 2018
+# Debian 8 “Jessie“ from May 2018 to April/May 2020
+- name: Install the squeeze-lts repository on debian 6
+  apt_repository: repo='deb http://http.debian.net/debian squeeze-lts main contrib non-free' state=present update_cache=yes
+  register: update_apt_cache
+  when: is_debian6
+  tags: squeeze-lts
+
+- name: apt key for the internal ppa repository
+  apt_key: url=http://ppa.research-infrastructures.eu/system/keys/system-archive.asc state=present
+  when:
+    - is_ubuntu
+    - egi_image is not defined or not egi_image
+  ignore_errors: True
+  tags: packages
+
+- name: setup system apt repository
+  apt_repository: repo='deb http://ppa.research-infrastructures.eu/system stable main' update_cache=yes
+  when: is_ubuntu
+  ignore_errors: True
+  tags: packages
+
+- name: setup system apt repository for specific distributions
+  apt_repository: repo='deb http://ppa.research-infrastructures.eu/system {{ ansible_distribution_release }} main' update_cache=yes
+  when: is_trusty
+  ignore_errors: True
+  tags: packages
+
+- name: install common packages
+  apt: pkg={{ item }} state={{ pkg_state }}
+  with_items: '{{ common_packages }}'
+  tags: [ 'packages', 'common_pkgs' ]
+
+- name: Install additional packages, if any
+  apt: pkg={{ item }} state={{ pkg_state }}
+  with_items: '{{ additional_packages | default([]) }}'
+  tags: [ 'packages', 'common_pkgs', 'additional_packages' ]
+

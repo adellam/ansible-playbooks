@@ -1,0 +1,6 @@
+---
+py_env_install: False
+py_env_pkgs_state: installed
+py_env_site: False
+py_env_basic_pkgs:
+  - python-pip

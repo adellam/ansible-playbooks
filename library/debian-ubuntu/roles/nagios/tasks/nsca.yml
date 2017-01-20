@@ -1,0 +1,19 @@
+---
+- name: Configure the nsca client
+  template: src=send_nsca.j2 dest=/etc/send_nsca.cfg owner=root group=root mode=400
+  tags:
+    - nsca
+
+- apt: pkg={{ item }} state=installed
+  with_items:
+    - nsca-client
+  when: '(({{ is_not_ubuntu_less_than_precise }}) == True) or (({{ is_debian7 }}) == True)'
+  tags:
+    - nsca
+
+- apt: pkg={{ item }} state=installed
+  with_items:
+    - nsca
+  when: "(({{ is_not_debian_less_than_6 }}) == True) and (({{ is_ubuntu_less_than_precise }}) == True)"
+  tags:
+    - nsca

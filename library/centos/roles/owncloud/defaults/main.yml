@@ -1,0 +1,34 @@
+---
+#
+# We need "centos_install_release_scl: True" to rely on a good php version. Or the Remi repository (default)
+#
+# There's a bug when running through php-fpm and apache >= 2.4. See https://github.com/owncloud/core/issues/7719 for a workaournd
+centos_owncloud_from_epel_repo: False
+centos_owncloud_repo_filename: "ce:stable.repo"
+centos_owncloud_repo_url: "http://download.owncloud.org/download/repositories/stable/CentOS_7/{{ centos_owncloud_repo_filename }}"
+owncloud_pkg_state: latest
+
+owncloud_packages:
+  - owncloud-files
+  - libreoffice-headless
+  - libreoffice-writer
+  - php-gd
+  - php-pgsql
+  - php-magickwand
+  - php-xml
+  - php-mcrypt
+  - php-cli
+  - php-pecl-apcu
+  - php-pecl-memcached
+  - php-pecl-redis
+
+owncloud_selinux_settings:
+  - httpd_can_network_connect_db
+  - httpd_can_network_connect
+  - httpd_can_network_relay
+  - httpd_can_network_memcache
+  - httpd_execmem
+  - httpd_tmp_exec
+
+owncloud_use_redis: True
+owncloud_redis_port: 6379

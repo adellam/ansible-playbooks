@@ -1,0 +1,9 @@
+---
+- include: nagios.yml
+- include: dell-omsa.yml
+  when: dell_system is defined
+- include: postgresql-nagios.yml
+  when: nagios_postgresql_check is defined and nagios_postgresql_check
+#- include: nsca.yml
+- include: hardware-checks.yml
+  when: nagios_hw is defined and nagios_hw

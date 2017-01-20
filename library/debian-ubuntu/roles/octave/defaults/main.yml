@@ -1,0 +1,10 @@
+---
+octave_install: False
+octave_repo: 'ppa:octave/stable'
+octave_pkg_state: latest
+octave_pkgs:
+  - octave
+  
+octave_external_deps:
+  - epstool
+  - transfig

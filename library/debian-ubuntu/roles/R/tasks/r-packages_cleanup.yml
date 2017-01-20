@@ -1,0 +1,8 @@
+---
+- name: Install the script that cleans up the R deb and cran packages
+  copy: src=r_packages_cleanup.sh dest=/usr/local/bin/r_packages_cleanup owner=root group=root mode=0500
+  tags: [ 'r_software', 'r_pkgs', 'r_cleanup' ]
+
+- name: Remove all the old R deb and cran packages. Otherwise the upgrade will fail miserably
+  shell: /usr/local/bin/r_packages_cleanup
+  tags: [ 'r_software', 'r_pkgs', 'r_cleanup' ]

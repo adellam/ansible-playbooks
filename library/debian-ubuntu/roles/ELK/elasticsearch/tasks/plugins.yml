@@ -1,0 +1,9 @@
+---
+- block:
+    - name: Manage a list of elasticsearch plugins
+      elasticsearch_plugin: name="{{ item.name }}" state={{ item.state }} url={{ item.url|default(omit) }} version={{ item.version|default(omit) }}
+      with_items: '{{ elasticsearch_plugins | default ([]) }}'
+
+  when: elasticsearch_plugins is defined
+  tags: [ 'elasticsearch', 'es_plugins' ]
+    

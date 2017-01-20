@@ -1,0 +1,79 @@
+---
+- name: Create the revive_adserver installation directories
+  file: dest={{ item }} state=directory owner=root group=root mode=0755
+  with_items:
+    - '{{ revive_ad_install_dir }}'
+    - '{{ revive_ad_dest_dir }}'
+  tags:
+    - revive
+    - revive_adserver
+
+- name: Get the revive_adserver distribution file
+  get_url: url={{ revive_ad_download_url }} dest={{ revive_ad_install_dir }}/ mode=0400
+  register: ad_download
+  tags:
+    - revive
+    - revive_adserver
+
+- name: Unpack the revive adserver distribution file
+  unarchive: src={{ revive_ad_install_dir }}/revive-adserver-{{ revive_ad_version }}.tar.gz dest={{ revive_ad_dest_dir }} copy=no
+  when: ( ad_download | changed )
+  tags:
+    - revive
+    - revive_adserver
+
+- name: Fix the global permissions on the revive adserver directory
+  command: chown -R root:root {{ revive_ad_dest_dir }}/revive-adserver-{{ revive_ad_version }}
+  when: ( ad_download | changed )
+  tags:
+    - revive
+    - revive_adserver
+
+- name: Move the adserver files to the right place
+  shell: mv {{ revive_ad_dest_dir }}/revive-adserver-{{ revive_ad_version }}/* {{ revive_ad_dest_dir }} ; rmdir {{ revive_ad_dest_dir }}/revive-adserver-{{ revive_ad_version }}
+  args:
+    creates: '{{ revive_ad_dest_dir }}/index.php'
+  tags:
+    - revive
+    - revive_adserver
+
+- name: Remove the unneeded files
+  file: dest={{ revive_ad_dest_dir }}/{{ item }} state=absent
+  with_items:
+    - RELEASE_NOTES.txt
+  tags:
+    - revive
+    - revive_adserver
+
+- name: Give the revive user the permission to write inside a list of directories
+  command: chown -R {{ revive_ad_user }} {{ revive_ad_dest_dir }}/{{ item }}
+  with_items: revive_writable_dirs
+  #when: ( ad_download | changed )
+  tags:
+    - revive
+    - revive_adserver
+
+- name: Give the revive user the permission to write inside the images directories
+  command: chown -R {{ revive_ad_user }} {{ revive_ad_images_dest_dir }}
+  #when: ( ad_download | changed )
+  tags:
+    - revive
+    - revive_adserver
+
+- name: Install the php required modules
+  yum: name={{ item }} state={{ revive_pkg_state }}
+  with_items: revive_ad_php_modules
+  notify: Reload php-fpm
+  tags:
+    - php
+    - revive
+    - revive_adserver
+
+- name: Install the php modules to access the db servers
+  yum: name={{ item }} state={{ revive_pkg_state }}
+  with_items: revive_ad_php_db_server_modules
+  notify: Reload php-fpm
+  tags:
+    - php
+    - revive
+    - revive_adserver

@@ -1,0 +1,12 @@
+---
+- name: various pub ssh keys for users and apps
+  authorized_key: user=root key="{{ item }}" state=present
+  with_items: '{{ root_ssh_keys | default([]) }}'
+  when: manage_root_ssh_keys
+  tags: root_pubkeys
+
+- name: Remove obsolete keys from the authorized ones
+  authorized_key: user=root key="{{ item }}" state=absent
+  with_items: '{{ obsolete_root_ssh_keys | default([]) }}'
+  when: obsolete_root_ssh_keys is defined
+  tags: root_pubkeys

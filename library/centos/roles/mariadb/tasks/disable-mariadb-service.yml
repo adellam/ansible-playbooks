@@ -1,0 +1,8 @@
+---
+- name: Stop and disable the mariadb server if we do not want it running
+  service: name=mariadb state=stopped enabled=no
+  when: not mysql_enabled
+  tags:
+    - mysql
+    - mariadb
+

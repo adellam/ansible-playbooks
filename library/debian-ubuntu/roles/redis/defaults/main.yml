@@ -1,0 +1,16 @@
+---
+redis_install: False
+redis_enabled: True
+# https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server
+redis_ppa_repo: ppa:chris-lea/redis-server
+redis_pkg_state: present
+
+redis_server_pkg:
+  - redis-server
+
+redis_conf_files:
+  - redis.conf
+
+redis_tcp_port: 6379
+redis_bind_localhost: True
+redis_append_only_mode: 'no'

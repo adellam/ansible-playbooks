@@ -1,0 +1,54 @@
+---
+- name: Get the haproxy repo key
+  apt_key: url={{ haproxy_repo_key }} state=present
+  when: haproxy_latest_release
+  tags: haproxy
+
+- name: Define the haproxy repository
+  apt_repository: repo='{{ haproxy_ubuntu_latest_repo }}' state=present update_cache=yes
+  when:
+    - haproxy_latest_release
+    - is_ubuntu
+  tags: haproxy
+
+- name: Define the haproxy repository
+  apt_repository: repo='{{ haproxy_debian_latest_repo }}' state=present update_cache=yes
+  when:
+    - haproxy_latest_release
+    - is_debian
+  tags: haproxy
+
+- name: Install the haproxy package
+  apt: name=haproxy state=present default_release={{ ansible_lsb.codename }}-backports
+  when: not haproxy_latest_release
+  register: install_haproxy
+  tags: haproxy
+
+- name: Install the haproxy package
+  apt: name=haproxy state=latest default_release={{ ansible_lsb.codename }}-backports-{{ haproxy_version }}
+  when:
+    - haproxy_latest_release
+    - is_debian
+  register: install_haproxy
+  tags: haproxy
+
+- name: Install the haproxy package
+  apt: name=haproxy state=latest
+  when:
+    - haproxy_latest_release
+    - is_ubuntu
+  register: install_haproxy
+  tags: haproxy
+
+- name: Enable kernel binding non local IP addresses
+  sysctl: name={{ item }} value=1 reload=yes state=present
+  with_items:
+    - net.ipv4.ip_nonlocal_bind
+  when: haproxy_k_bind_non_local_ip
+
+- name: Disable kernel binding non local IP addresses
+  sysctl: name={{ item }} value=0 reload=yes state=present
+  with_items:
+    - net.ipv4.ip_nonlocal_bind
+  when: not haproxy_k_bind_non_local_ip
+

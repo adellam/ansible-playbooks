@@ -1,0 +1,12 @@
+---
+- name: Enable and start fail2ban
+  service: name=fail2ban state=started enabled=yes
+
+- name: Reload fail2ban
+  service: name=fail2ban state=reloaded
+
+- name: Restart fail2ban
+  service: name=fail2ban state=restarted
+
+- name: Enable and start firewalld
+  service: name=firewalld state=started enabled=yes

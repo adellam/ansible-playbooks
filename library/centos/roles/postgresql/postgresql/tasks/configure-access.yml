@@ -1,0 +1,65 @@
+---
+- name: Give the correct permissions to the postgresql files
+  file: dest={{ psql_conf_dir }}/{{ item }} owner=root group=postgres mode=0640
+  with_items:
+    - pg_hba.conf
+    - postgresql.conf
+  tags:
+    - postgresql
+    - pg_hba
+
+- name: Give access to the postgresql clients
+  lineinfile: name={{ psql_conf_dir }}/pg_hba.conf regexp="^host {{ item.0.name }} {{ item.0.user }} {{ item.1 }}.*$" line="host {{ item.0.name }} {{ item.0.user }} {{ item.1 }} md5"
+  with_subelements: 
+    - '{{ psql_db_data }}'
+    - allowed_hosts
+  notify: Reload postgresql
+  tags:
+    - postgresql
+    - pg_hba
+
+- name: Remove the possibility to access the databases via ident
+  lineinfile: name={{ psql_conf_dir }}/pg_hba.conf regexp="^host.*all.*all.*{{ item[0] }}*{{ item[1] }}*$" state=absent
+  with_items:
+    - [ '127.0.0.1/32', '::1/128' ]
+    - [ 'trust', 'ident' ]
+  notify: Reload postgresql
+  tags:
+    - postgresql
+    - pg_hba
+
+- name: We want postgres listen on the public IP
+  lineinfile: name={{ psql_conf_dir }}/postgresql.conf regexp="^listen_addresses.*$" line="listen_addresses = '*'"
+  when: psql_listen_on_ext_int
+  notify: Restart postgresql
+  tags:
+    - postgresql
+
+- name: If postgresql is only accessed from localhost make it listen only on the localhost interface
+  lineinfile: name={{ psql_conf_dir }}/postgresql.conf regexp="^listen_addresses.*$" line="listen_addresses = 'localhost'"
+  when: not psql_listen_on_ext_int
+  notify: Restart postgresql
+  tags:
+    - postgresql
+
+- name: Log the connections
+  lineinfile: name={{ psql_conf_dir }}/postgresql.conf regexp="^log_connections.*$" line="log_connections = on"
+  when: psql_listen_on_ext_int
+  notify: Restart postgresql
+  tags:
+    - postgresql
+
+- name: Log the disconnections
+  lineinfile: name={{ psql_conf_dir }}/postgresql.conf regexp="^log_disconnections.*$" line="log_disconnections = on"
+  when: psql_listen_on_ext_int
+  notify: Restart postgresql
+  tags:
+    - postgresql
+
+- name: Log the hostnames
+  lineinfile: name={{ psql_conf_dir }}/postgresql.conf regexp="^log_hostname.*$" line="log_hostname = on"
+  when: psql_listen_on_ext_int
+  notify: Restart postgresql
+  tags:
+    - postgresql
+

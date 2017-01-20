@@ -1,0 +1,13 @@
+---
+- name: Install the main configuration files.
+  template: src={{ item }}.cnf.j2 dest=/etc/my.cnf.d/{{ item }}.cnf owner=root group=root mode=0644
+  with_items:
+    - client
+    - server
+    - mysql-clients
+  when: mysql_enabled
+  notify: Restart mariadb
+  tags:
+    - mysql
+    - mariadb
+    - mysql-conf

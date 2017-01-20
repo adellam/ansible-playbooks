@@ -1,0 +1,5 @@
+---
+- name: Restart ganglia monitor
+  service: name=ganglia-monitor state=restarted sleep=20
+  when: ganglia_enabled
+

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+LOG_FILE=/var/log/mysql-backup.log
+if [ -x /etc/cron.daily/duplicity_backup ] ; then
+    echo "duplicity backups active. Exiting" > $LOG_FILE
+    exit 0
+fi
+
+# Remote backup performed by BackupPC. If it is active, do not run via cron
+if [ -f /var/log/backuppc.log ] ; then
+    TMSTMP=$( date +%s )
+    . /var/log/backuppc.log
+    LAST_BACKUP_TIME=$( expr $TMSTMP - $BACKUP_TIMESTAMP )
+    if [ $LAST_BACKUP_TIME -gt 86400 -a $BACKUP_RESULT == 'OK' ] ; then
+        echo "BackupPC is active, doing nothing" > $LOG_FILE
+        exit 0
+    fi
+fi
+
+/usr/local/sbin/mysql-backup > $LOG_FILE 2>&1
+
+exit 0

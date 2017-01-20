@@ -1,0 +1,11 @@
+{
+  "enabled": {{ orientdb_automatic_backup | ternary('true','false') }},
+  "mode": "{{ orientdb_automatic_backup_mode }}",
+  "exportOptions": "{{ orientdb_automatic_backup_export_options }}",
+  "delay": "{{ orientdb_automatic_backup_delay }}",
+  "firstTime": "{{ orientdb_automatic_backup_first_time }}",
+  "targetDirectory": "{{ orientdb_automatic_backup_directory }}",
+  "targetFileName": "{{ orientdb_automatic_backup_target_file_name }}",
+  "compressionLevel": {{orientdb_automatic_backup_compression_level }},
+  "bufferSize": {{ orientdb_automatic_backup_buffer_size }}
+}

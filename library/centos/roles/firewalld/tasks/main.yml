@@ -1,0 +1,7 @@
+---
+- include: firewalld_rules.yml
+  when: firewalld_enabled
+
+- include: disable_firewalld.yml
+  when: not firewalld_enabled
+  

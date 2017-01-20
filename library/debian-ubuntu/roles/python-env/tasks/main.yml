@@ -1,0 +1,20 @@
+---
+- block:
+    
+    - name: Install python pip
+      apt: name={{ item }} state={{ py_env_pkgs_state }} update_cache=yes cache_valid_time=600
+      with_items: '{{ py_env_basic_pkgs | default([]) }}'
+
+    - name: Install python deb packages
+      apt: name={{ item }} state={{ py_env_pkgs_state }} update_cache=yes cache_valid_time=600
+      with_items: '{{ py_env_dpkg | default([]) }}'
+
+    - name: Install deb packages needed to compile the pip modules
+      apt: name={{ item }} state={{ py_env_pkgs_state }}  update_cache=yes cache_valid_time=600
+      with_items: '{{ py_pip_deps | default([]) }}'
+
+    - name: Install a list of pip packages
+      pip: name={{ item }}
+      with_items: '{{ py_env_pip_pkgs | default ([]) }}'
+
+  tags: [ "python", "py_env" ]

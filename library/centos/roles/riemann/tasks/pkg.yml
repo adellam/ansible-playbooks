@@ -1,0 +1,39 @@
+---
+- name: Install the riemann rpm
+  yum: name={{ riemann_rpm_url }} state=installed
+  when: riemann_use_rpm
+  tags:
+    - riemann
+    - monitoring
+
+- name: Download the riemann tar file
+  get_url: url={{ riemann_tar_url }} dest=/opt
+  when: not riemann_use_rpm
+  register: riemann_tarfile
+  tags:
+    - riemann
+    - monitoring
+
+- name: Unpack the riemann tar file
+  unarchive: src=/opt/{{ riemann_tar_file }} dest=/opt copy=no owner=root group=root
+  when:
+    - not riemann_use_rpm
+    - (riemann_tarfile|changed)
+  tags:
+    - riemann
+    - monitoring
+
+- name: Link to the latest version
+  file: src=/opt/riemann-{{ riemann_version }} dest=/opt/riemann state=link
+  tags:
+    - riemann
+    - monitoring
+    
+- name: Install the riemann dependencies
+  yum: pkg={{ item }} state={{ pkg_state }}
+  with_items: riemann_deps
+  when: not riemann_use_rpm
+  tags:
+    - riemann
+    - monitoring
+

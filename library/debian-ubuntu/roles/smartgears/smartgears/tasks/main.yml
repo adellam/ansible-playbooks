@@ -1,0 +1,4 @@
+---
+- include: smartgears-app.yml
+- include: install-gcube-keys.yml
+

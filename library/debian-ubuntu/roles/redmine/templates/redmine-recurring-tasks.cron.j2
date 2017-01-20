@@ -1,0 +1,2 @@
+*/30 * * * *	{{ redmine_user }}	rake -f {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/Rakefile --silent RAILS_ENV=production redmine:recur_tasks >{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/log/redmine-recurring-tasks.log 2>&1
+#*/30 * * * *	{{ redmine_user }}	rake -f {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/Rakefile --silent RAILS_ENV=production redmine:check_periodictasks >{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/log/redmine-periodic-tasks.log 2>&1

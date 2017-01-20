@@ -1,0 +1,25 @@
+---
+#
+# This playbook depends on the php-fpm, mysql role and nginx or apache2
+#
+mw_install_from_package: False
+mw_version: 1.25
+mw_minor_minor: 1
+mw_download_url: http://releases.wikimedia.org/mediawiki/{{ mw_version }}/mediawiki-{{ mw_version }}.{{ mw_minor_minor }}.tar.gz
+mw_download_dir: /srv/mediawiki
+mw_install_dir: /var/www
+mw_conf_dir: /etc/mediawiki
+
+mw_php_prereq:
+  - php5-intl
+  - php5-cli
+  - php5-mysqlnd
+  - php-apc
+  - php-pear
+  - php5-ldap
+  - imagemagick
+
+# This choice is not recommended. The package has a poor list of dependencies. We do not want to deal with those
+mw_package:
+  - mediawiki
+

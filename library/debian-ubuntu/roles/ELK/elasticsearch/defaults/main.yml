@@ -1,0 +1,25 @@
+---
+elasticsearch_repo_key: https://packages.elastic.co/GPG-KEY-elasticsearch
+elasticsearch_repo: 'deb http://packages.elastic.co/elasticsearch/2.x/debian stable main'
+elasticsearch_packages:
+  - elasticsearch
+
+elasticsearch_cluster_name: 'Elasticsearch Cluster'
+elasticsearch_enabled: True
+elasticsearch_http_port: 9200
+elasticsearch_data_dir: /var/lib/elasticsearch
+elasticsearch_log_dir: /var/log/elasticsearch
+elasticsearch_bind_ip: 127.0.0.1
+elasticsearch_discovery_host_list: '["127.0.0.1", "[::1]"]'
+elasticsearch_define_majority_of_nodes: False
+elasticsearch_majority_of_nodes: 3
+elasticsearch_recover_after_nodes: 3
+elasticsearch_max_local_storage_nodes: 1
+elasticsearch_destructive_requires_name: True
+elasticsearch_define_heap_size: False
+elasticsearch_heap_size: 2g
+elasticsearch_additional_java_opts: ''
+elasticsearch_max_open_files: 65535
+
+#elasticsearch_plugins:
+#  - { name: 'royrusso/elasticsearch-HQ', state: 'present' }

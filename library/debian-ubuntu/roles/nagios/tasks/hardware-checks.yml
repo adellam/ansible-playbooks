@@ -1,0 +1,45 @@
+---
+# We do not use the check_linux_raid plugin anymore. Now the check_raid one is much better.
+- name: Install some plugins that check hardware parts
+  copy: src={{ item }} dest={{ nagios_isti_plugdir }}/{{ item }} owner=root group=nagios mode=0750
+  with_items:
+    - check_smart
+  tags:
+    - nagios-hw
+    - nagios
+
+- name: Install some packages needed by the hardware checks
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - smartmontools
+  tags:
+    - nagios-hw
+    - nagios
+
+- name: Configure the smart server to run
+  lineinfile: name=/etc/default/smartmontools regexp="^start_smartd=" line="start_smartd=yes"
+  tags:
+    - nagios-hw
+    - nagios
+
+- name: Ensure that the smart server is enabled and running
+  service: name=smartmontools state=started enabled=yes
+  when: not is_debian8
+  tags:
+    - nagios-hw
+    - nagios
+
+- name: Configure NRPE to allow arguments. Needed by the check_smart plugin
+  lineinfile: name=/etc/nagios/nrpe.cfg regexp="^dont_blame_nrpe=" line="dont_blame_nrpe=0"
+  notify: Restart NRPE server
+  tags:
+    - nagios-hw
+    - nagios
+    - nrpe
+
+- name: nagios needs root to execute some hardware checks. We do it via sudo
+  template: src=nagios-hw.sudoers.j2 dest=/etc/sudoers.d/nagios-hw owner=root group=root mode=0440
+  tags:
+    - nagios-hw
+    - nagios    
+    - nrpe

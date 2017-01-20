@@ -1,0 +1,78 @@
+---
+centos_pkg_state: latest
+
+timezone: "Europe/Rome"
+#hostname: '{{ ansible_fqdn }}'
+hostname: '{{ inventory_hostname }}'
+centos_set_dns_servers: False
+dns1: 208.67.220.220
+dns2: 208.67.222.222
+configure_domain_name_in_interface: False
+
+centos_packages_to_install:
+  - dstat
+  - lsof
+  - strace
+  - traceroute
+  - bind-utils
+  - yum-cron
+  - yum-plugin-fastestmirror
+  - whois
+  - iotop
+  - policycoreutils-python
+  - firewalld
+  - ipset
+  - ntp
+  - psmisc
+  - tcpdump
+  - net-tools
+  - tuned
+  - bash-completion
+  - rsync
+  - bzip2
+  - wget
+  - curl
+  - unzip
+
+centos_packages_from_epel:
+  - htop
+  - lbzip2
+
+centos_ntpd_enabled: True
+
+centos_packages_cleanup: True
+centos_remove_avahi: True
+centos_remove_networkmanager: False
+centos_disable_avahi: True
+centos_disable_networkmanager: False
+
+centos_packages_to_remove:
+  - ppp
+  - wpa_supplicant
+
+centos_nm_packages:
+  - NetworkManager-tui
+  - ModemManager-glib
+  - NetworkManager-glib
+  - NetworkManager
+
+centos_avahi_packages:
+  - avahi
+  - avahi-libs
+  - avahi-autoipd
+
+centos_services_to_be_disabled:
+  - acpid
+
+centos_enable_locate: False
+centos_locate_package:
+  - mlocate
+
+centos_is_vm: True
+centos_hw_packages:
+  - smartmontools
+  - hddtemp
+  - system-storage-manager
+
+centos_selinux_daemons_dump_core: False
+

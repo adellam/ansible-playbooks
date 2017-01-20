@@ -1,0 +1,167 @@
+---
+#
+# Use the apt proxy
+#
+use_apt_proxy: False
+
+pkg_state: installed
+common_packages:
+  - acl
+  - zile
+  - dstat
+  - iotop
+  - curl
+  - wget
+  - vim-tiny
+  - psmisc
+  - tcpdump
+  - lsof
+  - strace
+  - rsync
+  - multitail
+  - unzip
+  - htop
+  - tree
+  - bind9-host
+  - bash-completion
+  - sudo
+  - apt-transport-https
+  - nano
+  - xmlstarlet
+  - bsdutils
+
+# Set this variable in your playbook
+# additional_packages:
+#   - pkg1
+#   - pkg2
+
+# Unattended upgrades
+unatt_allowed_origins:
+  - '${distro_id}:${distro_codename}-security'
+#unatt_blacklisted:
+#  - libc6
+unatt_autofix: "true"
+# When true, the procedure is really slow
+unatt_minimalsteps: "false"
+unatt_install_on_shutdown: "false"
+#unatt_email: sysadmin@isti.cnr.it
+unatt_email_on_error: "false"
+unatt_autoremove: "true"
+unatt_autoreboot: "false"
+unatt_autoreboot_time: "now"
+
+#
+# Defaults
+#
+cleanup_base_packages: True
+base_packages_to_remove:
+  - ppp
+  - at
+
+cleanup_x_base_packages: False
+x_base_packages_to_remove:
+  - firefox-locale-en
+  - x11-common
+
+cleanup_nfs_packages: False
+nfs_packages:
+  - nfs-common
+  - portmap
+
+cleanup_rpcbind_packages: False
+rpcbind_packages:
+  - rpcbind
+
+cleanup_exim_email_server: True
+exim_email_server_pkgs:
+  - exim4
+  - exim4-base
+  - exim4-config
+  - exim4-daemon-light
+
+disable_some_not_needed_services: False
+services_to_be_disabled:
+  - rpcbind
+  - atd
+  - acpid
+
+# A generic PKI directory where the local certificates will be stored
+pki_dir: /etc/pki
+pki_subdirs:
+  - certs
+  - keys
+  
+# Install our /etc/resolv.conf
+install_resolvconf: True
+
+# Install and configure munin
+configure_munin: False
+
+# Manage the root ssh keys
+manage_root_ssh_keys: False
+
+install_additional_ca_certs: False
+additional_ca_dest_dir: /usr/local/share/ca-certificates
+# IMPORTANT: the destination file extension must be .crt
+#x509_additional_ca_certs:
+#  - { url: "https://security.fi.infn.it/CA/mgt/INFNCA.pem", dest_file: '{{ additional_ca_dest_dir }}/infn-ca.crt' }
+
+#
+default_security_limits:
+  - { domain: 'root', l_item: 'nofile', type: 'soft', value: '8192' }
+  - { domain: 'root', l_item: 'nofile', type: 'hard', value: '8192' }
+
+# default_rsyslog_custom_rules:
+#   - ':msg, contains, "icmp6_send: no reply to icmp error" ~'
+#   - ':msg, contains, "[PYTHON] Can\'t call the metric handler function for" ~'
+
+#
+# debian/ubuntu distributions controllers
+#
+has_default_grub: "'{{ ansible_distribution }}' == 'Debian' and '{{ ansible_distribution_version }}' != 'lenny/sid' and {{ ansible_distribution_major_version }} >= 6"
+
+has_htop: "'{{ ansible_distribution }}' == 'Ubuntu' and ({{ ansible_distribution_version }} == 10.10 or {{ ansible_distribution_version }} == 11.04 or {{ ansible_distribution_version }} == 12.04)"
+
+has_apt: "('{{ ansible_distribution }}' == 'Debian' or '{{ ansible_distribution }}' == 'Ubuntu') and '{{ ansible_distribution_version }}' != 'lenny/sid' and '{{ ansible_distribution_major_version }}' >= 5"
+
+has_fail2ban: "(('{{ ansible_distribution }}' == 'Ubuntu') and ({{ ansible_distribution_major_version }} >= 14)) or (('{{ ansible_distribution }}' == 'Debian') and ({{ ansible_distribution_major_version }} >= 8))"
+
+is_debian: "'{{ ansible_distribution }}' == 'Debian'"
+is_debian8: "'{{ ansible_distribution_release }}' == 'jessie'"
+is_debian7: "'{{ ansible_distribution_release }}' == 'wheezy'"
+is_debian6: "('{{ ansible_distribution }}' == 'Debian' and {{ ansible_distribution_major_version }} == 6)"
+is_debian5: "'{{ ansible_distribution }}' == 'Debian' and '{{ ansible_distribution_version }}' != 'lenny/sid' and {{ ansible_distribution_major_version }} == 5"
+is_debian4: "'{{ ansible_distribution }}' == 'Debian' and '{{ ansible_distribution_version }}' != 'lenny/sid' and {{ ansible_distribution_major_version }} == 4"
+is_not_debian6: "'{{ ansible_distribution }}' == 'Debian' and '{{ ansible_distribution_version }}' != 'lenny/sid' and {{ ansible_distribution_major_version }} != 6"
+is_debian_7_or_older: "'{{ ansible_distribution }}' == 'Debian' and {{ ansible_distribution_major_version }} <= 7"
+is_debian_less_than6: "'{{ ansible_distribution }}' == 'Debian' and '{{ ansible_distribution_version }}' != 'lenny/sid' and {{ ansible_distribution_major_version }} < 6"
+is_not_debian_less_than_6: "('{{ ansible_distribution }}' != 'Debian') or (('{{ ansible_distribution }}' == 'Debian' or '{{ ansible_distribution }}' == 'Ubuntu') and '{{ ansible_distribution_version }}' != 'lenny/sid' and {{ ansible_distribution_major_version }} >= 6)"
+is_not_debian_less_than_7: "('{{ ansible_distribution }}' != 'Debian') or (('{{ ansible_distribution }}' == 'Debian' or '{{ ansible_distribution }}' == 'Ubuntu') and '{{ ansible_distribution_version }}' != 'lenny/sid' and {{ ansible_distribution_major_version }} >= 7)"
+
+is_hardy: "'{{ ansible_distribution_release }}' == 'hardy'"
+is_broken_hardy_lts: "'{{ ansible_distribution }}'== 'Debian' and '{{ ansible_distribution_release }}' == 'NA'"
+is_jaunty: "'{{ ansible_distribution_release }}' == 'jaunty'"
+is_quantal: "'{{ ansible_distribution_release }}' == 'quantal'"
+is_natty: "'{{ ansible_distribution_release }}' == 'natty'"
+is_precise: "'{{ ansible_distribution_release }}' == 'precise'"
+is_trusty: "'{{ ansible_distribution_release }}' == 'trusty'"
+is_ubuntu: "'{{ ansible_distribution }}' == 'Ubuntu'"
+is_not_precise: "('{{ ansible_distribution }}' == 'Ubuntu' and {{ ansible_distribution_version }} != 12.04) or '{{ ansible_distribution }}' == 'Debian'"
+is_not_trusty: "('{{ ansible_distribution }}' == 'Ubuntu' and {{ ansible_distribution_version }} != 14.04) or '{{ ansible_distribution }}' == 'Debian'"
+is_not_ubuntu_less_than_precise: "('{{ ansible_distribution }}' == 'Ubuntu') and ({{ ansible_distribution_major_version }} >= 12)"
+is_not_ubuntu_less_than_trusty: "('{{ ansible_distribution }}' == 'Ubuntu') and ({{ ansible_distribution_major_version }} >= 14)"
+is_ubuntu_less_than_precise: "('{{ ansible_distribution }}' == 'Ubuntu') and ({{ ansible_distribution_major_version }} < 12)"
+is_ubuntu_less_than_trusty: "('{{ ansible_distribution }}' == 'Ubuntu') and ({{ ansible_distribution_major_version }} < 14)"
+# Ubuntu < 10.04 or Debian 4
+is_ubuntu_between_8_and_9_and_is_debian_4: "('{{ ansible_distribution }}' == 'Ubuntu' and ({{ ansible_distribution_version }} == 8.04 or {{ ansible_distribution_version }} == 8.10 or {{ ansible_distribution_version }} == 9.04)) or ({{ is_debian4 }})"
+#is_ubuntu_between_8_and_9_or_is_debian_4: "('{{ ansible_distribution }}' == 'Ubuntu') and ({{ ansible_distribution_major_version }} < 12) or ({{ is_debian4 }})"
+is_ubuntu_between_8_and_9_or_is_debian_4: "'{{ is_ubuntu_between_8_and_9_and_is_debian_4 }}'"
+# Ubuntu between 10.04 and 11.04
+is_ubuntu_between_10_04_and_11_04: "'{{ ansible_distribution }}' == 'Ubuntu' and ({{ ansible_distribution_version }} == 10.04 or {{ ansible_distribution_version }} == 10.10 or {{ ansible_distribution_version }} == 11.04)"
+# Ubuntu between 10.04 and 11.04, or Debian 6
+is_ubuntu_between_10_04_and_11_04_and_is_debian_6: "({{ is_ubuntu_between_10_04_and_11_04 }} or {{ is_debian6 }})"
+# Debian >=6
+is_debian_greater_than_5: "'{{ ansible_distribution }}' == 'Debian' and '{{ ansible_distribution_version }}' != 'lenny/sid' and {{ ansible_distribution_major_version }} >= 6"
+
+is_trusty_or_debian7: "('{{ ansible_distribution_release }}' == 'trusty') or ('{{ ansible_distribution_release }}' == 'wheezy')"
+

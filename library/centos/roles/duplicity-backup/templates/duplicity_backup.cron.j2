@@ -1,0 +1,27 @@
+#!/bin/bash
+
+DATE=$( date )
+DUPLY=/usr/bin/duply
+D_PROFILE={{ duply_default_profile }}
+LOG_FILE={{ duplicity_cron_job_logfile }}
+LOCK_FILE={{ duplicity_temp_dir }}/.duply-backup.lock
+
+if [ ! -f $LOCK_FILE ] ; then
+    echo $$ > $LOCK_FILE
+    echo "----------------------" > $LOG_FILE
+    echo "$DATE: starting backup" >> $LOG_FILE
+    echo "----------------------" >> $LOG_FILE
+    $DUPLY $D_PROFILE backup >> $LOG_FILE 2>&1
+    echo "----------------------" >> $LOG_FILE
+    echo "Starting the purge old backups operation" >> $LOG_FILE
+    echo "----------------------" >> $LOG_FILE
+    $DUPLY $D_PROFILE purge --force >> $LOG_FILE 2>&1
+    echo "----------------------" >> $LOG_FILE
+    echo "Backup and purge operations finished" >> $LOG_FILE
+    echo "----------------------" >> $LOG_FILE
+    rm -f $LOCK_FILE
+else
+    echo "$DATE: another backup is running, exiting" > $LOG_FILE
+fi
+
+exit 0

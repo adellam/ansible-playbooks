@@ -1,0 +1,61 @@
+---
+# http://gitblit.com/
+#
+# There is a manager app that is a desktop java application. It is available here:
+# http://dl.bintray.com/gitblit/releases/manager-1.7.1.zip
+gitblit_enabled: True
+gitblit_version: 1.7.1
+gitblit_file: 'gitblit-{{ gitblit_version }}.tar.gz'
+gitblit_url: 'http://dl.bintray.com/gitblit/releases/{{ gitblit_file }}'
+gitblit_user: gitblit
+gitblit_home: '/srv/{{ gitblit_user }}'
+gitblit_data_dir: /srv/gitblit_data
+gitblit_java_heap: 2048M
+gitblit_jvm_opts: ""
+gitblit_http_port: 8080
+gitblit_https_port: 0
+gitblit_redirect_to_https: "false"
+gitblit_require_client_ssl_certs: "false"
+gitblit_http_interface: "127.0.0.1"
+gitblit_https_interface: "127.0.0.1"
+gitblit_shutdown_port: 9080
+# Really, change it. And beware that all the JDK keyrings need to share the same password
+gitblit_server_storepassword: changeit
+gitblit_git_daemon_port: 9418
+gitblit_daemon_interface: ""
+gitblit_ssh_port: 29418
+gitblit_ssh_interface: ""
+gitblit_git_accepted_push_transport: HTTP HTTPS SSH
+gitblit_default_auth_control: NAMED
+gitblit_creates_repo_shared: "true"
+gitblit_enable_git_servlet: "true"
+gitblit_tickets_service: ""
+gitblit_accept_new_tickets: "false"
+gitblit_allow_deleting_non_empty_repo: "false"
+gitblit_auth_ldap_enabled: True
+gitblit_auth_providers: ldap
+gitblit_web_sitename: ""
+gitblit_web_logo: "${baseFolder}/logo.png"
+gitblit_canonical_url: 'http://{{ ansible_fqdn }}'
+gitblit_windows_permitbuiltinadmin: 'false'
+gitblit_redmine_url: ''
+gitblit_ldap_server_url: 'ldap://localhost'
+gitblit_ldap_username: 'cn=Directory Manager'
+# Set the correct one in a vault encrypted file
+gitblit_ldap_password: 'password'
+gitblit_ldap_auth_bind_pattern: ''
+gitblit_ldap_maintainteams: 'false'
+gitblit_ldap_accountbase: 'OU=Users,OU=UserControl,OU=MyOrganization,DC=MyDomain'
+gitblit_ldap_accountpattern: '(&(objectClass=person)(sAMAccountName=${username}))'
+gitblit_ldap_groupbase: 'OU=Groups,OU=UserControl,OU=MyOrganization,DC=MyDomain'
+gitblit_ldap_groupmemberpattern: '(&(objectClass=group)(member=${dn}))'
+gitblit_ldap_groupemptymemberpattern: '(&(objectClass=group)(!(member=*)))'
+gitblit_ldap_git_admins: '@Git_Admins'
+gitblit_ldap_displayname: 'displayName'
+gitblit_ldap_email: 'mail'
+gitblit_ldap_uid: 'uid'
+gitblig_ldap_synchronize: 'false'
+gitblit_ldap_syncperiod: '5 MINUTES'
+gitblit_ldap_remove_deleted_users: 'false'
+gitblit_server_contextpath: '/git/'
+

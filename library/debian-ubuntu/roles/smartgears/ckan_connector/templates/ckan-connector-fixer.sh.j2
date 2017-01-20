@@ -1,0 +1,69 @@
+#!/bin/bash
+
+CK_WEB_DIR={{ smartgears_instance_path }}/webapps/ckan-connector/WEB-INF
+CK_WEB_XML=$CK_WEB_DIR/.web.xml.tpl
+CK_WEB_XML_TMP=$CK_WEB_DIR/.web.xml.tmp
+CK_WEB_XML_DEST=$CK_WEB_DIR/web.xml
+CK_DB_NAME={{ ckan_db_name }}
+CK_DB_USER={{ ckan_db_user }}
+CK_DB_HOST={{ psql_db_host }}
+CK_ADMIN={{ ckan_connector_user }}
+CK_ADMIN_PWD={{ ckan_connector_user_pwd }}
+CK_INI=/etc/ckan/default/production.ini
+API_KEY=
+CKAN_KEY=
+SQL_FILE=$( mktemp /tmp/XXXXXX.sql )
+
+{% raw %}
+
+# Set the CKAN python virtualenv
+. /usr/lib/ckan/default/bin/activate
+cd /usr/lib/ckan/default/src/ckan
+# Create the admin user
+paster sysadmin add $CK_ADMIN -c $CK_INI << EOF
+y
+$CK_ADMIN_PWD
+$CK_ADMIN_PWD
+
+EOF
+
+# Get the admin key
+echo "update \"user\" set state = 'active' where name = '${CK_ADMIN}';" > $SQL_FILE
+echo "select apikey from \"user\" where name = '${CK_ADMIN}' and state = 'active';" >> $SQL_FILE
+API_KEY=$( psql -t -n -q -h $CK_DB_HOST -U $CK_DB_USER -w $CK_DB_NAME -f $SQL_FILE )
+
+[ $? -ne 0 ] && exit 1
+
+CKAN_KEY=$( grep ^beaker\.session\.secret $CK_INI | awk '{ print $3 }' )
+
+[ $? -ne 0 ] && exit 1
+
+cp $CK_WEB_XML $CK_WEB_XML_TMP
+# Use the admin key on the connector web.xml
+if [ ! -z $API_KEY ] ; then
+    sed -i -e "s#@CKAN_API_KEY@#${API_KEY}#g" $CK_WEB_XML_TMP
+else
+    exit 1
+fi
+
+# Use the ckan key on the connector web.xml
+if [ ! -z $CKAN_KEY ] ; then
+    sed -i -e "s#@CKAN_SECRET@#${CKAN_KEY}#g" $CK_WEB_XML_TMP
+else
+    exit 1
+fi
+
+{% endraw %}
+
+mv $CK_WEB_XML_TMP $CK_WEB_XML_DEST
+chown {{ smartgears_user }}:{{ smartgears_user }} $CK_WEB_XML_DEST
+chmod 440 $CK_WEB_XML_DEST
+
+rm -f $SQL_FILE
+touch $CK_WEB_DIR/.web.xml.configured
+
+
+exit 0
+
+
+

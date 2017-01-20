@@ -1,0 +1,90 @@
+---
+# php as a standalone service
+- name: Install the Ubuntu PHP PPA
+  apt_repository: repo={{ php_ppa }} state=present update_cache=yes
+  when: php_from_ppa
+  tags: [ 'php', 'php_ppa' ]
+
+- name: Remove the Ubuntu PHP PPA
+  apt_repository: repo={{ php_ppa }} state=absent update_cache=yes
+  when: not php_from_ppa
+  tags: [ 'php', 'php_ppa' ]
+
+- name: Install the php-fpm package
+  apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=3600
+  with_items: '{{ php_fpm_packages }}'
+  tags: php
+
+- name: Set the timezone if we have one
+  ini_file: dest={{ phpfpm_base_dir }}/php.ini section=Date option=date.timezone value={{ timezone }} backup=yes
+  when: timezone is defined
+  notify: Reload php-fpm
+  tags: [ 'php', 'php_ini' ]
+
+- name: Modify the global php settings
+  ini_file: dest={{ phpfpm_base_dir }}/php.ini section={{ item.section | default('PHP') }} option={{ item.option }} value={{ item.value }} backup=yes state={{ item.state | default('present') }}
+  with_items: '{{ php_global_settings | default([]) }}'
+  notify: Reload php-fpm
+  tags: [ 'php', 'php_ini' ]
+
+- name: Modify the global php cli settings
+  ini_file: dest={{ phpfpm_cli_dir }}/php.ini section={{ item.section | default('PHP') }} option={{ item.option }} value={{ item.value }} backup=yes state={{ item.state | default('present') }}
+  with_items: '{{ php_global_settings | default([]) }}'
+  tags: [ 'php', 'php_ini' ]
+
+- name: Activate the memcache sessions support and redundancy if needed
+  action: configfile path={{ phpfpm_base_dir }}/conf.d/20-memcache.ini key={{ item.prop }} value='{{ item.value }}'
+  when: phpfpm_use_memcache_redundancy_sessions
+  with_items: '{{ memcache_session }}'
+  notify: Reload php-fpm
+  tags: [ 'php', 'php_ini' ]
+
+- name: remove php-fpm default pool
+  file: dest={{ phpfpm_base_dir }}/pool.d/www.conf state=absent
+  when: phpfpm_remove_default_pool
+  notify: Restart php-fpm
+  tags: php
+
+- name: Create the users under the php-fpm processes will run
+  user: name={{ item.user }} comment="{{ item.user }}" home=/dev/null createhome=no shell=/sbin/nologin
+  with_items: '{{ phpfpm_pools }}'
+  when: phpfpm_create_users
+  notify: Restart php-fpm
+  tags: [ 'php', 'fpm_pool' ]
+
+- name: Create the directories where to store the sessions files. One for each pool
+  file: dest={{ phpfpm_session_prefix }}/{{ item.pool_name }} owner={{ item.user }} group=root mode=0750 state=directory
+  with_items: '{{ phpfpm_pools }}' 
+  when: phpfpm_use_default_template
+  tags: [ 'php', 'fpm_pool' ]
+
+- name: Create the directories where to store the log files
+  file: dest={{ phpfpm_logdir }} owner=root group=root mode=0750 state=directory
+  tags: [ 'php', 'fpm_pool' ]
+
+- name: Install the php-fpm logrotate file
+  template: src=php-fpm.logrotate.j2 dest=/etc/logrotate.d/php-fpm owner=root group=root mode=0444
+  tags: [ 'php', 'fpm_conf' ]
+
+- name: Install the php-fpm main config file
+  template: src=php-fpm.conf.j2 dest={{ phpfpm_base_dir }}/php-fpm.conf owner=root group=root mode=0444
+  notify: Restart php-fpm
+  tags: [ 'php', 'fpm_conf', 'fpm_pool' ]
+
+- name: Install the php-fpm pools
+  template: src=php-fpm-pool.conf.j2 dest={{ phpfpm_base_dir }}/pool.d/{{ item.pool_name }}.conf owner=root group=root mode=0444
+  with_items: '{{ phpfpm_pools }}'
+  when: phpfpm_use_default_template
+  notify: Restart php-fpm
+  tags: [ 'php', 'fpm_conf', 'fpm_pool', 'fpm_pool_conf' ]
+
+- name: Ensure that the php-fpm service is started and enabled
+  service: name=php{{ php_version }}-fpm state=started enabled=yes
+  when: phpfpm_service_enabled
+  tags: php
+
+- name: Ensure that the php-fpm service is stopped and disabled
+  service: name=php{{ php_version }}-fpm state=stopped enabled=no
+  when: not phpfpm_service_enabled
+  tags: php
+

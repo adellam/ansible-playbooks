@@ -1,0 +1,6 @@
+#
+command[check_keepalived]={{ nagios_plugins_dir }}/check_keepalived_state
+
+# Restart keepalived (via handler)
+command[global_restart_keepalived]=/usr/bin/sudo /etc/init.d/keepalived restart
+

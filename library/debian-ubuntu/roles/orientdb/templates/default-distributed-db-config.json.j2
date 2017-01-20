@@ -1,0 +1,17 @@
+{
+  "autoDeploy": {{ orientdb_distributed_autodeploy }},
+  "readQuorum": {{ orientdb_distributed_readquorum }},
+  "writeQuorum": "{{ orientdb_distributed_writequorum }}",
+  "executionMode": "{{ orientdb_distributed_executionmode }}",
+  "readYourWrites": {{ orientdb_distributed_readyourwrites }},
+  "servers": {
+    "*": "master"
+  },
+  "clusters": {
+    "internal": {
+    },
+    "*": {
+      "servers": ["<NEW_NODE>"]
+    }
+  }
+}

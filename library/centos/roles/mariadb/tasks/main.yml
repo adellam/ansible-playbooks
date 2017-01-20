@@ -1,0 +1,13 @@
+---
+- include: packages.yml
+- include: mysql-conf.yml
+  when: mysql_enabled
+- include: disable-mariadb-service.yml
+  when: not mysql_enabled
+- include: configure_root_access.yml
+  when: mysql_enabled
+- include: manage_my_db.yml
+  when: mysql_enabled
+- include: mysql-backup.yml
+  when: mysql_enabled
+

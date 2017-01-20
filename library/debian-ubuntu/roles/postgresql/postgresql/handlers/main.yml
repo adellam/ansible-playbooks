@@ -1,0 +1,23 @@
+---
+- name: Restart postgresql
+  service: name=postgresql state=restarted
+  when: postgresql_enabled
+
+- name: Reload postgresql
+  service: name=postgresql state=reloaded
+  when: postgresql_enabled
+
+- name: Reload pgpool2
+  service: name=pgpool2 state=reloaded
+  when: pgpool_enabled
+  ignore_errors: True
+
+- name: Restart pgpool2
+  service: name=pgpool2 state=restarted
+  when: pgpool_enabled
+
+- name: Restart postgresql with pgpool config
+  service: name=postgresql state=restarted
+  when:
+    - postgresql_enabled
+    - psql_restart_after_wal_enabling

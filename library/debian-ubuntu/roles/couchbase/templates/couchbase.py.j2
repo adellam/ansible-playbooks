@@ -1,0 +1,54 @@
+import requests
+import random
+import json
+
+HOST = "{{ couchbase_default_host }}"
+PORT = "{{ couchbase_console_port }}"
+BCKT = "{{ item }}"
+USERNAME = "{{ couchbase_ganglia_url_username }}"
+PASSWORD = "{{ couchbase_ganglia_url_password }}"
+PREFIX = ""
+
+def get_descriptor(name):
+    d = {'name': name,
+        'call_back': temp_handler,
+        'time_max': 90,
+        'value_type': 'uint',
+        'units': 'number',
+        'slope': 'both',
+        'format': '%d',
+        'description': '%s metric' %name,
+        'groups': 'cb bucket %s' %BCKT}
+
+    return d
+
+def temp_handler(name):
+    global s
+    return int(s[name[len(PREFIX):]].pop())
+
+
+def metric_init(params):
+    global s
+    descriptors = []
+
+    url = 'http://%s:%s/pools/default/buckets/%s/stats/' %(HOST, PORT, BCKT)
+    r = requests.get(url, auth=(USERNAME, PASSWORD))
+    j = json.loads(r.content)
+    s = j['op']['samples']
+    for i in s:
+        name = PREFIX + str(i)
+        d = get_descriptor(name)
+        descriptors.append(d)
+    return descriptors
+
+
+def metric_cleanup():
+    '''Clean up the metric module.'''
+    pass
+
+
+if __name__ == '__main__':
+    dd = metric_init({})
+    for d in dd:
+        print (('%s = %s') % (d['name'], d['format'])) % (d['call_back'](d['name']))
+

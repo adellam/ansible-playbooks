@@ -1,0 +1,55 @@
+---
+- name: Install the nagios packages
+  apt: pkg={{ item }} state=installed update_cache=yes
+  with_items: '{{ nagios_plugins_base_pkgs }}'
+  tags: nagios
+
+- name: Additional nagios plugins when available
+  apt: pkg={{ item }} state=installed
+  with_items: '{{ nagios_plugins_contrib }}'
+  when: is_not_debian_less_than_6
+  tags: [ 'nagios', 'nagios_plug_contrib' ]
+
+- name: Additional nagios plugins when available
+  apt: pkg={{ item }} state=installed
+  with_items: '{{ nagios_plugins_contrib }}'
+  when: is_not_ubuntu_less_than_trusty
+  tags: [ 'nagios', 'nagios_plug_contrib' ]
+
+- name: Create the directory where our local plugins are installed
+  file: path={{ nagios_isti_plugdir }} state=directory
+  tags: nagios
+
+- name: Install the generic shell library used by some custom checks
+  template: src=check_library.sh.j2 dest={{ nagios_isti_plugdir }}/check_library.sh owner=root group=root mode=0644
+  tags: nagios
+
+- name: Install plugins that can be useful on all the installed servers
+  copy: src={{ item }} dest={{ nagios_isti_plugdir }}/{{ item }} owner=root group=nagios mode=0755
+  with_items:
+    - check_system_pp
+    - show_users
+    - check_netint.pl
+  tags: nagios
+
+- name: Install the global nrpe commands file
+  template: src=common-nrpe.cfg.j2 dest=/etc/nagios/nrpe.d/common.cfg owner=root group=root mode=444
+  notify: Reload NRPE server
+  tags: [ 'nagios', 'nrpe', 'nrpe_cfg' ]
+
+- name: set the NRPE ACL
+  action: |
+    lineinfile name=/etc/nagios/nrpe.cfg regexp="allowed_hosts=" line="allowed_hosts=127.0.0.1,{% for ip in nagios_monitoring_server_ip %}{{ ip }}{%if not loop.last %},{% endif %}{% endfor %}"
+  notify: Reload NRPE server
+  tags: [ 'nagios', 'nrpe', 'nrpe_cfg' ]
+
+- name: set the NRPE default timeout
+  lineinfile: name=/etc/nagios/nrpe.cfg regexp="command_timeout=" line="command_timeout={{ nrpe_command_timeout }}"
+  notify: Reload NRPE server
+  tags: [ 'nagios', 'nrpe', 'nrpe_cfg' ]
+
+- name: nagios needs root to execute some commands. We do it via sudo
+  template: src=nagios.sudoers.j2 dest=/etc/sudoers.d/nagios owner=root group=root mode=0440
+  tags: [ 'nagios', 'nrpe', 'sudo' ]
+
+

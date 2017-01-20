@@ -1,0 +1,17 @@
+---
+# https://www.opencpu.org/download.html
+# It installs a local apache instance
+opencpu_install: True
+opencpu_enabled: True
+opencpu_version: 1.5
+opencpu_repo: 'ppa:opencpu/opencpu-{{ opencpu_version }}'
+opencpu_pkg_state: latest
+opencpu_pkgs:
+  - opencpu
+
+opencpu_proxy_port: 8004
+opencpu_context: /ocpu
+
+opencpu_options:
+  - { name: 'timelimit.get', value: '900' }
+  - { name: 'timelimit.post', value: '900' }

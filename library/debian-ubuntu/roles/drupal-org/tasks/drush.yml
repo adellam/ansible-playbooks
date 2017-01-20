@@ -1,0 +1,19 @@
+---
+- block:
+    - name: Install a script that downloads and configure a global drush executable
+      template: src=drush-global-setup.sh.j2 dest=/usr/local/bin/drush-global-setup owner=root group=root mode=0700
+      tags: ['drupal', 'drush', 'global_drush' ]
+
+    - name: Setup a global drush executable
+      command: /usr/local/bin/drush-global-setup
+      args:
+        creates: /usr/local/bin/drush
+      tags: ['drupal', 'drush', 'global_drush' ]
+
+    - name: Install drush locally as part of drupal
+      become: True
+      become_user: '{{ item.user }}'
+      composer: command=require arguments=drush/drush:{{ drupal_drush_version }} prefer_dist=yes working_dir={{ item.doc_root }}
+      with_items: '{{ phpfpm_pools }}'
+
+  tags: ['drupal', 'drush' ]

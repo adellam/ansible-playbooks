@@ -1,0 +1,40 @@
+---
+# 'localhost' needs to be the last item for idempotency, the mysql_user docs
+- name: Secure the mysql root user
+  mysql_user: name=root host={{ item }} password={{ mysql_root_password }}
+  when: mysql_root_password is defined
+  with_items:
+    - '{{ ansible_hostname }}'
+    - 127.0.0.1
+    - ::1
+    - localhost
+  ignore_errors: True
+  tags: mysql
+
+- name: Secure the mysql root user
+  mysql_user: name=root host={{ item }} password=""
+  when: mysql_root_password is not defined
+  with_items:
+    - '{{ ansible_hostname }}'
+    - 127.0.0.1
+    - ::1
+    - localhost
+  ignore_errors: True
+  tags: mysql
+
+- name: Install the .my.cnf file with root password credentials
+  template: src=dot_my.cnf.j2 dest=/root/.my.cnf owner=root group=root mode=0400
+  when: mysql_root_password is defined
+  tags: mysql
+
+- name: delete anonymous MySQL server user for the server hostname
+  mysql_user: user="" host="{{ ansible_hostname }}" state="absent"
+  tags: mysql
+
+- name: delete anonymous MySQL server user for localhost
+  mysql_user: user="" state="absent"
+  tags: mysql
+
+- name: remove the MySQL test database
+  mysql_db: db=test state=absent
+  tags: mysql

@@ -1,0 +1,52 @@
+---
+- name: Download the CKAN distribution
+  get_url: url='{{ ckan_package_url }}' dest=/srv/{{ ckan_deb_file }}
+  tags: ckan
+
+- name: Install the CKAN deb package
+  apt: deb=/srv/{{ ckan_deb_file }}
+  register: ckan_install
+  tags: ckan
+
+- name: Configure the CKAN production configuration file but the plugins list
+  ini_file: dest={{ ckan_config_file }} section={{ item.section }} option={{ item.option }} value={{ item.value }} state={{ item.state }} backup=yes
+  with_items: '{{ ckan_production_ini_opts }}'
+  notify: Restart CKAN
+  tags: [ 'ckan', 'ckan_ini' ]
+
+- name: Install the apache.wsgi
+  template: src=apache.wsgi.j2 dest={{ ckan_confdir }}/apache.wsgi
+  notify: Restart CKAN
+  tags: [ 'ckan', 'apache' ]
+
+- name: Create the base directory for the CKAN file storage
+  file: dest={{ ckan_file_storage_dir }} state=directory owner={{ apache_user }} group={{ ckan_shell_user }} mode=2770
+  tags: ckan
+
+- name: Fix the CKAN harvesting storage permissions
+  file: dest={{ ckan_file_harvesting_dir }} state=directory owner={{ apache_user }} group={{ ckan_shell_user }} mode=2770 recurse=yes
+  tags: ckan
+
+- name: authorization file for the psql command, if the database is on a remote server
+  template: src=pgpass.j2 dest={{ pg_backup_pass_file }} owner=root mode=0600
+  when: "'{{ psql_db_host }}' != 'localhost'"
+  tags: [ 'pg_backup', 'postgresql', 'postgres' ]
+
+- name: Initialize the CKAN databases
+  shell: ckan db init ; ckan datastore set-permissions | psql --set ON_ERROR_STOP=1 -h {{ psql_db_host }} -U {{ ckan_db_user }} -w {{ ckan_datastore_db_name }} 
+  when: ( ckan_install | changed )
+  ignore_errors: True
+  tags: ckan
+
+- name: Create the pip cache directory with the right permissions
+  file: dest={{ ckan_libdir }}/.cache owner={{ ckan_shell_user }} group={{ ckan_shell_user }} state=directory
+  tags: [ 'ckan', 'ckan_user' ]
+
+- name: Assign the CKAN virtenv dir to the ckan user
+  file: dest={{ ckan_virtenv }} recurse=yes owner={{ ckan_shell_user }} group={{ ckan_shell_user }}
+  tags: [ 'ckan', 'ckan_user' ]
+
+- name: Create a log directory for the jobs run by the ckan user
+  file: dest={{ ckan_logdir }} state=directory owner={{ ckan_shell_user }} group={{ ckan_shell_user }}
+  tags: [ 'ckan', 'ckan_user' ]
+  

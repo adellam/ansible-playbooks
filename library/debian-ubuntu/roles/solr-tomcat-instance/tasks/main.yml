@@ -1,0 +1,95 @@
+---
+- name: Ensure that the solr data directory exists
+  file: path={{ solr_data_dir }}/{{ item }} state=directory mode=0775 owner={{ solr_user }} group={{ solr_user }}
+  with_items:
+    - data/solr
+    - webapps
+    - zoo_data
+    - collection_data
+  tags: solr
+
+- name: Create the link from the tomcat instance for solr to the solr data directory
+  file: src={{ solr_data_dir }}/data/solr dest={{ solr_tomcat_instance_dir }}/solr state=link
+  when: solr_outside_tomcat_dir
+  tags: solr
+
+- name: Solr needs some additional packages
+  apt: pkg={{ item }} state={{ pkg_state }}
+  with_items:
+    - libslf4j-java
+    - libcommons-logging-java
+  tags: [ solr, tomcat ]
+
+- name: Let the additional packages jar files visible to tomcat
+  file: src=/usr/share/java/{{ item }} dest={{ tomcat_catalina_home_dir }}/lib/{{ item }} state=link
+  with_items:
+    - slf4j-api.jar
+    - slf4j-log4j12.jar
+    - jul-to-slf4j.jar
+    - jcl-over-slf4j.jar
+    - commons-logging.jar
+  notify: tomcat solr restart
+  tags: [ solr, tomcat ]
+
+- name: Install the solr webapp under <solr_data_mountpoint>/webapps
+  copy: src=solr-{{ solr_version }}.war dest={{ solr_data_dir }}/webapps/solr-{{ solr_version }}.war owner={{ solr_user }} group={{ solr_user }} mode=0644
+  register: solr_war_installed
+  notify: tomcat solr restart
+  tags: [ solr, tomcat ]
+
+- name: Install the solr catalina definition
+  template: src=catalina-{{ item }}.j2 dest={{ solr_tomcat_instance_dir }}/conf/Catalina/localhost/{{ item }} owner=root group=root mode=0444
+  with_items:
+    - solr.xml
+  notify: tomcat solr restart
+  tags: [ solr, tomcat ]
+
+- name: Copy the solr collection1 and solr_core_base archives on the target machine
+  copy: src={{ item }} dest={{ solr_data_dir }}/collection_data owner={{ solr_user }} group={{ solr_user }}
+  with_items:
+    - collection1.tar.gz
+    - solr_core_base.tar.gz
+  tags: [ solr, tomcat, solr_core ]
+
+- name: Install the solr collection1 example
+  unarchive: src={{ solr_data_dir }}/collection_data/collection1.tar.gz dest={{ solr_collections_base_dir }} copy=no
+  args:
+    creates: '{{ solr_data_dir }}/data/solr/collection1/conf/solrconfig.xml'
+  when: solr_install_collection1
+  notify: tomcat solr restart
+  tags: [ solr, tomcat, solr_core ]
+
+- name: Create the solr cores data directories
+  file: dest={{ solr_collections_base_dir }}/{{ item }} state=directory owner={{ solr_user }} group={{ solr_user }}
+  with_items: '{{ solr_cores }}'
+  when: solr_multicore is defined and solr_multicore
+  tags: [ solr, tomcat, solr_core ]
+  
+- name: Install the solr cores data on a multicore system
+  unarchive: src={{ solr_data_dir }}/collection_data/solr_core_base.tar.gz dest={{ solr_data_dir }}/data/solr/{{ item }} copy=no
+  args:
+    creates: '{{ solr_data_dir }}/data/solr/{{ item }}/conf/solrconfig.xml'
+  with_items: '{{ solr_cores }}'
+  when: solr_multicore is defined and solr_multicore
+  notify: tomcat solr restart
+  tags: [ solr, tomcat, solr_core ]
+
+- name: Fix the cores permissions
+  file: path={{ solr_collections_base_dir }} owner={{ solr_user }} group={{ solr_user }} recurse=yes
+  tags: [ solr, tomcat, solr_core ]
+
+- name: Install the tomcat.local default file
+  template: src={{ item }}.j2 dest=/etc/default/tomcat-instance-{{ solr_http_port }}.local owner=root group={{ solr_user }} mode=0440
+  with_items:
+    - tomcat.local
+  notify: tomcat solr restart
+  tags: [ solr, tomcat ]
+
+- name: Install the solr.xml and zookeeper conf files
+  template: src={{ item }}.j2 dest={{ solr_data_dir }}/data/solr/{{ item }} owner=root group={{ solr_user }} mode=0440
+  with_items:
+    - solr.xml
+    - zoo.cfg
+  notify: tomcat solr restart
+  tags: [ solr, tomcat, solr_core ]
+

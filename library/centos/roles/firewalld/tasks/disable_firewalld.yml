@@ -1,0 +1,9 @@
+---
+- name: Ensure that the firewalld service is stopped and disabled if we do not want it
+  service: name=firewalld state=stopped enabled=no
+  when: not firewalld_enabled
+  tags:
+    - iptables
+    - firewall
+    - firewalld
+

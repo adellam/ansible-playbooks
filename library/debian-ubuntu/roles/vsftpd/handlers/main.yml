@@ -1,0 +1,9 @@
+---
+- name: Stop the vsftpd server
+  service: name=vsftpd state=stopped
+
+- name: Restart the vsftpd server
+  service: name=vsftpd state=restarted
+
+- name: Reload the vsftpd server
+  service: name=vsftpd state=reloaded

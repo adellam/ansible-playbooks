@@ -1,0 +1,29 @@
+---
+bind_install: True
+bind_enabled: True
+bind_pkg_state: latest
+bind_pkg_n: bind9
+bind_pkg_list:
+  - '{{ bind_pkg_n }}'
+  - '{{ bind_pkg_n }}-host'
+  - '{{ bind_pkg_n }}utils'
+
+bind_allowed_query_acl:
+  - '{{ ansible_default_ipv4.address }}'
+
+bind_use_forwarders: False
+bind_forwarder_only: False
+bind_forwarders_list:
+  - '{{ ansible_default_ipv4.address }}'
+
+bind_listen_on_ipv4: True  
+bind_listen_on_ipv6:
+  - any
+bind_cache_dir: /var/cache/bind
+bind_dnssec_enabled: False
+bind_dnssec_validation: auto
+# Default: 1 week
+bind_max_cache_ttl: 604800
+# 10 minutes
+bind_max_negative_cache_ttl: 600
+

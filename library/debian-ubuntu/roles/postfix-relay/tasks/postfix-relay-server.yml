@@ -1,0 +1,41 @@
+---
+- name: Write the network hash file
+  template: src=network_table.j2 dest=/etc/postfix/network_table owner=root group=root mode=0444
+  notify: Update the network hash table
+  tags:
+    - postfix-relay
+
+- name: Install the sasl2 authentication infrastructure
+  apt: pkg={{ item }} state=installed
+  with_items: '{{ postfix_sasl_packages }}'
+  tags:
+    - postfix-relay
+
+- name: Create the sasl directory inside /etc/postfix
+  file: dest=/etc/postfix/sasl state=directory owner=root group=root mode=0555
+  tags:
+    - postfix-relay
+
+- name: Install the smtpd.conf file inside inside /etc/postfix/sasl
+  copy: src=sasl_smtpd.conf dest=/etc/postfix/sasl/smtpd.conf owner=root group=root mode=0444
+  tags:
+    - postfix-relay
+
+- name: Enable the saslauth daemon
+  action: configfile path=/etc/default/saslauthd key=START value='yes' syntax=shell
+  notify: start saslauth daemon
+  tags:
+    - postfix-relay
+
+- name: Change the socket path because postfix on debian runs inside a chroot jail
+  action: configfile path=/etc/default/saslauthd key=OPTIONS value='"-c -m /var/spool/postfix/var/run/saslauthd"' syntax=shell
+  notify: restart saslauth daemon
+  tags:
+    - postfix-relay
+
+- name: Assign the sasl group to the postfix user so that postfix can use the saslauthd socket
+  user: name=postfix groups='sasl'
+  notify: Restart postfix
+  tags:
+    - postfix-relay
+  

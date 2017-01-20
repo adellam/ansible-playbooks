@@ -1,0 +1,62 @@
+---
+psql_major: 9
+psql_minor: 4
+psql_version: '{{ psql_major }}.{{ psql_minor }}'
+psql_shortver: '{{ psql_major }}{{ psql_minor }}'
+psql_enabled: True
+psql_install_scl_version: False
+psql_install_from_pgdg_repo: False
+centos_pgdg_repo_url: "http://yum.postgresql.org/{{ psql_version }}/redhat/rhel-7-x86_64/pgdg-centos{{ psql_shortver }}-{{ psql_version }}-3.noarch.rpm"
+psql_pkg_state: present
+
+psql_pgdg_packages:
+  - 'postgresql{{ psql_shortver }}-server'
+  - 'postgresql{{ psql_shortver }}-contrib'
+  - 'pg_top{{ psql_shortver }}'
+
+psql_scl_packages:
+  - rh-postgresql'{{ psql_shortver }}'-runtime
+  - rh-postgresql'{{ psql_shortver }}'-postgresql
+  - rh-postgresql'{{ psql_shortver }}'-postgresql-server  
+  - rh-postgresql'{{ psql_shortver }}'-postgresql-contrib
+  - python-psycopg2
+
+psql_common_packages:
+  - pgcluu
+  - python-psycopg2
+
+psql_db_name: db_name
+psql_db_user: db_user
+#psql_db_pwd: "We cannot save the password into the repository. Use another variable and change pgpass.j2 accordingly. Encrypt the file that contains the variable with ansible-vault"
+
+
+psql_db_host: localhost
+psql_db_port: 5432
+psql_db_size_w: 150000000
+psql_db_size_c: 170000000
+psql_pgdg_base_dir: '/var/lib/pgsql/{{ psql_version }}'
+psql_base_dir: '{{ psql_pgdg_base_dir }}'
+psql_scl_base_dir: '/var/opt/rh/rh-postgresql{{ psql_shortver }}/lib/pgsql'
+#psql_base_dir: '{{ psql_scl_base_dir }}'
+psql_data_dir: '{{ psql_base_dir }}/data'
+psql_conf_dir: '{{ psql_data_dir }}'
+psql_listen_on_ext_int: False
+#psql_db_data:
+#  - { name: '{{ psql_db_name }}', encoding: 'UTF8', user: '{{ psql_db_user }}', pwd: '{{ psql_db_pwd }}', roles: 'NOCREATEDB,NOSUPERUSER', allowed_hosts: [ 'xxx.xxx.xxx.xxx/32', 'yyy.yyy.yyy.yyy/32' ] }
+
+pg_backup_enabled: True
+pg_backup_logdir: /var/log/postgresql
+pg_backup_conf_dir: /etc/sysconfig
+pg_backup_bin: /usr/local/sbin/postgresql-backup
+pg_backup_pgdump_bin: /usr/bin/pg_dump
+pg_backup_retain_copies: 2
+pg_backup_build_db_list: "no"
+# Dynamically created from psql_db_data if pg_backup_db_list is not set
+#pg_backup_db_list: '{{ psql_db_name}}'
+pg_backup_destdir: '{{ psql_base_dir }}/backups'
+#pg_backup_logdir: '/var/log/postgresql-{{ psql_version }}'
+pg_backup_logfile: '{{ pg_backup_logdir }}/postgresql-backup.log'
+pg_backup_use_auth: "yes"
+pg_backup_pass_file: /root/.pgpass
+pg_backup_use_nagios: "yes"
+

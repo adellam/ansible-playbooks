@@ -1,0 +1,10 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+  serial: "30%"
+  max_fail_percentage: 20
+  tasks:
+    - name: Run dist-upgrade after updating the apt cache
+      apt: upgrade=dist update_cache=yes
+

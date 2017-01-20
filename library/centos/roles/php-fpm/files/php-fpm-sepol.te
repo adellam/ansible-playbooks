@@ -1,0 +1,19 @@
+
+module new-php-fpm-sepol 1.0;
+
+require {
+        type unlabeled_t;
+        type httpd_t;
+        class capability sys_ptrace;
+        class process ptrace;
+        class capability2 block_suspend;
+        class file getattr;
+}
+
+#============= httpd_t ==============
+allow httpd_t self:capability sys_ptrace;
+allow httpd_t self:process ptrace;
+allow httpd_t self:capability2 block_suspend;
+allow httpd_t unlabeled_t:file getattr;
+
+

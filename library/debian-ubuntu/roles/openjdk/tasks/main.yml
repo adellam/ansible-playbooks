@@ -1,0 +1,21 @@
+---
+- block:
+    - name: Add the openjdk ppa. To have openjdk 8/9 on precise and trusty
+      apt_repository: repo='{{ openjdk_ppa }}' update_cache=yes
+      
+    - name: Update the apt cache, if needed
+      apt: update_cache=yes cache_valid_time=1800
+      when: openjdk_pkg_state == 'latest'
+
+    - name: install OpenJDK JRE
+      apt: pkg=openjdk-{{ item.0 }}-{{ item[1] }} state={{ openjdk_pkg_state }}
+      with_nested:
+        - '{{ openjdk_version }}'
+        - '{{ openjdk_pkgs }}'
+        #    - [ 'jre', 'jre-headless', 'jdk' ]
+      notify: Set the default OpenJDK
+
+    - name: Set fact jdk_installed
+      set_fact: jdk_installed=true
+
+  tags: [ 'jdk', 'openjdk' ]

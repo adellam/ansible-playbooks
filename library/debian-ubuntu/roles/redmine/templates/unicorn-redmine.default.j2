@@ -1,0 +1,8 @@
+APP={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}
+USER={{ redmine_user }}
+DAEMON=unicorn
+DAEMON_OPTS="-c $APP/config/unicorn.conf.rb -E production -D -l {{ unicorn_listen_address }}:3999"
+NAME=unicorn
+DESC="Unicorn app for $USER"
+PID_DIR={{ unicorn_pid_dir }}
+PID={{ unicorn_pid_file }}

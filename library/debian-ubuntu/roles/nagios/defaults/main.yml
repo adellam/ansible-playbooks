@@ -1,0 +1,71 @@
+---
+monitoring_group_name: 'change_this_on_your_playbook'
+#nagios_server_local_plugdir: 'change_this_on_your_playbook'
+
+nagios_plugdir: /usr/lib/nagios/plugins
+nagios_plugins_dir: '{{ nagios_plugdir }}'
+nagios_centos_plugins_dir: /usr/lib64/nagios/plugins
+nagios_common_lib: check_library.sh
+# Needed inside nrpe.cfg
+# It is already defined in isti-global.yml
+#nagios_monitoring_server_ip:
+nagios_hw: False
+nagios_check_disk_w: 10
+nagios_check_disk_c: 5
+# If true, reads the users list from the variable 'users_system_users'
+# See library/roles/users
+nagios_multiple_allowed_users: False
+nagios_multiple_users_allow_root: True
+nagios_allowed_users: root
+
+nagios_monitoring_obj_dir: /etc/nagios3/objects
+nagios_monitoring_dir: '{{ nagios_monitoring_obj_dir }}/{{ monitoring_group_name }}'
+
+nagios_server_files:
+  - contacts.cfg
+  - contactgroups.cfg
+  - generic-service.cfg
+  - generic-host.cfg
+  - hostgroups.cfg
+  - hosts.cfg
+  - services.cfg
+  - commands.cfg
+
+nagios_plugins_base_pkgs:
+  - nagios-plugins
+  - nagios-plugins-basic
+  - nagios-plugins-standard
+  - nagios-nrpe-server
+  - sudo
+
+nagios_plugins_contrib:
+  - nagios-plugins-contrib
+
+nagios_psql_query_time_w: 40
+nagios_psql_query_time_c: 60
+nagios_psql_db_size_w: 150000000
+nagios_psql_db_size_c: 170000000
+
+nrpe_command_timeout: 420
+nrpe_include_dir: /etc/nagios/nrpe.d/
+
+nagios_dell_omsa_deps:
+  - libnet-snmp-perl
+  - libconfig-tiny-perl
+  - ipmitool
+  - check-openmanage
+
+nagios_dell_omsa_pkg_state: present
+nagios_dell_omsa_pkgs:
+  - srvadmin-base
+  - srvadmin-idrac
+  - srvadmin-storageservices
+  - srvadmin-omcommon
+
+# We need a more recent version of the check_openmanage executable
+nagios_dell_standalone_checks:
+#  - check_dell_warranty.py
+  - dell_warranty_lifetime.sh
+  - check_openmanage
+
+nagios_openmanage_additional_opts: ''

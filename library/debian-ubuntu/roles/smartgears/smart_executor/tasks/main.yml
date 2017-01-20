@@ -1,0 +1,25 @@
+---
+- block:
+    - name: Remove the old smart executor files if an upgrade is planned
+      file: path={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} state=absent
+      when: smartgears_upgrade
+  
+    - name: Remove the smart executor files if we want to remove it
+      file: path={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} state=absent
+      when: remove_smart_executor_install
+  
+    # NOTE: Install as the smartgears user so we do not mess with the permissions
+    - name: Get the smart executor plugin
+      get_url: url={{ smart_executor_url }} dest={{ smartgears_user_home }}/{{ smart_executor_file }}
+  
+    - name: Create the smart executor working directory
+      file: path={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
+  
+    - name: Unarchive the smartexecutor distribution
+      unarchive: copy=no src={{ smartgears_user_home }}/{{ smart_executor_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} creates={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: smart_executor_install 
+  tags: [ 'smartgears', 'smart_executor', 'tomcat' ]

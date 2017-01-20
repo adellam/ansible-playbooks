@@ -1,0 +1,5 @@
+{% if ( is_debian8 ) or ( is_debian7 ) %}
+deb http://linux.dell.com/repo/community/ubuntu wheezy openmanage
+{% else %}
+deb http://linux.dell.com/repo/community/ubuntu {{ ansible_distribution_release }} openmanage
+{% endif %}

@@ -1,0 +1,41 @@
+---
+# Manage tomcat internal logs with log4j
+- name: Install log4j
+  apt: pkg=liblog4j1.2-java state={{ tomcat_pkg_state }}
+  notify: tomcat restart
+  tags: [ 'tomcat', 'tomcat_log4j' ]
+
+- name: Install tomcat-juli-adapters
+  copy: src=tomcat{{ tomcat_version }}-juli-adapters.jar dest=/usr/share/java/tomcat-juli-adapters.jar
+  tags: [ 'tomcat', 'tomcat_log4j' ]
+
+- name: Install tomcat-juli
+  copy: src=tomcat{{ tomcat_version }}-juli-log4j.jar dest=/usr/share/java/tomcat-juli-log4j.jar
+  tags: [ 'tomcat', 'tomcat_log4j' ]
+
+- name: Configure tomcat to use the log4j system library
+  file: src=/usr/share/java/{{ item }} dest={{ tomcat_catalina_home_dir }}/lib/{{ item }} state=link
+  with_items:
+    - log4j-1.2.jar
+    - tomcat-juli-adapters.jar
+  notify: tomcat restart
+  tags: [ 'tomcat', 'tomcat_log4j' ]
+
+- name: Configure tomcat to use the log4j version of the juli library
+  file: src=/usr/share/java/{{ item }} dest={{ tomcat_catalina_home_dir }}/bin/tomcat-juli.jar state=link
+  with_items:
+    - tomcat-juli-log4j.jar
+  notify: tomcat restart
+  tags: [ 'tomcat', 'tomcat_log4j' ]
+
+- name: Install log4j.properties
+  template: src=log4j.properties.j2 dest={{ tomcat_catalina_home_dir }}/lib/log4j.properties mode=0644 owner=root group=root
+  when: tomcat_install_the_log4j_properties
+  notify: tomcat restart
+  tags: [ 'tomcat', 'tomcat_log4j' ]
+
+- name: Remove logging.properties
+  file: dest=/etc/tomcat{{ tomcat_version }}/logging.properties state=absent
+  notify: tomcat restart
+  tags: [ 'tomcat', 'tomcat_log4j' ]
+

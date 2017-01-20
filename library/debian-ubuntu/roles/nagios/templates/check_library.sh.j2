@@ -1,0 +1,10 @@
+
+ISTI_PLUGDIR={{ nagios_isti_plugdir }}
+COMMON_LIB={{ nagios_common_lib }}
+
+if [ -d {{ nagios_plugins_dir }} ] ; then
+    PLUGIN_DIR={{ nagios_plugins_dir }}
+elif [ -d {{ nagios_centos_plugins_dir }} ] ; then
+    PLUGIN_DIR={{ nagios_centos_plugins_dir }}
+fi
+

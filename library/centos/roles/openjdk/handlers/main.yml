@@ -1,0 +1,6 @@
+---
+- name: Set the default OpenJDK
+  alternatives: name={{ item }} path={{ jdk_java_home }}/bin/{{ item }}
+  with_items: '{{ openjdk_commands }}'
+  when: openjdk_install
+

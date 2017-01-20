@@ -1,0 +1,8 @@
+---
+- name: Install fail2ban on ubuntu >= 14.04 and debian >= 8
+  apt: pkg={{ item }} state=installed
+  with_items: '{{ f2b_packages }}'
+  tags: fail2ban
+
+- name: Ensure that fail2ban is enabled and running
+  service: name=fail2ban state=started enabled=yes

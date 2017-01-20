@@ -1,0 +1,10 @@
+---
+geoserver_spatial_install: False
+geoserver_spatial_url: 'http://ares.boundlessgeo.com/geoserver/{{ geoserver_major_version }}.x/community-latest/geoserver-{{ geoserver_major_version }}-SNAPSHOT-spatialite-plugin.zip'
+
+geoserver_spatial_dpkg_requirements:
+  - libgeos-c1
+  - libproj0
+  - proj-bin
+
+geoserver_spatial_db_dir: /srv/geoserver_spatialite/data

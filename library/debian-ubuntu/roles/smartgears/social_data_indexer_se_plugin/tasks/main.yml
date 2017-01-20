@@ -1,0 +1,15 @@
+---
+- name: Remove the old social indexer plugin 
+  shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/social-data-indexer-se-plugin-*-jar-with-dependencies.jar
+  when:  social_data_indexer_se_plugin_upgrade
+  tags: [ 'smartgears', 'social_data_indexer_se', 'tomcat' ]
+
+
+- name: Get the social indexer plugin and install it inside the smart executor
+  become: True
+  become_user: '{{ smartgears_user }}'
+  get_url: url={{ social_data_indexer_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
+  when: social_data_indexer_se_plugin_install
+  notify: Restart smartgears
+  tags: [ 'smartgears', 'social_data_indexer_se', 'tomcat' ]
+

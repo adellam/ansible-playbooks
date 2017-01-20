@@ -1,0 +1,26 @@
+---
+- block:
+
+    - name: Remove the old resource-registry files
+      file: path={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }} state=absent
+      when: resource_registry_upgrade
+
+    # # NOTE: Install as the smartgears user so we do not mess with the permissions
+    # - name: Get the resource-registry-service 
+    #   get_url: url={{ resource_registry_url }} dest={{ smartgears_user_home }}/{{ resource_registry_file }}
+  
+    - name: Create the resource-registry working directory
+      file: path={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
+  
+    - name: Unarchive the resource_registry war
+#      unarchive: copy=no src={{ smartgears_user_home }}/{{ resource_registry_file }} dest={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }} creates={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }}/WEB-INF/lib
+      unarchive: copy=no src={{ resource_registry_url }} dest={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }} creates={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }}/WEB-INF/lib
+      notify: Restart smartgears
+
+    - name: Install the resource registry configuration
+      template: src=config.properties.j2 dest={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }}/WEB-INF/classes/config.properties mode=0440
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  tags: [ 'smartgears', 'resource_registry', 'tomcat' ]
+  when: resource_registry_install 

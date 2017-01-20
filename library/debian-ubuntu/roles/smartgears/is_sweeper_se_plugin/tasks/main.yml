@@ -1,0 +1,15 @@
+---
+- name: Remove the old is-sweeper plugin
+  shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/is-sweeper-se-plugin-*-jar-with-dependencies.jar
+  when: is_sweeper_se_plugin_upgrade
+  tags: [ 'smartgears', 'is_sweeper_se', 'tomcat' ]
+
+
+- name: Get the is-sweeper se plugin and install it inside the smart executor
+  become: True
+  become_user: '{{ smartgears_user }}'
+  get_url: url={{ is_sweeper_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
+  when: is_sweeper_se_plugin_install
+  notify: Restart smartgears
+  tags: [ 'smartgears', 'is_sweeper_se', 'tomcat' ]
+

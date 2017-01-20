@@ -1,0 +1,15 @@
+---
+- name: Install the epel repository
+  yum: name={{ centos_epel_repo_url }} state={{ centos_pkg_state }}
+  when: centos_install_epel
+  tags: [ 'centos', 'repo' ]
+
+- name: Install the SCL release to access the latest versions of some software
+  yum: name=centos-release-scl state=present
+  when: centos_install_release_scl
+  tags: [ 'centos', 'scl', 'repo' ]
+
+- name: Install the elrepo repository
+  yum: name={{ rh_elrepo_repo_url }} state=present
+  when: rh_install_elrepo
+  tags: [ 'centos', 'rhel', 'repo' ]

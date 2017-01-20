@@ -1,0 +1,11 @@
+---
+- name: Ensure that the mysql server is enabled and running
+  service: name=mysql state=started enabled=yes
+  when: mysql_enabled
+  tags: [ 'mysql', 'mariadb' ]
+
+- name: Stop and disable the mysql server if we do not want it running
+  service: name=mysql state=stopped enabled=no
+  when: not mysql_enabled
+  tags: [ 'mysql', 'mariadb' ]
+

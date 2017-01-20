@@ -1,0 +1,8 @@
+---
+- name: Reload php-fpm
+  service: name=php{{ php_version }}-fpm state=reloaded
+  when: phpfpm_service_enabled
+
+- name: Restart php-fpm
+  service: name=php{{ php_version }}-fpm state=restarted
+  when: phpfpm_service_enabled

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#
+WPS_CONFIG_FILE='{{ smartgears_instance_path }}/webapps/{{ dataminer_52north_webapp_name }}/config/wps_config.xml'
+
+# Fix the hostname
+sed -Ei 's/hostname=\".*\"\ hostport/hostname="{{ ansible_fqdn }}" hostport/' $WPS_CONFIG_FILE
+
+# Fix the port
+{%if setup_nginx %}
+{% if https_port is defined %}
+{% if http_redirect_to_https is defined and http_redirect_to_https %}
+sed -Ei 's/hostport=\".*\"\ includeDataInputsInResponse/hostport="{{ https_port }}" includeDataInputsInResponse/' $WPS_CONFIG_FILE
+{% else %}
+sed -Ei 's/hostport=\".*\"\ includeDataInputsInResponse/hostport="{{ http_port }}" includeDataInputsInResponse/' $WPS_CONFIG_FILE
+{% endif %}
+{% else %}
+{%if http_port is defined %}
+sed -Ei 's/hostport=\".*\"\ includeDataInputsInResponse/hostport="{{ http_port }}" includeDataInputsInResponse/' $WPS_CONFIG_FILE
+{% endif %}
+{% endif %}
+{% else %}
+sed -Ei 's/hostport=\".*\"\ includeDataInputsInResponse/hostport="{{ item.http_port }}" includeDataInputsInResponse/' $WPS_CONFIG_FILE
+{% endif %}
+
+exit 0

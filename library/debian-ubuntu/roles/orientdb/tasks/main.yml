@@ -1,0 +1,82 @@
+---
+- block:
+    - name: Create the orientdb user
+      user: name={{ orientdb_user }} home={{ orientdb_base_dir }} createhome=yes shell=/bin/bash
+      
+    - name: Unpack the orientdb distribution
+      unarchive: src={{ orientdb_binary_distribution_url }} dest={{ orientdb_base_dir }} copy=no
+      args:
+        creates: '{{ orientdb_home_prefix }}/{{ orientdb_user }}/{{ orientdb_dir }}-{{ orientdb_version }}'
+
+    - name: Link to the latest version
+      become: True
+      become_user: '{{ orientdb_user }}'
+      file: src={{ orientdb_dir }}-{{ orientdb_version }} dest={{ orientdb_install_dir }} state=link
+
+    - name: Install the orientdb startup script
+      template: src=orientdb.init.j2 dest=/etc/init.d/orientdb owner=root group=root mode=0755
+
+    - name: Create a orientdb log directory out of the distribution directory
+      file: dest={{ orientdb_log_dir }} state=directory owner={{ orientdb_user }} group={{ orientdb_user }} mode=0755
+
+    - name: Link the log directory inside the orientdb user home
+      become: True
+      become_user: '{{ orientdb_user }}'
+      file: dest={{ orientdb_home_prefix }}/{{ orientdb_user }}/logs src={{ orientdb_log_dir }} state=link
+
+    - name: Create the needed directory inside the orientdb user home
+      become: True
+      become_user: '{{ orientdb_user }}'
+      file: dest={{ item }} state=directory mode=0750
+      with_items:
+        - '{{ orientdb_data_dir }}'
+        - '{{ orientdb_pid_dir }}'
+        - '{{ orientdb_automatic_backup_directory }}'
+
+    - name: Remove the old hook jars
+      shell: rm -f {{ orientdb_install_dir }}/lib/{{ item }}
+      with_items: '{{ orientdb_hooks_to_be_removed | default([]) }}'
+      tags: [ 'orientdb', 'orientdb_hooks' ]
+
+    - name: Fetch and install the hook jars
+      get_url: url='{{ item }}' dest={{ orientdb_install_dir }}/lib
+      with_items: '{{ orientdb_hooks_jars | default([]) }}'
+      notify: Restart orientdb
+      tags: [ 'orientdb', 'orientdb_hooks' ]
+
+    - name: Install the orientdb default settings
+      template: src=orientdb.default.j2 dest=/etc/default/orientdb owner=root group=root mode=0444
+      notify: Restart orientdb
+
+    - name: Fix the pid file path inside the start/stop scripts
+      lineinfile: dest={{ orientdb_install_dir }}/bin/{{ item }} regexp="^ORIENTDB_PID=.*$" line="ORIENTDB_PID={{ orientdb_pid_dir }}/orientdb.pid"
+      with_items:
+        - server.sh
+        - shutdown.sh
+
+    - name: Install the orientdb configuration files
+      template: src={{ item }}.j2 dest={{ orientdb_install_dir }}/config/{{ item }} owner={{ orientdb_user }} group={{ orientdb_user }} mode=0640
+      with_items: '{{ orientdb_configuration_files }}'
+      notify: Restart orientdb
+
+    - name: Ensure that the service is enabled and running
+      service: name=orientdb state=started enabled=yes
+      when: orientdb_enabled
+
+  tags: orientdb
+  when: orientdb_install
+
+
+- block:
+    - name: Ensure that the service is disabled and stopped
+      service: name=orientdb state=stopped enabled=no
+
+    - name: Remove the link to the orientdb distribution
+      file: dest={{ orientdb_home_prefix }}/{{ orientdb_user }}/{{ orientdb_dir }} state=absent
+
+    - name: Remove the default options file
+      file: dest=/etc/default/orientdb state=absent
+
+  tags: orientdb
+  when: not orientdb_install
+

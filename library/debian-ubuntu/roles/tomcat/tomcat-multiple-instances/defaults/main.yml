@@ -1,0 +1,60 @@
+---
+#tomcat_version: 7
+#tomcat_catalina_home_dir: '/usr/share/tomcat{{ tomcat_version }}'
+# Disable the main tomcat instance
+tomcat_service_enabled: False
+
+tomcat_m_instances_install: True
+
+tomcat_m_instances_base_path: '/var/lib/tomcat_instances'
+tomcat_m_instances_logdir_base: '/var/log/tomcat_instances'
+tomcat_m_cache_base: '/var/cache/tomcat-instances'
+tomcat_m_default_user: tomcat7
+tomcat_m_use_default_user: True
+tomcat_m_user_home: False
+tomcat_m_default_user_shell: /bin/false
+# Workaround for the '50 days shutdown' bug, until a fixed package will be available
+tomcat_m_shutdown_port: -1
+tomcat_m_shutdown_pwd: "{{ lookup('password', '/tmp/passwordfile chars=ascii_letters,digits,hexdigits,punctuation') }}"
+tomcat_m_max_threads: 200
+tomcat_m_min_heap_size: 2048m
+tomcat_m_heap_size: '{{ tomcat_m_min_heap_size }}'
+tomcat_m_permgen_size: 512m
+tomcat_m_restart_timeout: 300
+# -server -Djava.awt.headless=true are always used. No need to specify them
+tomcat_m_java_opts_heap: "-Xms{{ tomcat_m_min_heap_size }} -Xmx{{ tomcat_m_heap_size }}"
+tomcat_m_java_opts_permgen: "-XX:MaxPermSize={{ tomcat_m_permgen_size }}"
+tomcat_m_java_opts: ""
+tomcat_m_java_gc_opts: "-XX:+UseConcMarkSweepGC"
+# Use "-XX:+UseConcMarkSweepGC" to enable the CMS garbage collector (improved
+# response time). If you use that option and you run Tomcat on a machine with
+# exactly one CPU chip that contains one or two cores, you should also add
+# the "-XX:+CMSIncrementalMode" option.
+#tomcat_m_other_java_opts: "-Djsse.enableSNIExtension=false"
+tomcat_m_other_java_opts: ""
+tomcat_m_webapps_autodeploy: False
+tomcat_m_webapps_unpack: False
+tomcat_m_start_instances: True
+tomcat_m_enable_instances: True
+
+# JMX and debugging
+tomcat_m_enable_remote_debugging: False
+tomcat_m_remote_debugging_port: 8100
+tomcat_m_jmx_enabled: False
+tomcat_m_jmx_auth_enabled: False
+tomcat_m_jmx_use_ssl: False
+tomcat_m_jmx_port: 8186
+# The following works with jdk >= 7.0.25 only
+tomcat_m_jmx_disable_additional_ports: True
+tomcat_m_jmx_localhost_only: False
+
+#tomcat_m_jmx_auth_dir: '{{ tomcat_m_instances_base_path }}'
+# tomcat_m_jmx_monitorpass: define_in_a_vault_file
+# tomcat_m_jmx_controlpass: define_in_a_vault_file
+
+
+# This is only an example. Insert a line for each tomcat instance. 'app_contexts' can be used to automatically configure apache or nginx virtualhost http/ajp proxy
+#
+#tomcat_m_instances:
+#  - {  http_enabled: True, http_port: '8180', http_address: '0.0.0.0', ajp_enabled: False, ajp_port: '8109', ajp_address: '127.0.0.1', restart_timeout: '{{ tomcat_m_restart_timeout }}', shutdown_port: '8105', java_home: '{{ jdk_java_home }}', user: '{{ tomcat_m_default_user }}', user_home: '{{ tomcat_m_instances_base_path }}', user_shell: '{{ tomcat_m_default_user_shell }}', instance_path: '{{ tomcat_m_instances_base_path }}/8180', max_threads: '{{ tomcat_m_max_threads }}', autodeploy: '{{ tomcat_m_webapps_autodeploy }}', unpack: '{{ tomcat_m_webapps_unpack }}', install_server_xml: True, default_conf: True, java_opts: '{{ tomcat_m_java_opts }}', java_gc_opts: '{{ tomcat_m_java_gc_opts }}', other_java_opts: '{{ tomcat_m_other_java_opts }}', jmx_enabled: '{{ tomcat_m_jmx_enabled }}', jmx_disable_additional_ports: '{{ tomcat_m_jmx_disable_additional_ports }}', jmx_auth_enabled: '{{ tomcat_m_jmx_auth_enabled }}', jmx_auth_dir: '{{ tomcat_m_instances_base_path }}/8180/conf', jmx_port: '{{ tomcat_m_jmx_port }}', jmx_monitorpass: '{{ set_in_a_vault_file }}', jmx_controlpass: '{{ set_in_a_vault_file }}', remote_debugging: '{{ tomcat_m_enable_remote_debugging }}', remote_debugging_port: '8100', access_log_enabled: True, log_rotation_freq: daily, log_retain: 30, allowed_hosts: [ 'xxx.xxx.xxx.xxx/32', 'yyy.yyy.yyy.yyy/32' ], app_contexts: [ 'app1', 'app2' ] }
+

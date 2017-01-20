@@ -1,0 +1,39 @@
+#!/bin/bash
+
+RETVAL=
+
+cd {{ smartgears_user_home }}
+# Install the rapidminer custom jar
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:copy -Dartifact=rapidminer-custom:52n-wps-server:3.3.2 -DoutputDirectory={{ smartgears_instance_path }}/webapps/{{ dataminer_52north_webapp_name }}/WEB-INF/lib
+
+RETVAL=$?
+if [ $RETVAL -ne 0 ] ; then
+    exit 1
+fi
+
+# Install the org.gcube.dataanalysis dataminer jar
+{% if dataminer_jar_url is defined %}
+cd {{ smartgears_user_home }}/tomcat/webapps/wps/WEB-INF/lib
+wget {{ dataminer_jar_url }}
+{% else %}
+cd {{ smartgears_user_home }}/.m2/dataminer
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:copy -Dartifact=org.gcube.dataanalysis:dataminer:{{ dataminer_dataminer_jar_version }} -DoutputDirectory={{ smartgears_instance_path }}/webapps/{{ dataminer_52north_webapp_name }}/WEB-INF/lib
+{% endif %}
+
+RETVAL=$?
+if [ $RETVAL -ne 0 ] ; then
+    exit 1
+fi
+
+# Install the org.gcube.dataanalysis dataminer jar dependencies
+cd {{ smartgears_user_home }}/.m2
+mvn -DexcludeScope=provided org.apache.maven.plugins:maven-dependency-plugin:2.8:copy-dependencies -Dartifact=org.gcube.dataanalysis:dataminer:{{ dataminer_dataminer_jar_version }} -DoutputDirectory={{ smartgears_instance_path }}/webapps/{{ dataminer_52north_webapp_name }}/WEB-INF/lib
+
+
+RETVAL=$?
+if [ $RETVAL -ne 0 ] ; then
+    exit 1
+fi
+
+touch {{ smartgears_user_home }}/.dataminer_installation_{{ dataminer_dataminer_jar_version }}
+exit 0

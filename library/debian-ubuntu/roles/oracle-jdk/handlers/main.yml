@@ -1,0 +1,17 @@
+- name: Set Oracle JDK 6 as default
+  shell: update-java-alternatives -s java-6-oracle
+
+- name: Set Oracle JDK 7 as default
+  shell: update-java-alternatives -s java-7-oracle
+
+- name: Set Oracle JDK 8 as default
+  shell: update-java-alternatives -s java-8-oracle
+
+- name: Set the default Oracle JDK
+  command: update-java-alternatives -s java-{{ item }}-oracle
+  with_items: jdk_default
+
+- name: Update apt cache
+  apt: update_cache=yes
+  ignore_errors: true
+

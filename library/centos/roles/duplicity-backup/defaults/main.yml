@@ -1,0 +1,37 @@
+---
+duplicity_install_duply: True
+duplicity_cli_only: True
+# ftps is nice but it fails if the target directory does not exist.
+duplicity_use_ftps: True
+duplicity_target_protocol: sftp
+duplicity_use_ssh_keys: False
+duplicity_max_backup_age: 1M
+duplicity_max_full_backups: 2
+duplicity_max_full_with_incrs: 1
+duplicity_verbosity: 5
+duplicity_temp_dir: /var/cache/duplicity
+duplicity_cron_job_logfile: /var/log/duplicity_backup.log
+duplicity_volsize: 50
+
+duply_default_profile: '{{ ansible_fqdn }}'
+duply_default_targets:
+  - '+ /etc/'
+  - '- **'
+  - '/'
+
+duply_additional_targets:
+  - '- /var/cache'
+  - '+ /var/'
+  - '+ /home'
+  
+# Set the values on a vault encrypted file:
+# duplicity_passphrase:
+# duplicity_ftp_password:
+# duplicity_backup_server:
+# duplicity_backup_user:
+# duplicity_backup_dest_dir:
+
+# TODO: Create the configuration
+# a pre script that runs the DB backups
+# a exclude file with the list of directories to backup
+# change the DB backup scripts to not run if duply is active

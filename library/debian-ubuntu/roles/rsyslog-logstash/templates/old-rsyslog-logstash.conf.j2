@@ -1,0 +1,13 @@
+$ModLoad imfile
+
+{% for log in rsys_logfiles %}
+$InputFileName {{ log.logfile }}
+$InputFileTag {{ log.log_tag }}
+$InputFileStateFile {{ log.log_state_file }}
+$InputRunFileMonitor
+
+{% endfor %}
+
+# Send all to the logstash server
+*.* @@{{ rsys_logstash_collector_host }}:{{ rsys_logstash_collector_port }}
+

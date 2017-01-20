@@ -1,0 +1,19 @@
+---
+- name: Remove the couchdb package if it is installed
+  apt: pkg=couchdb* state=absent purge=true
+  tags: couchdb
+
+- name: Remove the couchdb ppa
+  apt_repository: repo='{{ couchdb_ppa }}' state=absent
+  register: update_apt_cache
+  tags: couchdb
+
+- name: Update the apt cache if needed
+  apt: update_cache=yes
+  when: (update_apt_cache|changed)
+  tags: couchdb
+
+- name: Change the open files limit
+  template: src=limits-couchdb.nofiles.j2 dest=/etc/security/limits.d/couchdb.nofiles.conf owner=root group=root mode=0444
+  tags: couchdb
+

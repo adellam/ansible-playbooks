@@ -1,0 +1,27 @@
+---
+haproxy_latest_release: True
+haproxy_version: 1.6
+haproxy_repo_key: 'http://haproxy.debian.net/bernat.debian.org.gpg'
+haproxy_debian_latest_repo: "deb http://haproxy.debian.net {{ ansible_lsb.codename }}-backports-{{ haproxy_version }} main"
+haproxy_ubuntu_latest_repo: "ppa:vbernat/haproxy-{{ haproxy_version }}"
+haproxy_pkg_state: latest
+haproxy_enabled: True
+haproxy_k_bind_non_local_ip: True
+
+haproxy_default_port: 80
+haproxy_terminate_tls: False
+haproxy_ssl_port: 443
+haproxy_admin_port: 8880
+haproxy_admin_socket: /run/haproxy/admin.sock
+
+haproxy_letsencrypt_managed: False
+haproxy_cert_dir: '{{ pki_dir }}/haproxy'
+
+haproxy_nagios_check: False
+# It's a percentage
+haproxy_nagios_check_w: 70
+haproxy_nagios_check_c: 90
+
+haproxy_check_interval: 3s
+haproxy_backend_maxconn: 2048
+

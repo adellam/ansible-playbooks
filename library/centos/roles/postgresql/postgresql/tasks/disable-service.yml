@@ -1,0 +1,5 @@
+---
+- name: Ensure that the postgresql server is stopped and disabled if configured to not start
+  service: name='postgresql-{{ psql_version }}' state=stopped enabled=no
+  when: not psql_enabled
+  tags: postgresql

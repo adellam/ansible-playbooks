@@ -1,0 +1,181 @@
+server {
+    listen {{ http_port }};
+    client_max_body_size {{ nginx_client_max_body_size | default('100M') }};
+{% if egi_image is defined and egi_image %}
+    # No servername into the EGI images
+{% else %}
+    server_name {{ item.servername }} {% if smartgears_nginx_serveraliases is defined %}{% for vh in smartgears_nginx_serveraliases %} {{ vh }}{% endfor %}{% endif %};
+{% endif %}
+{% if letsencrypt_acme_install %}
+    include /etc/nginx/snippets/letsencrypt-proxy.conf;
+{% endif %}
+{% if not http_redirect_to_https %}
+    access_log /var/log/nginx/{{ item.servername }}_access.log;
+    error_log /var/log/nginx/{{ item.servername }}_error.log;
+    root /usr/share/nginx/html/;
+
+    {% if haproxy_ips is defined %}
+    # We are behind haproxy
+    {% for ip in haproxy_ips %}
+    set_real_ip_from {{ ip }};
+    {% endfor %}
+    real_ip_header X-Forwarded-For;
+    {% endif %}
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+    
+    location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+    }
+
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+    
+    # don't send the nginx version number in error pages and Server header
+    server_tokens off;
+
+    # Proxy stuff
+    include /etc/nginx/snippets/nginx-proxy-params.conf;
+    {% if nginx_websockets_support %}
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    {% endif %}
+
+    {% if r_connector_install is defined and r_connector_install %}
+    location /auth-sign-in {
+        rewrite ^/auth-sign-in http://{{ item.servername }}/r-connector/gcube/service/disconnect;
+    }
+    {% endif %}
+    {% for instance in tomcat_m_instances %}
+    {% for context in instance.app_contexts %}
+    location /{{ context }} {
+        {% if smartgears_nginx_cors_enabled %}
+        include /etc/nginx/snippets/nginx-cors.conf;
+        {% endif %}
+        proxy_pass http://localhost:{{ item.http_port }}/{{ context }};
+    }
+    {% endfor %}
+    {% endfor %}
+    {% if smart_executor_install is defined and smart_executor_install %}
+    location {{ smart_executor_context }} {
+        {% if smartgears_nginx_cors_enabled %}
+        include /etc/nginx/snippets/nginx-cors.conf;
+        {% endif %}
+        proxy_pass http://localhost:{{ item.http_port }}{{ smart_executor_context }};
+    }
+    {% endif %}
+    {% if rstudio_install_server is defined and rstudio_install_server %}
+    location / {
+        {% if smartgears_nginx_cors_enabled %}
+        include /etc/nginx/snippets/nginx-cors.conf;
+        {% endif %}
+        proxy_pass http://localhost:8787/;
+    }
+    {% endif %}
+    {% else %}
+    location / {
+        {% if smartgears_nginx_cors_enabled %}
+        include /etc/nginx/snippets/nginx-cors.conf;
+        {% endif %}
+        return 301 https://{{ item.servername }}$request_uri;
+    }
+    {% endif %}
+
+}
+
+{% if letsencrypt_acme_install %}
+server {
+    listen {{ https_port }} ssl;
+    client_max_body_size {{ nginx_client_max_body_size | default('100M') }};
+{% if egi_image is defined and egi_image %}
+    # No servername into the EGI images
+{% else %}
+    server_name {{ item.servername }} {% if smartgears_nginx_serveraliases is defined %}{% for vh in smartgears_nginx_serveraliases %} {{ vh }}{% endfor %}{% endif %};
+{% endif %}
+
+    access_log /var/log/nginx/{{ item.servername }}_access_ssl.log;
+    error_log /var/log/nginx/{{ item.servername }}_error_ssl.log;
+
+    # This is the default for nginx on Ubuntu 14.04
+    root /usr/share/nginx/html/;
+
+    {% if haproxy_ips is defined %}
+    # We are behind haproxy
+    {% for ip in haproxy_ips %}
+    set_real_ip_from {{ ip }};
+    {% endfor %}
+    real_ip_header X-Forwarded-For;
+    {% endif %}
+
+    include /etc/nginx/snippets/nginx-server-ssl.conf;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+    
+    location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+    }
+
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+    
+    # don't send the nginx version number in error pages and Server header
+    server_tokens off;
+
+    # Proxy stuff
+    include /etc/nginx/snippets/nginx-proxy-params.conf;
+    {% if nginx_websockets_support %}
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    {% endif %}
+    {% if r_connector_install is defined and r_connector_install %}
+    location /auth-sign-in {
+        rewrite ^/auth-sign-in http://{{ item.servername }}/r-connector/gcube/service/disconnect;
+    }
+    {% endif %}
+    {% for instance in tomcat_m_instances %}
+    {% for context in instance.app_contexts %}
+    location /{{ context }} {
+        {% if smartgears_nginx_cors_enabled %}
+        include /etc/nginx/snippets/nginx-cors.conf;
+        {% endif %}
+        proxy_pass http://localhost:{{ item.http_port }}/{{ context }};
+    }
+    {% endfor %}
+    {% endfor %}
+    {% if smart_executor_install is defined and smart_executor_install %}
+    location {{ smart_executor_context }} {
+        {% if smartgears_nginx_cors_enabled %}
+        include /etc/nginx/snippets/nginx-cors.conf;
+        {% endif %}
+        proxy_pass http://localhost:{{ item.http_port }}{{ smart_executor_context }};
+    }
+    {% endif %}
+    {% if rstudio_install_server is defined and rstudio_install_server %}
+    location / {
+        {% if smartgears_nginx_cors_enabled %}
+        include /etc/nginx/snippets/nginx-cors.conf;
+        {% endif %}
+        proxy_pass http://localhost:8787/;
+    }
+    {% endif %}
+
+}
+{% endif %}

@@ -1,0 +1,67 @@
+<LDAP>
+        # LDAP server URL
+        URL                     {{ openvpn_ldap_url }}
+
+{% if openvpn_ldap_nonanon_bind %}
+        # Bind DN (If your LDAP server doesn't support anonymous binds)
+        BindDN                  {{ openvpn_ldap_binddn }}
+        # Bind Password
+        Password                {{ openvpn_ldap_bindpwd }}
+{% endif %}
+
+        # Network timeout (in seconds)
+        Timeout         15
+
+{% if openvpn_ldap_starttls %}
+        # Enable Start TLS
+        TLSEnable      yes
+{% endif %}
+
+        # Follow LDAP Referrals (anonymously)
+        FollowReferrals yes
+
+        # TLS CA Certificate File
+        TLSCACertFile           {{ openvpn_ldap_ca }}
+
+{% if openvpn_ldap_use_ca_dir %}
+        # TLS CA Certificate Directory
+        # TLSCACertDir  {{ openvpn_ldap_ca_dir }}
+{% endif %}
+
+{% if openvpn_ldap_tls_auth %}
+        # Client Certificate and key
+        # If TLS client authentication is required
+        TLSCertFile     {{ openvpn_ldap_tls_cert }}
+        TLSKeyFile      {{ openvpn_ldap_tls_key }}
+{% endif %}
+
+        # Cipher Suite
+        # The defaults are usually fine here
+        TLSCipherSuite   {{ openvpn_ldap_tls_ciphersuite }}
+</LDAP>
+
+<Authorization>
+        # Base DN
+        BaseDN          "{{ openvpn_ldap_base_dn }}"
+
+        # User Search Filter
+        # SearchFilter  "(&(uid=%u)(accountStatus=active))"
+        SearchFilter    "{{ openvpn_ldap_user_search }}"
+
+        # Require Group Membership
+        RequireGroup    {{ openvpn_ldap_require_group }}
+
+{% if openvpn_ldap_require_group %}
+        # Add non-group members to a PF table (disabled)
+        #PFTable        ips_vpn_users
+
+        <Group>
+               BaseDN          "{{ openvpn_ldap_group_base }}"
+               SearchFilter    "{{ openvpn_ldap_group_filter }}"
+               RFC2307bis      {{ openvpn_ldap_without_posix_groups }}
+               MemberAttribute {{ openvpn_ldap_group_member_attr }}
+               # Add group members to a PF table (disabled)
+        #       #PFTable        ips_vpn_eng
+        </Group>
+{% endif %}
+</Authorization>

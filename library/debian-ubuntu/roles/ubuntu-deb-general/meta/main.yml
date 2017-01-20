@@ -1,0 +1,9 @@
+---
+dependencies:
+  - role: '../../library/roles/deb-apt-setup'
+  - role: '../../library/roles/deb-set-hostname'
+  - role: '../../library/roles/deb-set-locale'
+  - role: '../../library/roles/timezone'
+  - role: '../../library/roles/linux-kernel-sysctl'
+  - role: '../../library/roles/sshd_config'
+  - role: '../../library/roles/fail2ban'

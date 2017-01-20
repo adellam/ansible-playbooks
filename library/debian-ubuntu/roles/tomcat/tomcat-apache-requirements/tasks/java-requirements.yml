@@ -1,0 +1,8 @@
+---
+- name: Ensure that the jre/lib/endorsed exists
+  file: dest={{ jdk_java_home }}/jre/lib/endorsed state=directory owner=root group=root mode=0755
+  tags: apache
+
+- name: Install the xercesImpl.jar needed by the dnet applications
+  copy: src=xercesImpl.jar dest={{ jdk_java_home }}/jre/lib/endorsed/xercesImpl.jar owner=root group=root mode=0644
+  tags: apache

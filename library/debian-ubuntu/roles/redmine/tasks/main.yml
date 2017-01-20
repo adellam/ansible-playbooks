@@ -1,0 +1,14 @@
+---
+- include: base-packages-old-gems.yml
+  when: is_precise
+- include: base-packages.yml
+  when: is_trusty
+- include: rubygems.yml
+- include: redmine.yml
+- include: redmine-plugins.yml
+- include: base-config.yml
+- include: mod_passenger.yml
+  when: ruby_use_mod_passenger
+- include: unicorn.yml
+  when: ruby_use_unicorn
+

@@ -1,0 +1,41 @@
+---
+# http://www.keepalived.org/
+#
+keepalived_install: False
+keepalived_enabled: '{{ keepalived_install }}'
+keepalived_version: 1.1.20
+keepalived_repo: 'ppa:keepalived/stable'
+keepalived_pkg_state: latest
+# Use 'keepalived={{ keepalived_version }}' if you want a specific version
+keepalived_pkgs:
+  - keepalived
+
+keepalived_mcast_addr: 224.0.0.0/8
+keepalived_floating_ip1: 127.0.0.1
+keepalived_script1_name: chk_haproxy
+keepalived_inst_priority: 100
+
+keepalived_nagios_check: False
+keepalived_notify_script: /usr/local/bin/keepalived_notify
+
+keepalived_scripts:
+  - name: '{{ keepalived_script1_name }}'
+    script: 'killall -0 haproxy'
+    # In seconds
+    interval: 2
+    # Priority increment
+    weight: 2
+
+keepalived_instances:
+  - name: VI_1
+    interface: eth0
+    state: MASTER
+    vrouter_id: 51
+    notify: '{{ keepalived_notify_script }}'
+    priority: '{{ keepalived_inst_priority }}'
+    v_addr:
+      - '{{ keepalived_floating_ip1 }}'
+    track_script:
+      - '{{ keepalived_script1_name }}'
+    #track_interface:
+    #  - eth0

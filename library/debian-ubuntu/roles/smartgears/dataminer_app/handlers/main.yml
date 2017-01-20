@@ -1,0 +1,3 @@
+---
+- name: Restart smartgears
+  service: name=tomcat-instance-{{ smartgears_http_port }} state=restarted

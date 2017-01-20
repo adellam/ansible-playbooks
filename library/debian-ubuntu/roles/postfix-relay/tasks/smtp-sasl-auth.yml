@@ -1,0 +1,11 @@
+---
+- name: Write sasl hash file
+  template: src=sasl_passwd.j2 dest=/etc/postfix/sasl_passwd owner=root group=root mode=0400
+  when: postfix_use_sasl_auth
+  register: update_sasl_hash
+  tags: postfix-relay
+
+- name: Update SASL hash
+  shell: postmap hash:/etc/postfix/sasl_passwd
+  when: ( update_sasl_hash | changed )
+  tags: postfix-relay

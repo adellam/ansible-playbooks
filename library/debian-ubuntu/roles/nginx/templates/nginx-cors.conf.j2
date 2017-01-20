@@ -1,0 +1,17 @@
+{% if nginx_cors_limit_origin %}
+set $cors '';
+if ($http_origin ~* '{{ nginx_cors_acl_origin }}') {
+    set $cors 'true';
+}
+if ($cors = 'true') {
+{% endif %}
+    add_header 'Access-Control-Allow-Origin' "$http_origin";
+    add_header 'Access-Control-Allow-Credentials' 'true';
+    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With';
+{% if nginx_cors_limit_origin %}
+}
+{% endif %}
+if ($request_method = 'OPTIONS') {
+    return 204;
+}

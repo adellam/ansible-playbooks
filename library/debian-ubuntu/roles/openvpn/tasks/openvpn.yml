@@ -1,0 +1,132 @@
+---
+- block: 
+    - name: Install the OpenVPN main packages
+      apt: pkg={{ item }} state={{ openvpn_pkg_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ openvpn_pkgs }}'
+
+    - name: Create the auth, ipp and status subdirs
+      file: dest={{ openvpn_conf_dir }}/{{ item }} state=directory owner={{ openvpn_unprivileged_user }} group=root mode=0770
+      with_items:
+        - ipp
+        - status
+        - auth
+
+  when: openvpn_enabled
+  tags: openvpn
+
+- block: 
+    - name: Install the OpenVPN radius auth plugin package
+      apt: pkg={{ item }} state={{ openvpn_pkg_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ openvpn_radius_pkg }}'
+
+  when: openvpn_radius_auth
+  tags: [ 'openvpn', 'openvpn_radius' ]
+
+
+- block:
+    - name: apt key for the internal ppa repository. Needed by the openvpn ldap auth with posix groups
+      apt_key: url=http://ppa.research-infrastructures.eu/system/keys/system-archive.asc state=present
+      when:
+        - openvpn_ldap_auth
+        - not openvpn_ldap_without_posix_groups
+  
+    - name: Setup the internal apt repository
+      apt_repository: repo='deb http://ppa.research-infrastructures.eu/system trusty main'
+      when:
+        - openvpn_ldap_auth
+        - not openvpn_ldap_without_posix_groups
+
+    - name: Install the OpenVPN ldap auth plugin package
+      apt: pkg={{ item }} state={{ openvpn_pkg_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ openvpn_ldap_pkg }}'
+
+    - name: Install the LDAP auth configuration file
+      template: src=auth-ldap.conf.j2 dest={{ openvpn_conf_dir }}/auth/auth-ldap.conf owner=root group={{ openvpn_unprivileged_group }} mode=0440
+      notify: Reload OpenVPN
+
+    - name: Remove the LDAP auth configuration file if LDAP is not used
+      file: dest={{ openvpn_conf_dir }}/auth/auth-ldap.conf state=absent
+      notify: Reload OpenVPN
+      when: not openvpn_ldap_auth
+
+
+  when: openvpn_ldap_auth
+  tags: [ 'openvpn', 'openvpn_ldap' ]
+
+
+- block:
+    - name: Install the perl libraries needed by the LDAP client authentication script
+      apt: pkg={{ item }} state={{ openvpn_pkg_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ openvpn_perl_pkg }}'
+
+    - name: Install the perl LDAP auth script
+      template: src=auth-ldap.pl.j2 dest={{ openvpn_conf_dir }}/auth/auth-ldap owner=root group={{ openvpn_unprivileged_group }} mode=0550
+
+  when: openvpn_ldap_perl_auth
+  tags: [ 'openvpn', 'openvpn_ldap' ]
+
+
+- block:
+    - name: Install the main OpenVPN configuration file
+      template: src=openvpn.conf.j2 dest={{ openvpn_conf_dir }}/{{ openvpn_conf_name }} owner=root group={{ openvpn_unprivileged_group }} mode=0440
+      notify: Reload OpenVPN
+
+  tags: [ 'openvpn', 'openvpn_conf' ]
+
+
+- block:
+    - name: Create the dh file
+      shell: openssl dhparam -out {{ openvpn_conf_dir }}/dh2048.pem 2048 ; chmod 444 {{ openvpn_conf_dir }}/dh2048.pem
+      args:
+        creates: '{{ openvpn_conf_dir }}/dh2048.pem'
+  
+    - name: Create the ta key
+      shell: cd {{ openvpn_conf_dir }} ; openvpn --genkey --secret ta.key ; chmod 400 {{ openvpn_conf_dir }}/ta.key
+      args:
+        creates: '{{ openvpn_conf_dir }}/ta.key'
+
+  when: openvpn_is_master_host or not openvpn_ha
+  tags: [ 'openvpn', 'openvpn_conf' ]
+
+# Does not work right now. The error is
+# fatal: [gw2.d4science.org -> gw1.d4science.org]: FAILED! => {"changed": false, "failed": true, "msg": "Boolean root not in either boolean list"}
+# - block:
+#     - name: Get the dh file from the master host
+#       synchronize: src={{ openvpn_conf_dir }}/dh2048.pem dest=rsync://root@{{ ansible_fqdn }}/{{ openvpn_conf_dir }}/dh2048.pem
+#       delegate_to: '{{ openvpn_master_host }}'
+      
+#     - name: Get the ta key from the master host
+#       synchronize: src={{ openvpn_conf_dir }}/ta.key dest=rsync://root@{{ ansible_fqdn }}/{{ openvpn_conf_dir }}/ta.key
+#       delegate_to: '{{ openvpn_master_host }}'
+
+#   when: openvpn_ha and not openvpn_is_master_host
+#   tags: [ 'openvpn', 'openvpn_conf', 'openvpn_shared_secrets' ]
+
+
+- block:
+    - name: Enable kernel forwarding
+      sysctl: name={{ item }} value=1 reload=yes state=present
+      with_items:
+        - net.ipv4.ip_forward
+        # - net.ipv6.conf.all.forwarding
+      when:
+        - openvpn_enable_system_forward
+        - openvpn_enabled
+
+    - name: Disable kernel forwarding
+      sysctl: name={{ item }} value=0 reload=yes state=present
+      with_items:
+        - net.ipv4.ip_forward
+        # - net.ipv6.conf.all.forwarding
+      when: not openvpn_enable_system_forward
+
+    - name: Ensure that the OpenVPN service is enabled and running
+      service: name=openvpn state=started enabled=yes
+      when: openvpn_enabled
+
+    - name: Ensure that the OpenVPN service is stopped and disabled
+      service: name=openvpn state=stopped enabled=no
+      when: not openvpn_enabled
+
+  tags: openvpn
+

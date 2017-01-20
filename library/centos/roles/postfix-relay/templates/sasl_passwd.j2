@@ -1,0 +1,6 @@
+{% if postfix_relay_port is defined %}
+{{ postfix_relay_host }}:{{ postfix_relay_port }} {{ postfix_smtp_relay_user }}:{{ postfix_smtp_relay_pwd }}
+{% else %}
+{{ postfix_relay_host }} {{ postfix_smtp_relay_user }}:{{ postfix_smtp_relay_pwd }}
+{% endif %}
+

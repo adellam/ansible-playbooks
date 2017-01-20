@@ -1,0 +1,66 @@
+---
+- block:
+    - name: Install the package source and the Couchbase public keys
+      apt: deb={{ couchbase_repo_pkg_url }}
+      register: couchbase_repo_pkg
+
+    - name: Update the apt cache if needed
+      apt: update_cache=yes
+      when: ( couchbase_repo_pkg | changed )
+
+    - name: Install the couchbase community server package
+      apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
+      with_items:
+        - couchbase-server-community
+
+  when:
+    - couchbase_install_packages
+    - couchbase_install_from_repo
+  tags: couchbase 
+
+
+- block:
+    - name: Get and install the specific Couchbase package
+      apt: deb={{ couchbase_direct_package_url }}
+
+  when:
+    - couchbase_install_packages
+    - not couchbase_install_from_repo
+  tags: couchbase 
+
+- block:
+    - name: Install the backup script when needed
+      template: src=couchbase_backup.j2 dest=/usr/local/bin/couchbase_backup owner=root group=root mode=0550
+      when: couchbase_backup_enabled
+
+    - name: Ensure couchbase is started and enabled
+      service: name=couchbase-server state=started enabled=yes
+      when: couchbase_start_server
+
+    - name: Ensure couchbase is stopped and disabled
+      service: name=couchbase-server state=stopped enabled=no
+      when: not couchbase_start_server
+
+  when: couchbase_install_packages
+  tags: [ 'couchbase', 'couchbase_backup' ]
+
+
+
+- block:
+    - name: Ensure couchbase is stopped and disabled
+      service: name=couchbase-server state=stopped enabled=no
+
+    - name: Remove the couchbase server package
+      apt: pkg={{ item }} state=absent update-cache=yes purge=yes
+      with_items:
+        - 'couchbase-server-community'
+        - 'couchbase-release'
+
+    - name: Remove the couchbase backup script and the couchbase non packaged files
+      file: dest={{ item }} state=absent
+      with_items:
+        - '/usr/local/bin/couchbase_backup'
+        - '/opt/couchbase'
+
+  when: not couchbase_install_packages
+  tags: couchbase 

@@ -1,0 +1,28 @@
+---
+sshd_port: 22
+sshd_config_dir: /etc/ssh
+sshd_config_file: sshd_config
+sshd_protocol: 2
+sshd_serverkeybits: 2048
+sshd_password_authentication: "no"
+sshd_permit_empty_passwords: "no"
+# "no" or "without-password"
+sshd_permit_root_login: "without-password"
+sshd_strict_mode: "yes"
+# If set to no, the locked users cannot log in. adduser creates the users that have no password as locked
+sshd_use_pam: "no"
+# set to "yes" only if you are using s/key or something equivalent
+sshd_challenge_response_authentication: "no"
+sshd_enable_sftp_subsystem: True
+sshd_use_login: "no"
+sshd_permit_tunnel: "no"
+sshd_gssapi_authentication: "no"
+sshd_gssapi_credentials: "no"
+sshd_x11_forwarding: "no"
+sshd_agent_forwarding: "yes"
+sshd_tcp_forwarding: "no"
+sshd_permit_user_environment: "no"
+sshd_show_patchlevel: "no"
+# Usually /etc/issue.net
+sshd_banner_path: "none"
+sshd_acceptenv: "LANG LC_*"

@@ -1,0 +1,21 @@
+- name: Update SASL hash
+  shell: postmap hash:/etc/postfix/sasl_passwd
+
+- name: Reload postfix
+  service: name=postfix state=reloaded
+  when: postfix_enabled
+
+- name: Restart postfix
+  service: name=postfix state=restarted
+  when: postfix_enabled
+
+- name: Update the network hash table
+  shell: postmap hash:/etc/postfix/network_table
+
+- name: start saslauth daemon
+  service: name=saslauthd state=started enabled=yes
+  when: postfix_enabled
+
+- name: restart saslauth daemon
+  service: name=saslauthd state=restarted
+  when: postfix_enabled

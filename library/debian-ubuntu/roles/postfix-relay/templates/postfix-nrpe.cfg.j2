@@ -1,0 +1,4 @@
+# Postfix mailq
+command[postfix_check_mailqueue]=/usr/bin/sudo {{ nagios_plugins_dir }}/check_postfix_mailqueue -w {{ nagios_postfix_mailq_w }} -c {{ nagios_postfix_mailq_c }}
+# Postfix processed
+command[postfix_check_processed]=/usr/bin/sudo {{ nagios_plugins_dir }}/check_postfix_processed -w {{ nagios_postfix_processed_w }} -c {{ nagios_postfix_processed_c }}

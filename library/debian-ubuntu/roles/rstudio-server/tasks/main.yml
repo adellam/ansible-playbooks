@@ -1,0 +1,38 @@
+---
+- block:
+    - name: Install the gdebi tool
+      apt: pkg=gdebi-core state=latest update_cache=yes cache_valid_time=1800
+
+    - name: Download the rstudio server deb package
+      get_url: url={{ rstudio_download_url }} dest=/srv/{{ rstudio_file }}
+      register: rstudio_download
+      ignore_errors: True
+
+    - name: Install the rstudio server package
+      command: gdebi -n -q /srv/{{ rstudio_file }}
+      when: ( rstudio_download | changed )
+
+    - name: Ensure that rstudio server is enabled and running
+      service: name=rstudio-server state=started enabled=yes
+      when: rstudio_enabled
+
+    - name: Ensure that rstudio server is disabled and stopped
+      service: name=rstudio-server state=stopped enabled=no
+      when: not rstudio_enabled
+
+  when: rstudio_install_server
+  tags: [ 'rstudio', 'rstudio_server' ]
+
+
+- block:
+    - name: Ensure that rstudio server is disabled and stopped
+      service: name=rstudio-server state=stopped enabled=no
+
+    - name: Remove the rstudio-server and gdebi packages
+      apt: pkg={{ item }} state=absent
+      with_items:
+        - gdebi
+        - rstudio-server
+
+  when: not rstudio_install_server
+  tags: [ 'rstudio', 'rstudio_server' ]

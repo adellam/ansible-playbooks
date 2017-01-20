@@ -1,0 +1,31 @@
+; ===============================
+; ckan harvester
+; ===============================
+
+[program:ckan_gather_consumer]
+
+command={{ ckan_virtenv }}/bin/paster --plugin=ckanext-harvest harvester gather_consumer --config={{ ckan_config_file }}
+
+; user that owns virtual environment.
+user=ckan
+
+numprocs=1
+stdout_logfile={{ ckan_logdir }}/gather_consumer.log
+stderr_logfile={{ ckan_logdir }}/gather_consumer.log
+autostart=true
+autorestart=true
+startsecs=10
+
+[program:ckan_fetch_consumer]
+
+command={{ ckan_virtenv }}/bin/paster --plugin=ckanext-harvest harvester fetch_consumer --config={{ ckan_config_file }}
+
+; user that owns virtual environment.
+user={{ ckan_shell_user }}
+
+numprocs=1
+stdout_logfile={{ ckan_logdir }}/fetch_consumer.log
+stderr_logfile={{ ckan_logdir }}/fetch_consumer.log
+autostart=true
+autorestart=true
+startsecs=10

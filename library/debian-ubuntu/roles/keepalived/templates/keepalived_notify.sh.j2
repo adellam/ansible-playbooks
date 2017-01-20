@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# echo $1 $2 is in $3 state > /var/run/keepalive.state
+#
+export PATH="/sbin:/usr/sbin:/bin:/usr/bin:$PATH"
+TYPE=$1
+NAME=$2
+STATE=$3
+
+{% if keepalived_notify_extra_params is defined %}
+{{ keepalived_notify_extra_params }}
+{% endif %}
+
+
+{% if keepalived_nagios_check %}
+echo $TYPE $NAME is in $STATE state > /var/run/keepalive.state
+{% endif %}
+
+exit 0
+

@@ -1,0 +1,21 @@
+---
+varnish_pkg_state: present
+varnish_enabled: True
+
+varnish_listen_port: 6810
+varnish_static_c_timeout: 240s
+varnish_static_first_byte_timeout: 360s
+varnish_static_between_bytes_timeout: 360s
+# We are using 3000 in production
+varnish_static_max_connections: 200
+varnish_storage_file: /var/lib/varnish/varnish_storage.bin
+# We are using 12288M in production
+varnish_storage_size: 1G
+# Expressed in MBs. We do not use it right now
+varnish_ram_cache_size: 512
+# We are using 48000 in production
+varnish_ttl: 120
+varnish_user: varnish
+varnish_group: varnish
+varnish_purge_whitelist:
+  - 127.0.0.1

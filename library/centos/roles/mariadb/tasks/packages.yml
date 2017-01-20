@@ -1,0 +1,15 @@
+---
+- name: install the mariadb packages
+  yum: pkg={{ item }} state={{ mysql_pkg_state }}
+  with_items: mysql_packages_list
+  tags:
+    - mysql
+    - mariadb
+
+- name: Ensure that the mariadb server is enabled and running
+  service: name=mariadb state=started enabled=yes
+  when: mysql_enabled
+  tags:
+    - mysql
+    - mariadb
+

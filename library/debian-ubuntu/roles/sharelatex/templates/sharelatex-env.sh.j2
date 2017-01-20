@@ -1,0 +1,33 @@
+SHARELATEX_MONGO_URL={{ sharelatex_mongodb_url }}
+SHARELATEX_REDIS_HOST={{ sharelatex_redis_host }}
+SHARELATEX_APP_NAME='{{ sharelatex_app_name }}'
+SHARELATEX_SITE_URL={{ sharelatex_site_url }}
+SHARELATEX_NAV_TITLE='D4Science ShareLaTeX Service'
+SHARELATEX_BEHIND_PROXY='{{ sharelatex_behind_proxy }}'
+{% if sharelatex_header_image_url is defined %}
+SHARELATEX_HEADER_IMAGE_URL={{ sharelatex_header_image_url }}
+{% endif %}
+{% if sharelatex_admin_email is defined %}
+SHARELATEX_ADMIN_EMAIL={{ sharelatex_admin_email }}
+{% endif %}
+{% if sharelatex_left_footer is defined %}
+SHARELATEX_LEFT_FOOTER={{ sharelatex_left_footer }}
+{% endif %}
+{% if sharelatex_right_footer is defined %}
+SHARELATEX_RIGHT_FOOTER={{ sharelatex_right_footer }}
+{% endif %}
+{% if sharelatex_email_from is defined %}
+SHARELATEX_EMAIL_FROM_ADDRESS="{{ sharelatex_email_from }}"
+{% endif %}
+{% if sharelatex_configure_smtp is defined %}
+SHARELATEX_EMAIL_SMTP_HOST={{ sharelatex_email_smtp_host }}
+SHARELATEX_EMAIL_SMTP_PORT={{ sharelatex_email_smtp_port | default(587) }}
+SHARELATEX_EMAIL_SMTP_SECURE={{ sharelatex_email_smtp_secure | default('true') }}
+SHARELATEX_EMAIL_SMTP_USER={{ sharelatex_email_smtp_user | default('') }}
+SHARELATEX_EMAIL_SMTP_PASS={{ sharelatex_email_smtp_pass | default('') }}
+SHARELATEX_EMAIL_SMTP_TLS_REJECT_UNAUTH={{ sharelatex_email_smtp_tls_reject_unauth | default('true') }}
+SHARELATEX_EMAIL_SMTP_IGNORE_TLS={{ sharelatex_email_smtp_ignore_tls | default('false') }}
+{% if sharelatex_custom_email_footer is defined %}
+SHARELATEX_CUSTOM_EMAIL_FOOTER="{{ sharelatex_custom_email_footer }}"
+{% endif %}
+{% endif %}

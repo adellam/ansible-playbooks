@@ -1,0 +1,114 @@
+---
+- name: "*** Install the Integ ganeti repo ***"
+  yum: name={{ integ_ganeti_repo_url }} state=installed
+  when: ganeti_use_drbd
+  tags:
+    - ganeti
+    - kvm
+  
+- name: "*** Enable Integ ganeti repo ***"
+  ini_file: dest={{ integ_ganeti_repo_file }} section={{ item.1.name }} option=enabled value={{ item.1.value }}
+  with_nested:
+    - integ_ganeti_centos_version
+    - integ_ganeti_repo
+  tags:
+    - ganeti
+    - kvm
+
+- name: Install the ganeti packages
+  yum: name={{ item }} state={{ ganeti_pkg_state }}
+  with_items: integ_ganeti_packages
+  tags:
+    - ganeti
+    - kvm
+
+- name: Install drbd
+  yum: name={{ item }} state={{ ganeti_pkg_state }}
+  with_items: integ_ganeti_drbd_packages
+  when: ganeti_use_drbd
+  tags:
+    - ganeti
+    - drbd
+
+- name: Tell the system that we want the drbd module loaded
+  copy: content="drbd\n" dest=/etc/modules-load.d/drbd.conf
+  when: ganeti_use_drbd
+  tags:
+    - ganeti
+    - drbd
+
+- name: Tell modprobe that the drbd kernel module needs some parameters
+  copy: content="options drbd {{ ganeti_drbd_conf }}\n" dest=/etc/modprobe.d/drbd.conf
+  when: ganeti_use_drbd
+  tags:
+    - ganeti
+    - drbd
+
+- name: Tell modprobe that the drbd kernel module needs some parameters on centos < 6
+  copy: content='ADD_MOD_PARAM="{{ ganeti_drbd_conf }}\n"' dest=/etc/default/drbd
+  when:
+    - integ_ganeti_centos_version < '7'
+    - ganeti_use_drbd
+  tags:
+    - ganeti
+    - drbd
+
+- name: Tell lvm to ignore the drbd devices
+  lineinfile: name=/etc/lvm/lvm.conf regexp="^\ \ \ \ filter\ =.*$" line="    filter = [ \"r|/dev/cdrom|\", \"r|/dev/drbd[0-9]+|\" ]"
+  when: ganeti_use_drbd
+  tags:
+    - ganeti
+    - drbd
+
+- name: Ensure that systemd loads the drbd module
+  service: name=systemd-modules-load state=started
+  when:
+    - integ_ganeti_centos_version == '7'
+    - ganeti_use_drbd
+  tags:
+    - ganeti
+    - drbd
+
+- name: Load the drbd module on CentOS < 7
+  command: modprobe drbd
+  when:
+    - integ_ganeti_centos_version < '7'
+    - ganeti_use_drbd
+  tags:
+    - ganeti
+    - drbd
+
+- name: Change some kernel parameters to optimize the drbd performances
+  sysctl: name={{ item.name }} state={{ item.state }} value={{ item.value }} sysctl_file=/etc/sysctl.d/60-drbd-tuning.conf reload=yes sysctl_set=yes
+  with_items: ganeti_drbd_sysctl_tuning
+  when: ganeti_use_drbd
+  tags:
+    - ganeti
+
+# Important: we need a way to get the ssh keys and store them without a manual intervention.
+- name: Create a ssh key for root on the ganeti first node
+  user: name=root generate_ssh_key=yes ssh_key_bits=2048 ssh_key_comment="ganeti {{ ganeti_cluster_name }}"
+  when: ganeti_first_node
+  tags:
+    - ganeti
+
+- name: Copy the ssh private key on the first node
+  copy: content="{{ id_rsa }}" dest=/root/.ssh/id_rsa mode=0600
+  when: ganeti_first_node
+  tags:
+    - ganeti
+    - ssh_priv
+
+- name: Ensure the first node public key is distributed on all the other ganeti nodes
+  authorized_key: user=root key="{{ ganeti_cluster_key }}" state=present
+  tags:
+    - ganeti
+
+- name: Install a script that initializes the ganeti cluster on the first node
+  template: src={{ item }}.sh.j2 dest=/usr/local/sbin/{{ item }} owner=root mode=0550
+  with_items:
+    - ganeti_cluster_init
+  when: ganeti_first_node
+  tags:
+    - ganeti
+    - gnt_init

@@ -1,0 +1,32 @@
+---
+- name: Remove the php apache module if it is possible. We assume that apache is the web server of choice.
+  yum: pkg={{ item }} state=absent
+  when: phpfpm_remove_php_module
+  with_items:
+    - php
+  tags: php
+
+- name: Configure selinux to permit apache set rlimit
+  seboolean: name=httpd_setrlimit state=yes persistent=yes
+  tags: [ 'php', 'selinux' ]
+
+- name: Install the selinux policy file for php-fpm
+  copy: src=php-fpm-sepol.te dest=/usr/local/etc/php-fpm-sepol.te
+  register: php_fpm_selinux_policy
+  tags: [ 'php', 'selinux' ]
+
+- name: Activate the selinux policy for php-fpm
+  shell: checkmodule -M -m -o /usr/local/etc/php-fpm-sepol.mod /usr/local/etc/php-fpm-sepol.te ; semodule_package -o /usr/local/etc/php-fpm-sepol.pp -m /usr/local/etc/php-fpm-sepol.mod ; semodule -i /usr/local/etc/php-fpm-sepol.pp
+  args:
+    creates: /usr/local/etc/php-fpm-sepol.pp
+  when: php_fpm_selinux_policy.changed
+  tags: [ 'php', 'selinux' ]
+
+- name: Create the users under the php-fpm processes will run
+  user: name={{ item.user }} comment="{{ item.user }}" home={{ item.homedir }} createhome={{ item.createhome }} shell=/sbin/nologin
+  with_items: phpfpm_pools
+  when: phpfpm_create_users
+  notify: Restart php-fpm
+  ignore_errors: True
+  tags: [ 'php', 'fpm_pool' ]
+

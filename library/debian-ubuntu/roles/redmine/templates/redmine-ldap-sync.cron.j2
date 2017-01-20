@@ -1,0 +1,1 @@
+*/{{ redmine_ldap_sync_freq }} * * * *	{{ redmine_user }}	/usr/local/bin/rake -f {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/Rakefile --silent redmine:plugins:ldap_sync:sync_{{ redmine_ldap_sync_who }} RAILS_ENV=production >{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/log/redmine-ldap-sync.log 2>&1

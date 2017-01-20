@@ -1,0 +1,38 @@
+---
+gcube_repository: 'gcube-staging'
+r_connector_install: False
+r_connector_ver: 2.1.1-4.2.0-135146
+r_connector_name: r-connector
+r_connector_filename: '{{ r_connector_name }}-{{ r_connector_ver }}.war'
+r_connector_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/data/analysis/{{ r_connector_name }}/{{ r_connector_ver}}/{{ r_connector_filename }}'
+r_connector_war_file: '{{ r_connector_name }}.war'
+r_connector_usershome: /home/
+r_connector_userconfig: userconfig.csv
+r_connector_adduserscript: /usr/local/bin/rusersadd
+r_connector_rstudio_cookie_key: /var/lib/rstudio-server/secure-cookie-key
+r_connector_rprofile_svn_url: 'http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-analysis/RConfiguration/RStudioConfiguration'
+r_connector_rprofile_filename: '.Rprofile'
+r_connector_rprofile_base_dir: '/srv/d4science'
+r_connector_rprofile_path: '{{ r_connector_rprofile_base_dir }}/RStudioConfiguration'
+r_connector_deb_pkgs:
+  - ldap-utils
+  - nslcd
+  - libnss-ldapd
+  - libpam-ldapd
+  - nscd
+
+#   nslcd/ldap-bindpw: (password omitted)
+# * nslcd/ldap-base: dc=d4science,dc=org
+#   nslcd/ldap-sasl-mech:
+#   nslcd/ldap-sasl-realm:
+# * nslcd/ldap-reqcert: demand
+#   nslcd/ldap-sasl-authzid:
+#   nslcd/ldap-starttls: false
+#   nslcd/ldap-auth-type: none
+#   nslcd/ldap-sasl-krb5-ccname: /var/run/nslcd/nslcd.tkt
+#   nslcd/ldap-sasl-secprops:
+#   nslcd/ldap-sasl-authcid:
+# * nslcd/ldap-uris: ldaps://ldap.d4science.org/
+#   nslcd/ldap-binddn:
+# * libnss-ldapd/nsswitch: passwd
+#   libnss-ldapd/clean_nsswitch: false

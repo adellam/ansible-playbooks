@@ -1,0 +1,35 @@
+acl allowedtoquery {
+       localhost;
+{% for ip in bind_allowed_query_acl %}
+       {{ ip }};
+{% endfor %}
+};
+
+options {
+        directory "{{ bind_cache_dir }}";
+        dump-file       "{{ bind_cache_dir }}/cache_dump.db";
+        statistics-file "{{ bind_cache_dir }}/named.stats";
+        memstatistics-file "{{ bind_cache_dir }}/named_mem.stats";
+        max-cache-ttl {{ bind_max_cache_ttl }};
+        max-ncache-ttl {{ bind_max_negative_cache_ttl }};
+        auth-nxdomain no;    # conform to RFC1035
+{% if bind_listen_on_ipv4 %}
+        listen-on { any; };
+{% endif %}
+{% for int in bind_listen_on_ipv6 %}
+        listen-on-v6 { {{ int }}; };
+{% endfor %}
+{% if bind_dnssec_enabled %}
+         dnssec-enable yes;
+{% endif %}
+        dnssec-validation {{ bind_dnssec_validation }};
+        recursion yes;
+        allow-query { allowedtoquery; };
+{% if bind_use_forwarders %}
+        forwarders {
+{% for ip in bind_forwarders_list %}
+                   {{ ip }};
+{% endfor %}
+        };
+{% endif %}
+};

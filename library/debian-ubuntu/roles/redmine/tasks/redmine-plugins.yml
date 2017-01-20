@@ -1,0 +1,303 @@
+---
+#
+# Plugins
+#
+- name: Redmine better gantt plugin
+  get_url: url=https://github.com/kulesa/redmine_better_gantt_chart/releases/download/v.0.9.0/redmine_better_gantt_chart_0.9.0.zip dest={{ redmine_glob_root_dir }}/plugins_download/redmine_better_gantt_chart_0.9.0.zip
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Install the better gantt plugin
+  unarchive: src={{ redmine_glob_root_dir }}/plugins_download/redmine_better_gantt_chart_0.9.0.zip dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins copy=no owner=root group=root creates={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_better_gantt_chart/init.rb
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Install the ldap sync plugin
+  git: repo=https://github.com/thorin/redmine_ldap_sync.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_ldap_sync update=no
+  when: rm_ldap_synch
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'rm_ldap_synch' ]
+
+- name: Cron job that manages the ldap synch
+  template: src=redmine-ldap-sync.cron.j2 dest=/etc/cron.d/redmine-ldap-sync owner=root group=root mode=0444
+  when: rm_ldap_synch
+  tags: [ 'redmine', 'redmine_plugins', 'rm_ldap_synch' ]
+
+- name: Redmine login audit plugin
+  git: repo=https://github.com/martin-denizet/redmine_login_audit.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_login_audit update=no
+  notify:
+    - Reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Redmine subversion links plugin
+  git: repo=https://github.com/masamitsu-murase/redmine_add_subversion_links.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_add_subversion_links update=no
+  when: rm_addsubversionlinks_plugin
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Progressive projects list plugin
+  git: repo=https://github.com/stgeneral/redmine-progressive-projects-list.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/progressive_projects_list update=no
+  notify:
+    - Reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: didyoumean plugin
+  git: repo=https://github.com/abahgat/redmine_didyoumean.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_didyoumean update=no
+  notify:
+    - Reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Install the graphs plugin
+  git: repo=https://github.com/bradbeattie/redmine-graphs-plugin.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_graphs update=no
+  notify:
+    - Reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Install the embedded tab plugin
+  git: repo=https://github.com/jamtur01/redmine_tab.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_tab update=no
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+  when: rm_embedded_tabs_plugin
+  tags: [ 'redmine', 'redmine_plugins', 'rm_embedded_tabs' ]
+
+- name: Install the recurring-tasks plugin
+  git: repo=https://github.com/nutso/redmine-plugin-recurring-tasks.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/recurring_tasks update=no
+  notify:
+    - Bundle install and reconfigure redmine
+  when: rm_recurring_tasks_plugin
+  tags: [ 'redmine', 'redmine_plugins', 'rm_recurring_tasks' ]
+
+- name: Cron job that manages the recurring tasks
+  template: src=redmine-recurring-tasks.cron.j2 dest=/etc/cron.d/redmine-recurring-tasks owner=root group=root mode=0444
+  when: rm_recurring_tasks_plugin
+  tags: [ 'redmine', 'redmine_plugins', 'rm_recurring_tasks' ]
+
+- name: Redmine agile plugin. Free version from www.redminecrm.com
+  unarchive: src=redmine_agile.zip dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins creates={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_agile/init.rb
+  when: redmine_install_agile_plugin
+  notify:
+    - Reconfigure agile plugin
+    - Bundle install
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Get the scrum plugin
+  get_url: url=https://redmine.ociotec.com/attachments/download/302/scrum%20v0.9.1.tar.gz dest={{ redmine_glob_root_dir }}/plugins_download/scrum_v0.9.1.tar.gz validate_certs=no
+  when: rm_scrum_plugin
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Unarchive the scrum plugin
+  unarchive: src={{ redmine_glob_root_dir }}/plugins_download/scrum_v0.9.1.tar.gz dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins copy=no owner=root group=root creates={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/scrum/init.rb
+  when: rm_scrum_plugin
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Rename the scrum plugin
+  shell: mv "{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/scrum v0.9.1" {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/scrum creates={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/scrum/init.rb
+  when: rm_scrum_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins' ]
+
+- name: Install the redmine advanced roadmap plugin
+  git: repo=https://github.com/Coren/redmine_advanced_roadmap_v2.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/advanced_roadmap_v2 update=no
+  when: rm_advanced_roadmap_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_ar' ]
+
+- name: Install the redmine scrum2b plugin
+  git: repo=https://github.com/scrum2b/scrum2b version=2-1-stable dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/scrum2b update=no
+  when: rm_scrum2b_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_scrum2b' ]
+
+- name: Install the auto watcher for groups plugin
+  git: repo=https://github.com/akuznecov/redmine_auto_watchers_from_groups dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_auto_watchers_from_groups update=no
+  when: rm_autowatcher_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_autowatcher' ]
+
+- name: Install the issue reminder plugin
+  git: repo=https://github.com/Hopebaytech/redmine_issue_reminder version=redmine2.6 dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_issue_reminder update=no
+  when: rm_issuereminder_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_issuereminder' ]
+
+- name: Install the issue reminder plugin cron job.
+  template: src=redmine_issue_reminder.cron.j2 dest=/etc/cron.d/redmine_issue_reminder owner=root group=root mode=0644
+  when: rm_issuereminder_plugin
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_issuereminder' ]
+
+- name: Install the update reminder plugin
+  git: repo=https://github.com/arkhitech/redmine_update_reminder dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_update_reminder update=no
+  when: rm_updatereminder_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_updatereminder' ]
+
+- name: Install the update reminder plugin cron job. The ruby scheduler does not work, it seems
+  template: src=redmine_update_reminder.cron.j2 dest=/etc/cron.d/redmine_update_reminder owner=root group=root mode=0644
+  when: rm_updatereminder_plugin
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_updatereminder' ]
+
+- name: Install the mention plugin
+  git: repo=https://github.com/stpl/redmine_mention_plugin dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_mention_plugin update=no
+  when: rm_mention_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_mention' ]
+
+- name: Install the default custom query plugin
+  git: repo=https://github.com/hidakatsuya/redmine_default_custom_query dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_default_custom_query update=no
+  when: rm_defaultcustomquery_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_defaultcustomquery' ]
+
+- name: Install the gamification plugin
+  git: repo=https://github.com/mauricio-camayo/redmine_gamification_plugin dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_gamification_plugin update=no
+  when: rm_gamification_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_gamification' ]
+
+- name: Install the closes resolved issues plugin
+  git: repo=https://github.com/Jogi1j/redmine_closes_resolved_issues dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_closes_resolved_issues update=no
+  when: rm_closesresolvedissue_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_closesresolvedissue' ]
+
+- name: Install the default assign plugin
+  git: repo=https://github.com/giddie/redmine_default_assign dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_default_assign update=no
+  when: rm_defaultassign_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_defaultassign' ]
+
+- name: Install the once assigned ever watcher plugin
+  git: repo=https://github.com/raafael911/redmine_once_assigned_ever_watcher dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_once_assigned_ever_watcher update=no
+  when: rm_onceassignedeverwatcher_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_onceassignedeverwatcher' ]
+
+- name: Install the clipboard image paste plugin
+  git: repo=https://github.com/peclik/clipboard_image_paste dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/clipboard_image_paste update=no
+  when: rm_clipboardimagepaste_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_clipboardimagepaste' ]
+
+- name: Install the hotkeys js plugin
+  git: repo=https://github.com/sasha-ch/redmine_hotkeys_js version=v0.0.3 dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/clipboard_hotkeys_js update=no
+  when: rm_hotkeysjs_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_hotkeysjs' ]
+
+- name: Install the issues sorting plugin
+  git: repo=https://github.com/JohnBat26/redmine_issues_sorting dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_issues_sorting update=no
+  when: rm_issuessorting_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_issuessorting' ]
+
+- name: Install the mylyn plugin
+  git: repo=https://github.com/ljader/redmine-mylyn-plugin dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_mylyn_plugin update=no
+  when: rm_mylyn_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_mylyn' ]
+
+- name: Install the quick edit plugin
+  git: repo=git://git.sourceforge.jp/gitroot/quickedit/quick_edit.git accept_hostkey=yes dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/quick_edit update=no
+  when: rm_quickedit_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_quickedit' ]
+
+- name: Install the quick view plugin
+  git: repo=git://git.sourceforge.jp/gitroot/quickedit/quick_view.git accept_hostkey=yes dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/quick_view update=no
+  when: rm_quickview_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_quickview' ]
+
+- name: Get the code review plugin
+  get_url: url=https://bitbucket.org/haru_iida/redmine_code_review/downloads/redmine_code_review-0.6.5.zip dest={{ redmine_glob_root_dir }}/plugins_download/redmine_code_review-0.6.5.zip validate_certs=no
+  when: rm_codereview_plugin
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_codereview' ]
+
+- name: Unarchive the code review plugin
+  unarchive: src={{ redmine_glob_root_dir }}/plugins_download/redmine_code_review-0.6.5.zip dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins copy=no owner=root group=root creates={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_code_review/init.rb
+  when: rm_codereview_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_codereview' ]
+
+- name: Unarchive the global roles plugin
+# manual download required http://rmplus.pro/en/redmine/plugins/global_roles
+  unarchive: src={{ redmine_glob_root_dir }}/plugins_download/global_roles.zip dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins copy=no owner=root group=root creates={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/global_roles/init.rb
+  when: rm_globalroles_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_globalroles' ]
+
+- name: Unarchive the unread issues plugin
+# manual download required http://rmplus.pro/en/redmine/plugins/unread_issues
+  unarchive: src={{ redmine_glob_root_dir }}/plugins_download/unread_issues.zip dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins copy=no owner=root group=root creates={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/unread_issues/init.rb
+  when: rm_unreadissues_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_unreadissues' ]
+
+- name: Unarchive the usability plugin
+# manual download required http://rmplus.pro/en/redmine/plugins/usability
+  unarchive: src={{ redmine_glob_root_dir }}/plugins_download/usability.zip dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins copy=no owner=root group=root creates={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/usability/init.rb
+  when: rm_usability_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_usability' ]
+
+- name: Install the mylyn connector plugin
+  git: repo=git://github.com/danmunn/redmine_mylyn_connector.git accept_hostkey=yes dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_mylyn_connector update=no
+  when: rm_mylynconnector_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_mylynconnector' ]
+
+- name: Install the mentions plugin
+  git: repo=https://github.com/arkhitech/redmine_mentions dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_mentions update=no
+  when: rm_mentions_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_mentions' ]
+
+- name: Install the external wiki plugin
+  git: repo=https://github.com/nutso/redmine-plugin-wiki-external.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/wiki_external update=no
+  when: rm_wiki_external_plugin
+  notify: Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_wiki_external' ]
+
+- name: Install the paste plugin
+  git: repo=https://github.com/commandprompt/redmine_pastebin.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_pastebin update=no
+  when: rm_pastebin_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_pastebin' ]
+
+- name: Install the issue_templates plugin
+  git: repo=https://github.com/akiko-pusu/redmine_issue_templates dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_issue_templates update=no
+  when: rm_issue_templates_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_issue_templates' ]
+

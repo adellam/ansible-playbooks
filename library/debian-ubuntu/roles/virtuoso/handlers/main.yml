@@ -1,0 +1,6 @@
+---
+- name: Start virtuoso
+  service: name=virtuoso-opensource-{{ virtuoso_version }} state=started
+
+- name: Restart virtuoso
+  service: name=virtuoso-opensource-{{ virtuoso_version }} state=restarted

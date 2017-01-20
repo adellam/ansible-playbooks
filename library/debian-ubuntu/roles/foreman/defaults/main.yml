@@ -1,0 +1,14 @@
+---
+# foreman PKG state: latest, installed, absent
+foreman_pkg_state: latest
+foreman_repos:
+  - 'deb http://deb.theforeman.org/ {{ ansible_distribution }} stable'
+  - 'deb http://deb.theforeman.org/ plugins stable'
+
+foreman_repo_key: 'http://deb.theforeman.org/pubkey.gpg'
+
+foreman_puppetlabs_repo_pkg: 'puppetlabs-release-{{ ansible_distribution_release }}.deb'
+foreman_puppetlabs_repo_url: 'https://apt.puppetlabs.com/{{ foreman_puppetlabs_repo_pkg }}'
+
+foreman_ansible_plugin:
+  - ruby-foreman-ansible

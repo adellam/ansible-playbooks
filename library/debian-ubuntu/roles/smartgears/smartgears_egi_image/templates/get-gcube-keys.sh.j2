@@ -1,0 +1,48 @@
+#!/bin/bash
+
+SM_DIR={{ smartgears_install_path }}
+SM_LIB_DIR=${SM_DIR}/lib
+# The dataminer wants the gcube keys in a different directory too
+SM_DATAMINER_PARALLEL_PROC={{ smartgears_user_home }}/tomcat/webapps/wps/ecocfg/PARALLEL_PROCESSING
+LOG_DIR=/var/log/smartgears-gcubekeys-setup
+LOG_FILE=${LOG_DIR}/gcubekeys-setup.log
+
+INFRA_NAME=$1
+rm -f $LOG_DIR/*
+rmdir $LOG_DIR
+mkdir -p $LOG_DIR
+
+if [ ! -d $SM_LIB_DIR ] ; then
+    echo "$0: The lib directory: $SM_LIB_DIR does not exist, aborting" >> $LOG_FILE
+    exit 1
+else
+    pushd $SM_LIB_DIR >/dev/null 2>&1
+fi
+
+if [ "$INFRA_NAME" == "gcube" ] ; then
+    echo "Downloading the keys for the $INFRA_NAME infra" >> $LOG_FILE
+    wget {{ gcube_dkey_1 }} --no-check-certificate -o $LOG_FILE.gcube -O gcube.gcubekey
+    wget {{ gcube_dkey_2 }} --no-check-certificate -o $LOG_FILE.devsec -O devsec.gcubekey
+    wget {{ gcube_dkey_3 }} --no-check-certificate -o $LOG_FILE.devNext -O devNext.gcubekey
+elif [ "$INFRA_NAME" == "d4science.research-infrastructures.eu" ] ; then
+    echo "Downloading the keys for the $INFRA_NAME infra" >> $LOG_FILE
+    wget {{ gcube_pkey_1 }} --no-check-certificate -o $LOG_FILE.d4science -O d4science.research-infrastructures.eu.gcubekey
+    wget {{ gcube_pkey_2 }} --no-check-certificate -o $LOG_FILE.FARM -O FARM.gcubekey
+    wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.gCubeApps -O gCubeApps.gcubekey
+    chmod 400 $SM_LIB_DIR/*.gcubekey
+else
+    echo "The Infra name is unknown, no keys downloaded" >> $LOG_FILE
+    exit 0
+fi
+popd >/dev/null 2>&1
+chmod 400 $SM_LIB_DIR/*.gcubekey >> $LOG_FILE 2>&1
+chown gcube:root $SM_LIB_DIR/*.gcubekey  >> $LOG_FILE 2>&1
+if [ -d $SM_DATAMINER_PARALLEL_PROC ] ; then
+    echo "This is a dataminer. Copy the keys inside the dataminer conf dir" >> $LOG_FILE 2>&1
+    cp -a $SM_LIB_DIR/*.gcubekey $SM_DATAMINER_PARALLEL_PROC >> $LOG_FILE 2>&1
+    chmod 400 $SM_DATAMINER_PARALLEL_PROC/*.gcubekey >> $LOG_FILE 2>&1
+    chown gcube:root $SM_DATAMINER_PARALLEL_PROC/*.gcubekey >> $LOG_FILE 2>&1
+fi
+
+exit 0
+

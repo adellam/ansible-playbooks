@@ -1,0 +1,18 @@
+---
+# First things first: install the basic requirements with a raw command
+- name: install python-apt
+  raw: "apt-get update; apt-get install -y python python-apt lsb-release"
+  tags:
+    - pythonapt
+
+- name: Install python-software-properties
+  apt: pkg=python-software-properties state=installed
+  tags:
+    - pythonapt
+
+- name: Install software-properties-common on quantal distributions
+  apt: pkg=software-properties-common state=installed
+  when: is_quantal
+  tags:
+    - pythonapt
+

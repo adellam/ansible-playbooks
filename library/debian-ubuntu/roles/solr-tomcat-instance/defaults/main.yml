@@ -1,0 +1,39 @@
+---
+# solr
+solr_http_port: 8983
+tomcat_load_additional_default_conf: True
+tomcat_version: 7
+# solr needs a lot of time to start if it needs to rebuild its indices
+tomcat_restart_timeout: 100000
+
+solr_version: 4.10.2
+solr_service: -solr
+solr_config_name: hindex
+solr_shards: 1
+solr_instance: '{{ solr_service }}'
+solr_log_level: INFO
+solr_http_port_1: '{{ solr_http_port }}'
+solr_zoo_port: 9983
+solr_zoo_port_1: 9984
+solr_zoo_port_2: 9985
+solr_jmx_port_1: 8601
+solr_user: '{{ tomcat_user }}'
+solr_group: '{{ tomcat_user }}'
+solr_outside_tomcat_dir: False
+# We need to define this one because we are using the tomcat multiple instances role
+solr_tomcat_instance_dir: '{{ tomcat_m_instances_base_path }}/{{ solr_http_port }}'
+solr_data_dir: '{{ solr_tomcat_instance_dir }}/solr'
+solr_collections_base_dir: '{{ solr_data_dir }}/data/solr'
+solr_zookeeper_data_dir: '{{ solr_data_dir }}/zoo_data'
+solr_install_collection1: False
+# Stand alone
+solr_opts: "-DzkRun -DnumShards={{ solr_shards }}"
+# This is for the replica/sharded version
+# We need to pass a lot of options to the jdk for zookeeper and the solr shard configuration
+#solr_opts: "-DzkRun={{ ansible_fqdn}}:{{ solr_zoo_port }} -DnumShards={{ solr_shards }} -DzkHost=index1:{{ solr_zoo_port }},index2:{{ solr_zoo_port }},index3:{{ solr_zoo_port }}"
+
+# Define the following if you want a multicore installation
+solr_multicore: False
+solr_cores:
+  - collection1
+

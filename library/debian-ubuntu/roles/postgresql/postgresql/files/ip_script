@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# Exec /sbin/ip as root via sudo
+
+RETVAL=
+CMD=/sbin/ip
+
+sudo $CMD $@
+RETVAL=$?
+
+exit $RETVAL
+

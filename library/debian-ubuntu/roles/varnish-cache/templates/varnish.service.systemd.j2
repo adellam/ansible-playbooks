@@ -1,0 +1,15 @@
+[Unit]
+Description=Varnish HTTP accelerator
+After=network.target
+
+[Service]
+Type=forking
+EnvironmentFile=-/etc/default/varnish
+LimitNOFILE={{ varnish_n_files }}
+LimitMEMLOCK={{ varnish_memlock }}
+ExecStartPre=/usr/sbin/varnishd -C -f {{ varnish_vcl_conf }}
+ExecStart=/usr/sbin/varnishd  -u {{ varnish_user }} $DAEMON_OPTS
+ExecReload=/usr/share/varnish/reload-vcl
+
+[Install]
+WantedBy=multi-user.target

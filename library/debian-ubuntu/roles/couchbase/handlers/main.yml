@@ -1,0 +1,9 @@
+---
+- name: Restart couchbase
+  service: name=couchbase-server state=restarted
+  when: couchbase_start_server
+
+- name: Update apt cache
+  apt: update_cache=yes
+  ignore_errors: true
+

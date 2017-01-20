@@ -1,0 +1,117 @@
+---
+- name: Install the basic packages
+  yum: name={{ item }} state={{ centos_pkg_state }}
+  with_items: '{{ centos_packages_to_install }}'
+  tags: [ 'centos', 'bootstrap', 'packages' ]
+
+- name: Install the basic packages from the EPEL repository
+  yum: name={{ item }} state={{ centos_pkg_state }}
+  with_items: '{{ centos_packages_from_epel }}'
+  when: centos_install_epel
+  tags: [ 'centos', 'bootstrap', 'packages' ]
+
+- name: Install the packages we want on a non virtualized host
+  yum: name={{ item }} state={{ centos_pkg_state }}
+  with_items: '{{ centos_hw_packages | default([]) }}'
+  when: not centos_is_vm
+  tags: [ 'centos', 'bootstrap', 'packages' ]
+
+- name: Install the selinux policy file to fix a systemd policy glitch
+  copy: src=systemd-enable.te dest=/usr/local/etc/systemd-enable-sepol.te
+  register: systemd_selinux_policy
+  tags: [ 'centos', 'rhel', 'selinux' ]
+
+- name: Activate the selinux policy for systemd
+  shell: checkmodule -M -m -o /usr/local/etc/systemd-enable-sepol.mod /usr/local/etc/systemd-enable-sepol.te ; semodule_package -o /usr/local/etc/systemd-enable-sepol.pp -m /usr/local/etc/systemd-enable-sepol.mod ; semodule -i /usr/local/etc/systemd-enable-sepol.pp
+  args:
+    creates: /usr/local/etc/systemd-enable-sepol.pp
+  when: ( systemd_selinux_policy | changed )
+  tags: [ 'centos', 'rhel', 'selinux' ]
+
+- name: Activate smartmontools on a non virtualized host
+  service: name=smartd state=started enabled=yes
+  when: not centos_is_vm
+  tags: [ 'centos', 'bootstrap', 'packages' ]
+
+- name: Install the locate utility if needed
+  yum: name={{ item }} state={{ centos_pkg_state }}
+  with_items: '{{ centos_locate_package }}'
+  when: centos_enable_locate
+  tags: [ 'centos', 'bootstrap', 'packages' ]
+  
+- name: Set the timezone
+  command: timedatectl set-timezone {{ timezone }}
+  tags: [ 'centos', 'bootstrap' ]
+
+- name: Set the hostname
+  hostname: name={{ hostname }}
+  when: hostname is defined
+  tags: [ 'centos', 'bootstrap' ]
+
+- name: Configure the main interface to set the correct resolvers. dns1
+  lineinfile: name=/etc/sysconfig/network-scripts/ifcfg-eth0 regexp="^DNS1=" line="DNS1={{ dns1 }}"
+  when: centos_set_dns_servers
+  tags: [ 'centos', 'bootstrap' ]
+
+- name: Configure the main interface to set the correct resolvers. dns2
+  lineinfile: name=/etc/sysconfig/network-scripts/ifcfg-eth0 regexp="^DNS2=" line="DNS2={{ dns2 }}"
+  when: centos_set_dns_servers
+  tags: [ 'centos', 'bootstrap' ]
+
+- name: Configure the main interface to set the correct resolvers. search domain
+  lineinfile: name=/etc/sysconfig/network-scripts/ifcfg-eth0 regexp="^DOMAIN=" line="DOMAIN={{ domain_name }}"
+  when: configure_domain_name_in_interface
+  tags: [ 'centos', 'bootstrap' ]
+
+- name: Ensure that the ntpd service is enabled and running
+  service: name=ntpd state=started enabled=yes
+  when: centos_ntpd_enabled
+  tags: [ 'centos', 'bootstrap', 'ntp' ]
+
+- name: Ensure that the ntpd service is stopped and disabled
+  service: name=ntpd state=stopped enabled=no
+  when: not centos_ntpd_enabled
+  tags: [ 'centos', 'bootstrap', 'ntp' ]
+
+- name: Stop avahi before removing it when it is not needed
+  service: name=avahi-daemon state=stopped enabled=no
+  when: centos_remove_avahi or centos_disable_avahi
+  ignore_errors: True
+  tags: [ 'centos', 'bootstrap', 'avahi' ]
+
+- name: Stop and disable NetworkManager when we do not need it or we are going to remove it
+  service: name=NetworkManager state=stopped enabled=no
+  when: centos_remove_networkmanager or centos_disable_networkmanager
+  ignore_errors: True
+  tags: [ 'centos', 'bootstrap', 'networkmanager' ]
+  
+- name: Remove some unneeded packages
+  yum: name={{ item }} state=absent
+  with_items: '{{ centos_packages_to_remove | default ([]) }}'
+  when: centos_packages_cleanup
+  tags: [ 'centos', 'bootstrap', 'packages' ]
+
+- name: Remove the Avahi packages
+  yum: name={{ item }} state=absent
+  with_items: '{{ centos_avahi_packages | default ([]) }}'
+  when: centos_remove_avahi
+  tags: [ 'centos', 'bootstrap', 'packages' ]
+
+- name: Remove the NetworkManager packages
+  yum: name={{ item }} state=absent
+  with_items: '{{ centos_nm_packages | default ([]) }}'
+  when: centos_remove_networkmanager
+  tags: [ 'centos', 'bootstrap', 'packages' ]
+
+- name: Disable some unneeded services
+  service: name={{ item }} state=stopped enabled=no
+  when: centos_services_to_be_disabled is defined
+  with_items: '{{ centos_services_to_be_disabled }}'
+  ignore_errors: True
+  tags: [ 'centos', 'bootstrap', 'daemons' ]
+
+- name: Configure selinux to permit core dumps by daemons
+  seboolean: name=daemons_dump_core state=yes persistent=yes
+  when: centos_selinux_daemons_dump_core
+  tags: [ 'centos', 'bootstrap', 'selinux' ]
+

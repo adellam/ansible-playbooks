@@ -1,0 +1,13 @@
+---
+- name: Restart haproxy
+  service: name=haproxy state=restarted
+  when: haproxy_enabled
+
+- name: Reload haproxy
+  service: name=haproxy state=reloaded
+  when: haproxy_enabled
+
+- name: Reload rsyslog
+  service: name=rsyslog state=reloaded
+  when: haproxy_enabled
+

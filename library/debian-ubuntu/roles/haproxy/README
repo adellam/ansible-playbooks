@@ -1,0 +1,40 @@
+#
+# The user of this role will need to write a haproxy.cfg template and install it with a dedicated task. Something like
+
+- name: Configure haproxy
+  template: src=haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg owner=root group=haproxy mode=0440
+  notify: Reload haproxy
+  tags: [ 'haproxy', 'haproxy_conf' ]
+  
+#
+# Very complex setup that involves varnish. Taken here:
+# https://alohalb.wordpress.com/2012/08/25/haproxy-varnish-and-the-single-hostname-website/
+# For a ssl setup, check here:
+# http://seanmcgary.com/posts/using-sslhttps-with-haproxy
+# https://alohalb.wordpress.com/haproxy/haproxy-and-ssl/
+# https://alohalb.wordpress.com/2013/01/21/mitigating-the-ssl-beast-attack-using-the-aloha-load-balancer-haproxy/
+# http://blog.haproxy.com/2015/05/06/haproxys-load-balancing-algorithm-for-static-content-delivery-with-varnish/
+# http://blog.haproxy.com/2012/09/10/how-to-get-ssl-with-haproxy-getting-rid-of-stunnel-stud-nginx-or-pound/
+# https://serversforhackers.com/using-ssl-certificates-with-haproxy
+#
+# Session management workarounds:
+# http://blog.haproxy.com/2012/03/29/load-balancing-affinity-persistence-sticky-sessions-what-you-need-to-know/
+# http://serverfault.com/questions/439445/haproxy-my-sessions-are-sort-of-sticky
+#
+# Hints to protect from DDOS or too many legitimate requests
+# http://www.loadbalancer.org/de/blog/black-friday-black-out-protection-with-haproxy
+#
+
+When letsencrypt is enabled, the haproxy configurazion file needs to
+contain not only the https configuration, but also something like:
+
+frontend http
+         bind 80
+         acl letsencrypt-request path_beg -i /.well-known/acme-challenge/
+         use_backend letsencrypt if letsencrypt-request
+
+backend letsencrypt
+        mode http
+        server letsencrypt 127.0.0.1:9999
+
+Where 9999 is the port where the letsencrypt standalone client will listen to.

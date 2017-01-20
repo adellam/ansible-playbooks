@@ -1,0 +1,31 @@
+---
+- block:
+    - name: Install the bind packages
+      apt: pkg={{ item }} state={{ bind_pkg_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ bind_pkg_list }}'
+
+    - name: Install the bind configuration
+      template: src=named.conf.options.j2 dest=/etc/bind/named.conf.options owner=root group=bind mode=0640
+      notify: reload bind
+
+    - name: Ensure that the bind service is running and enabled
+      service: name=bind9 state=started enabled=yes
+
+    - name: Ensure that the bind service is stopped and disabled
+      service: name=bind9 state=stopped enabled=no
+      when: not bind_enabled
+
+  when: bind_enabled
+  tags: [ 'bind', 'caching_nameserver' ]
+    
+- block:
+    - name: Ensure that the bind service is stopped and disabled
+      service: name=bind9 state=stopped enabled=no
+
+    - name: Remove the bind packages
+      apt: pkg={{ item }} state=absent
+      with_items: '{{ bind_pkg_list }}'
+
+  when: not bind_install
+  tags: [ 'bind', 'caching_nameserver' ]
+    

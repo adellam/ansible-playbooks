@@ -1,0 +1,19 @@
+---
+- name: Install the rkhunter rpm
+  yum: name=rkhunter state={{ rkhunter_state }}
+  register: rkhunter_install
+  when: centos_install_epel
+  tags: rkhunter
+
+- name: Install some utilities needed by rkhunter
+  yum: name={{ item }} state={{ rkhunter_state }}
+  with_items:
+    - unhide
+  when: centos_install_epel
+  tags: rkhunter
+
+- name: Initialize rkhunter
+  command: /usr/bin/rkhunter --propupd
+  when: (rkhunter_install|changed)
+  ignore_errors: True
+  tags: rkhunter

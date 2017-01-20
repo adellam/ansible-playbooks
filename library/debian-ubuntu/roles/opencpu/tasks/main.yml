@@ -1,0 +1,37 @@
+---
+- block:
+    
+    - name: Install the opencpu repository
+      apt_repository: repo={{ opencpu_repo }} update_cache=yes
+
+    - name: Install the opencpu package
+      apt: pkg={{ item }} state={{ opencpu_pkg_state }} update_cache=yes cache_valid_time=3600
+      with_items: '{{ opencpu_pkgs }}'
+
+    - name: Install a custom opencpu configuration
+      template: src=custom-opencpu.conf.j2 dest=/etc/opencpu/server.conf.d/custom.conf owner=opencpu group=opencpu mode=0644
+      notify: restart opencpu
+
+    - name: Ensure that the opencpu service is enabled and running
+      service: name=opencpu state=started enabled=yes
+      when: opencpu_enabled
+
+    - name: Ensure that the opencpu service is disabled and stopped
+      service: name=opencpu state=stopped enabled=no
+      when: not opencpu_enabled
+
+  tags: opencpu
+  when: opencpu_install
+
+
+- block:
+    
+    - name: Remove the opencpu repository
+      apt_repository: repo={{ opencpu_repo }} state=absent
+
+    - name: Remove the opencpu package
+      apt: pkg={{ item }} state=absent
+      with_items: '{{ opencpu_pkgs }}'
+
+  tags: opencpu
+  when: not opencpu_install

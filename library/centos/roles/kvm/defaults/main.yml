@@ -1,0 +1,51 @@
+---
+virtualization_pkg_state: latest
+
+virtualization_packages:
+  - qemu-kvm
+  - libvirt
+  - bridge-utils
+  - virt-install
+
+virtualization_centos6_packages:
+  - python-virtinst
+
+virtualization_centos_netinst_url: "http://mi.mirror.garr.it/mirrors/CentOS/7/os/x86_64/"
+virtualization_os_boot_dir: /var/lib/libvirt/boot
+virtualization_os_boot_images:
+  - "http://mi.mirror.garr.it/mirrors/CentOS/7.0.1406/isos/x86_64/CentOS-7.0-1406-x86_64-Minimal.iso"
+  - "http://mi.mirror.garr.it/mirrors/CentOS/5.11/isos/x86_64/CentOS-5.11-x86_64-netinstall.iso"
+  - "http://cdimage.debian.org/debian-cd/7.7.0/amd64/iso-cd/debian-7.7.0-amd64-netinst.iso"
+  - "http://releases.ubuntu.com/14.04.1/ubuntu-14.04.1-server-amd64.iso"
+
+virtualization_activate_forwarding: True
+
+virtualization_disable_nfs: True
+virtualization_nfs_services_to_be_disabled:
+  - nfslock
+  - rpcbind
+  - gssproxy
+
+virtualization_disable_iscsi: True
+virtualization_iscsi_services_to_be_disabled:
+  - iprupdate
+  - iprinit
+  - iprdump
+  - iscsid
+
+# Set this to false if ganeti is used for VM management
+virtualization_enable_libvirtd: True
+virtualization_services_to_be_enabled:
+  - libvirtd
+
+virtualization_sysctl_tuning:
+  - { name: 'net.ipv4.ip_forward', value: '1', state: 'present' }
+
+virtualization_kvm_create_lvm_pv: False
+virtualization_kvm_create_lvm_vg: False
+virtualization_kvm_lvm_pv:
+  - /dev/fake_disk_1
+virtualization_kvm_lvm_vg: vgxen
+
+# Disable tuned on the host
+centos_tuned_enabled: False
