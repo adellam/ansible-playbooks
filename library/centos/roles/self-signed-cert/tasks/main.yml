@@ -27,35 +27,46 @@
     - '{{ letsencrypt_acme_user_home | default(omit) }}/certs/fakeselfsignedcert' 
     - '{{ letsencrypt_acme_user_home | default(omit) }}/keys/fakeselfsignedcert' 
   when:
-    - ( true_cert.stat.islnk is not defined ) and ( letsencrypt_acme_install is defined and letsencrypt_acme_install )
-    - letsencrypt_acme_user_home | default(omit) is defined
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+    - true_cert.stat is defined and true_cert.stat.islnk is not defined
+    - letsencrypt_acme_user_home is defined
   tags: [ 'pki', 'ssl', 'letsencrypt' ]
 
 - name: When we are going to install letsencrypt certificates, create a preliminary path and a self signed cert. Now the certificate and private key
   command: openssl req -x509 -newkey rsa:2048 -keyout {{ letsencrypt_acme_user_home | default(omit) }}/keys/fakeselfsignedcert/privkey -out {{ letsencrypt_acme_user_home | default(omit) }}/certs/fakeselfsignedcert/cert -days 10 -nodes -subj '/CN=self signed certificate'
   args:
     creates: '{{ letsencrypt_acme_user_home | default(omit) }}/certs/fakeselfsignedcert/cert'
-  when: ( true_cert.stat.islnk is not defined ) and ( letsencrypt_acme_install is defined and letsencrypt_acme_install )
+  when:
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+    - true_cert.stat is defined and true_cert.stat.islnk is not defined
   tags: [ 'pki', 'ssl', 'letsencrypt' ]
 
 - name: When we are going to install letsencrypt certificates, create a preliminary path and a self signed cert. Now the symbolic links for the private key
   file: src=../../keys/fakeselfsignedcert/privkey dest={{ letsencrypt_acme_user_home | default(omit) }}/certs/fakeselfsignedcert/privkey state=link
-  when: ( true_cert.stat.islnk is not defined ) and ( letsencrypt_acme_install is defined and letsencrypt_acme_install )
+  when:
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+    - true_cert.stat is defined and true_cert.stat.islnk is not defined
   tags: [ 'pki', 'ssl', 'letsencrypt' ]
   
 - name: When we are going to install letsencrypt certificates, create a preliminary path and a self signed cert. Now the symbolic links for the chain file
   file: src=cert dest={{ letsencrypt_acme_user_home | default(omit) }}/certs/fakeselfsignedcert/chain state=link
-  when: ( true_cert.stat.islnk is not defined ) and ( letsencrypt_acme_install is defined and letsencrypt_acme_install )
+  when:
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+    - true_cert.stat is defined and true_cert.stat.islnk is not defined
   tags: [ 'pki', 'ssl', 'letsencrypt' ]
   
 - name: When we are going to install letsencrypt certificates, create a preliminary path and a self signed cert. Now the symbolic links for the fullchain file
   file: src=cert dest={{ letsencrypt_acme_user_home | default(omit) }}/certs/fakeselfsignedcert/fullchain state=link
-  when: ( true_cert.stat.islnk is not defined ) and ( letsencrypt_acme_install is defined and letsencrypt_acme_install )
+  when:
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+    - true_cert.stat is defined and true_cert.stat.islnk is not defined
   tags: [ 'pki', 'ssl', 'letsencrypt' ]
   
 - name: When we are going to install letsencrypt certificates, create a preliminary path and a self signed cert. Now the symbolic links for the certificate if there is not one
   file: src=../certs/fakeselfsignedcert dest={{ letsencrypt_acme_user_home | default(omit) }}/live/{{ ansible_fqdn }} state=link
-  when: ( true_cert.stat.islnk is not defined ) and ( letsencrypt_acme_install is defined and letsencrypt_acme_install )
+  when:
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+    - true_cert.stat is defined and true_cert.stat.islnk is not defined
   tags: [ 'pki', 'ssl', 'letsencrypt' ]
   
 - name: When we are going to install letsencrypt certificates, create a preliminary path and a self signed cert. Now handle the haproxy special case
