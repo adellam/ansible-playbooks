@@ -28,17 +28,17 @@
 
 - name: Remove the unneeded files
   file: dest={{ yii_install_dir }}/yii-{{ yii_version }}.{{ yii_release }}/{{ item }} state=absent
-  with_items: yii_unneeded_files
+  with_items: '{{ yii_unneeded_files }}'
   tags: [ 'yii', 'yii-framework' ]
 
 - name: Install the php required modules
   apt: name={{ item }} state=present
-  with_items: yii_php_modules
+  with_items: '{{ yii_php_modules }}'
   notify: Reload php-fpm
   tags: [ 'yii', 'yii-framework' ]
 
 - name: Install the php modules to access the db servers
   apt: name={{ item }} state=present
-  with_items: yii_php_db_server_modules
+  with_items: '{{ yii_php_db_server_modules }}'
   notify: Reload php-fpm
   tags: [ 'yii', 'yii-framework' ]

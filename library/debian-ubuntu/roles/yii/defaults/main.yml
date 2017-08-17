@@ -3,8 +3,8 @@
 # Note: in the index.php directory, the path to the yii distribution will be something like
 # $yii='{{ yii_install_dir }}/yii/framework/yii.php';
 #
-yii_version: 1.1.16
-yii_release: bca042
+yii_version: 1.1.19
+yii_release: 5790cb
 yii_installs:
   - { version: '{{ yii_version }}', release: '{{ yii_release }}' }
 
