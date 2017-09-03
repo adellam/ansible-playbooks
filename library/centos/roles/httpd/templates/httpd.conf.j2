@@ -126,7 +126,7 @@ DocumentRoot "{{ httpd_document_root }}"
 <Directory "{{ httpd_base_document_root }}">
     AllowOverride {{ httpd_base_document_root_override }}
     # Allow open access:
-    Require all {{ httpd_document_root_access }}
+    Require all {{ httpd_base_document_root_override }}
 </Directory>
 
 # Further relax access to the default document root:

@@ -8,6 +8,10 @@ httpd_document_root: '{{ httpd_base_document_root }}/html'
 httpd_main_packages:
   - httpd
   - httpd-tools
+  - mod_xsendfile
+
+httpd_ssl_enabled: True
+httpd_ssl_packages:
   - mod_ssl
 
 httpd_listen_ports:
@@ -54,7 +58,7 @@ httpd_serverlimit: 256
 httpd_modules:
   - { name: 'systemd' }
   - { name: 'alias' }
-  - { name: 'allowmethods' }
+  - { name: 'allowmethod' }
   - { name: 'auth_basic' }
   - { name: 'deflate' }
   - { name: 'headers' }

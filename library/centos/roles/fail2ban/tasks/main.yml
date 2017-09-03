@@ -17,8 +17,7 @@
 
 - name: Install fail2ban local config
   template: src={{ item }}.j2 dest=/etc/fail2ban/{{ item }} owner=root group=root mode=0444
-  with_items:
-    - fail2ban.local
+  with_items: fail2ban.local
   notify: Reload fail2ban
   tags:
     - centos
@@ -27,8 +26,7 @@
 
 - name: Install fail2ban jail custom configuration
   template: src=jail-d-{{ item }}.j2 dest=/etc/fail2ban/jail.d/{{ item }} owner=root group=root mode=0444
-  with_items:
-    - customization.local
+  with_items: customization.local
   notify: Reload fail2ban
   tags:
     - centos

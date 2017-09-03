@@ -3,48 +3,42 @@
   yum: pkg={{ item }} state={{ varnish_pkg_state }}
   with_items:
     - varnish
-  tags:
-    - varnish
+  tags: varnish
 
 - name: Configure selinux to permit varnish to open a tcp socket
   seboolean: name=varnishd_connect_any state=yes persistent=yes
-  tags:
-    - varnish
-    - selinux
 
 - name: Install the selinux policy file for varnish
   copy: src=varnish-sepol.te dest=/usr/local/etc
   register: varnish_selinux_policy
-  tags:
-    - varnish
-    - selinux
+  tags: [ 'varnish', 'selinux' ]
 
 - name: Activate the selinux policy for varnish
   shell: checkmodule -M -m -o /usr/local/etc/varnish-sepol.mod /usr/local/etc/varnish-sepol.te ; semodule_package -o /usr/local/etc/varnish-sepol.pp -m /usr/local/etc/varnish-sepol.mod ; semodule -i /usr/local/etc/varnish-sepol.pp
   args:
     creates: /usr/local/etc/varnish-sepol.pp
   when: ( varnish_selinux_policy | changed )
-  tags:
-    - varnish
-    - selinux
+  tags: [ 'varnish', 'selinux' ]
+
+- name: Configure some kernel parameters via sysctl
+  sysctl: name={{ item.name }} value={{ item.value }} sysctl_file=/etc/sysctl.d/{{ varnish_sysctl_file }} reload=yes state=present
+  with_items: '{{ varnish_sysctl_kernel_parameters }}'
+  when: varnish_set_sysctl_params
+  tags: [ 'varnish', 'varnishconf', 'sysctl' ]
 
 - name: Install the varnish parameters file. The config file needs to be set by a local task
   template: src={{ item }}.j2 dest=/etc/varnish/{{ item }} owner=root group=root mode=0444
   with_items:
     - varnish.params
   notify: Reload varnish
-  tags:
-    - varnish
-    - varnishconf
+  tags: [ 'varnish', 'varnishconf' ]
 
 - name: Ensure that the varnish service is started and enabled
   service: name=varnish state=started enabled=yes
   when: varnish_enabled
-  tags:
-    - varnish
+  tags: varnish
 
 - name: Ensure that the varnish service is stopped and disabled
   service: name=varnish state=stopped enabled=no
   when: not varnish_enabled
-  tags:
-    - varnish
+  tags: varnish

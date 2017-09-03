@@ -1,0 +1,12 @@
+---
+- block:
+    - name: Install the python passlib library
+      apt: pkg=python-passlib state=present update_cache=yes cache_valid_time=3600
+  
+    - name: Create the htpasswd file needed by the basic auth
+      htpasswd: path={{ item.file | default ('/etc/nginx/htpasswd') }} name={{ item.name }} password={{ item.pwd }} state={{ item.state | default('present') }} crypt_scheme={{ item.crypt | default('sha256_crypt') }}
+      with_items: '{{ nginx_basic_auth_users }}'
+
+  when: nginx_basic_auth
+  tags: nginx
+

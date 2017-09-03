@@ -1,0 +1,79 @@
+---
+- block:
+    - name: Install the letsencrypt acmetool repo on CentOS
+      get_url: url={{ letsencrypt_acme_repo_url }} dest=/etc/yum.repos.d/{{ letsencrypt_acme_repo_name }}
+      notify: Initialize letsencrypt acmetool
+
+    - name: Create the letsencrypt acme user
+      user: name={{ letsencrypt_acme_user }} home={{ letsencrypt_acme_user_home }} createhome=no shell=/bin/bash
+
+    - name: Create the letsencrypt acme home, if it does not exist already. In a separate step because it could be already there.
+      file: dest={{ letsencrypt_acme_user_home }} owner={{ letsencrypt_acme_user }} group={{ letsencrypt_acme_user }} state=directory recurse=yes
+
+    - name: Install the letsencrypt acmetool package and some deps
+      yum: pkg={{ item }} state=present
+      with_items: '{{ letsencrypt_acme_pkgs }}'
+
+    - name: Create the letsencrypt acme config directory
+      become: True
+      become_user: '{{ letsencrypt_acme_user }}'
+      file: dest={{ letsencrypt_acme_config_dir }} state=directory mode=0755
+
+    - name: Create the letsencrypt acme desired domains directory
+      become: True
+      become_user: '{{ letsencrypt_acme_user }}'
+      file: dest={{ letsencrypt_acme_certsconf_dir }} state=directory mode=0755
+
+    - name: Create the letsencrypt acme hooks directory
+      file: dest={{ letsencrypt_acme_services_scripts_dir }} state=directory owner=root group=root mode=0755
+
+    - name: Install a default file that shell scripts can include
+      template: src=letsencrypt-default.j2 dest=/etc/default/letsencrypt owner=root group=root mode=0644
+  
+    - name: Install the letsencrypt acme responses file
+      become: True
+      become_user: '{{ letsencrypt_acme_user }}'
+      template: src=responses.j2 dest={{ letsencrypt_acme_config_dir }}/responses mode=0644
+      tags: [ 'letsencrypt', 'letsencrypt_responses' ]
+
+    - name: Install the letsencrypt acme certs config file
+      become: True
+      become_user: '{{ letsencrypt_acme_user }}'
+      template: src=cert-requirements.j2 dest={{ letsencrypt_acme_certsconf_dir }}/{{ ansible_fqdn }} mode=0644
+
+    - name: Set the cap_net_bind_service capability to the acmetool binary when we use it in listener mode
+      capabilities: path=/usr/bin/acmetool capability=cap_net_bind_service+ep state=present
+      when:
+        - letsencrypt_acme_install
+        - letsencrypt_acme_authenticator == 'listener'
+
+    - name: Remove the cap_net_bind_service capability to the acmetool binary if not needed
+      capabilities: path=/usr/bin/acmetool capability=cap_net_bind_service+ep state=absent
+      when:
+        - letsencrypt_acme_install
+        - letsencrypt_acme_authenticator != 'listener'
+      ignore_errors: True
+
+    - name: Install the sudoers config needed to run the acmetool hooks
+      template: src=acme-sudoers.j2 dest=/etc/sudoers.d/letsencrypt-acme owner=root group=root mode=0440
+  
+    - name: Create a directory where to put the cron job and hooks logs
+      file: dest={{ letsencrypt_acme_log_dir }} state=directory owner={{ letsencrypt_acme_user }} group={{ letsencrypt_acme_user }} mode=0750
+
+    - name: Install a script that requests the certificates and manage the self signed certificate
+      template: src=acme-cert-request.sh.j2 dest=/usr/local/bin/acme-cert-request owner=root group=root mode=0755
+  
+    - name: Install a daily cron job to renew the certificates when needed
+      become: True
+      become_user: '{{ letsencrypt_acme_user }}'
+      cron: name="Letsencrypt certificate renewal" special_time=daily job="/usr/local/bin/acme-cert-request > {{ letsencrypt_acme_log_dir }}/acme-cron.log 2>&1"
+
+    - name: letsencrypt acmetool request the first certificate
+      become: True
+      become_user: '{{ letsencrypt_acme_user }}'
+      shell: '/usr/local/bin/acme-cert-request > {{ letsencrypt_acme_log_dir }}/acme-init.log 2>&1'
+      ignore_errors: True
+
+  when: letsencrypt_acme_install 
+  tags: letsencrypt
+

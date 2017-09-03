@@ -1,0 +1,13 @@
+"acme-enter-email": "{{ letsencrypt_acme_email }}"
+"acme-agreement:{{ letsencrypt_tos_url }}": {{ letsencrypt_acme_agree_tos }}
+# https://acme-staging.api.letsencrypt.org/directory is the staging site.
+# This is the production site
+"acmetool-quickstart-choose-server": https://acme-v01.api.letsencrypt.org/directory
+"acmetool-quickstart-choose-method": {{ letsencrypt_acme_authenticator }}
+"acmetool-quickstart-complete": true
+"acmetool-quickstart-install-cronjob": false
+"acmetool-quickstart-install-haproxy-script": false
+"acmetool-quickstart-install-redirector-systemd": false
+"acmetool-quickstart-key-type": {{ letsencrypt_acme_key_type }}
+"acmetool-quickstart-rsa-key-size": {{ letsencrypt_acme_rsa_key_size }}
+"acmetool-quickstart-ecdsa-curve": {{ letsencrypt_acme_ecdsa_curve }}

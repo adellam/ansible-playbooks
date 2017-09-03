@@ -1,0 +1,29 @@
+---
+- block:
+    - name: Create the snippets directory
+      file: dest={{ nginx_snippets_dir }} state=directory
+
+    - name: Create the pki directory
+      file: dest={{ {{ pki_dir }}/nginx }} state=directory
+
+    - name: Create a dhparams file 2048 bits long
+      shell: openssl dhparam -out {{ pki_dir }}/nginx/dhparams.pem 2048
+      args:
+        creates: '{{ pki_dir }}/nginx/dhparams.pem'
+      when: nginx_ssl_level == 'intermediate'
+      notify: Reload nginx
+
+    - name: Install the supported configuration snippets
+      template: src={{ item }}.j2 dest=/etc/nginx/snippets/{{ item }} owner=root group=root mode=0444
+      with_items: '{{ nginx_conf_snippets }}'
+
+    - name: Install the main nginx.conf
+      template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf mode=444
+      notify: Reload nginx
+
+    - name: Remove the old configuration snippets
+      file: dest=/etc/nginx/conf.d/{{ item }} state=absent
+      with_items: '{{ nginx_old_snippets }}'
+
+  when: nginx_enabled
+  tags: [ 'nginx', 'nginx_conf', 'nginx_virtualhost' ]

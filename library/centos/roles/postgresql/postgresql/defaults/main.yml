@@ -6,13 +6,13 @@ psql_shortver: '{{ psql_major }}{{ psql_minor }}'
 psql_enabled: True
 psql_install_scl_version: False
 psql_install_from_pgdg_repo: False
-centos_pgdg_repo_url: "http://yum.postgresql.org/{{ psql_version }}/redhat/rhel-7-x86_64/pgdg-centos{{ psql_shortver }}-{{ psql_version }}-3.noarch.rpm"
+centos_pgdg_repo_url: "http://yum.postgresql.org/{{ psql_version }}/redhat/rhel-7-x86_64/pgdg-centos{{ psql_shortver }}-{{ psql_version }}-1.noarch.rpm"
 psql_pkg_state: present
 
 psql_pgdg_packages:
-  - 'postgresql{{ psql_shortver }}-server'
-  - 'postgresql{{ psql_shortver }}-contrib'
-  - 'pg_top{{ psql_shortver }}'
+  - postgresql'{{ psql_shortver }}'-server
+  - postgresql'{{ psql_shortver }}'-contrib
+  - pg_top'{{ psql_shortver }}'
 
 psql_scl_packages:
   - rh-postgresql'{{ psql_shortver }}'-runtime
@@ -23,6 +23,7 @@ psql_scl_packages:
 
 psql_common_packages:
   - pgcluu
+  - pgtune
   - python-psycopg2
 
 psql_db_name: db_name
@@ -35,9 +36,8 @@ psql_db_port: 5432
 psql_db_size_w: 150000000
 psql_db_size_c: 170000000
 psql_pgdg_base_dir: '/var/lib/pgsql/{{ psql_version }}'
-psql_base_dir: '{{ psql_pgdg_base_dir }}'
 psql_scl_base_dir: '/var/opt/rh/rh-postgresql{{ psql_shortver }}/lib/pgsql'
-#psql_base_dir: '{{ psql_scl_base_dir }}'
+psql_base_dir: '{{ psql_scl_base_dir }}'
 psql_data_dir: '{{ psql_base_dir }}/data'
 psql_conf_dir: '{{ psql_data_dir }}'
 psql_listen_on_ext_int: False

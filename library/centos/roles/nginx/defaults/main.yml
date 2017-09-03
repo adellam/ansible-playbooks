@@ -1,0 +1,113 @@
+---
+nginx_enabled: True
+nginx_package_state: installed
+# See https://mozilla.github.io/server-side-tls/ssl-config-generator/
+nginx_ssl_level: intermediate
+
+nginx_snippets_dir: /etc/nginx/snippets
+nginx_default_conf_dir: /etc/nginx/default.d
+
+nginx_conf_snippets:
+  - nginx-compression.conf
+  - nginx-websockets.conf
+  - nginx-browser-cache.conf
+  - letsencrypt-proxy.conf
+  - nginx-proxy-params.conf
+  - nginx-server-ssl.conf
+  - nginx-cors.conf
+
+nginx_old_snippets:
+  - compression.conf
+
+nginx_workers: 4
+nginx_worker_connections: 1024
+nginx_multi_accept: 'off'
+nginx_worker_rlimit_nofile: 2048
+nginx_server_tokens: 'off'
+
+nginx_large_client_header_buffers: 4 8k
+
+nginx_enable_compression: True
+nginx_gzip_vary: "on"
+nginx_gzip_proxied: any
+nginx_gzip_comp_level: 6
+nginx_gzip_buffers: 16 8k
+nginx_gzip_http_version: 1.1
+nginx_gzip_types: "text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript"
+
+nginx_enable_browser_cache: True
+nginx_cache_control: public
+nginx_html_cache_expire: -1
+nginx_feed_cache_expire_enabled: False
+nginx_feed_cache_expire: 1h
+nginx_media_cache_expire: 1M
+nginx_css_js_cache_expire: -1
+
+nginx_reverse_proxy: False
+nginx_define_x_real_ip: False
+nginx_proxy_buffering: "on"
+nginx_proxy_redirect: "off"
+nginx_proxy_buffer_size: 128k
+nginx_proxy_buffers: '4 {{ nginx_proxy_buffer_size }}'
+nginx_proxy_busy_buffers_size: 256k
+nginx_proxy_connect_timeout: 30s
+nginx_proxy_read_timeout: 480s
+nginx_proxy_send_timeout: 120s
+nginx_proxy_temp_file_write_size: '{{ nginx_proxy_buffer_size }}'
+nginx_client_max_body_size: 100M
+nginx_client_body_timeout: 240s
+
+nginx_cors_limit_origin: True
+nginx_cors_extended_rules: False
+nginx_cors_acl_origin: 'http?://(localhost)'
+
+# Find a set of acceptable defaults for the cache setup
+nginx_cache_enabled: False
+
+nginx_use_ldap_pam_auth: False
+nginx_pam_svc_name: nginx
+nginx_ldap_uri: "ldap://ldap.example.org"
+nginx_ldap_base_dn: "dc=example,dc=org"
+nginx_basic_auth: False
+nginx_basic_auth_users:
+  - { name: 'test', pwd: 'hide inside a vault file', file: '/etc/nginx/htpasswd' }
+# nginx_ldap_login_attribute: uid
+# nginx_ldap_pam_groupdn:
+nginx_letsencrypt_managed: True
+nginx_websockets_support: False
+nginx_use_common_virthost: False
+# Use 'ssl http2' if the nginx version supports it
+nginx_ssl_type: ssl http2
+# When we do not use letsencrypt:
+# nginx_ssl_cert_file: '{{ pki_dir }}/certs/nginx.crt'
+# nginx_ssl_cert_key: '{{ pki_dir }}/keys/nginx.key'
+
+# Virtualhost example
+# nginx_virthosts:
+#   - virthost_name: '{{ ansible_fqdn }}'
+#     listen: '{{ http_port }}'
+#     server_name: '{{ ansible_fqdn }}'
+#     server_aliases: ''
+#     index: index.html
+#     error_page: /path_to_error_page.html
+#     ssl_enabled: False
+#     ssl_only: False
+#     ssl_letsencrypt_certs: '{{ nginx_letsencrypt_managed }}'
+#     root: /usr/share/nginx/html/
+#     server_tokens: 'off'
+#     proxy_standard_setup: True
+#     proxy_additional_options:
+#       - 'proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache:30m max_size=250m;'
+#     proxies:
+#       - location: /
+#         target: http://localhost:{{ local_http_port }};
+#
+#     extra_parameters: |
+# location ~ \.php$ {
+#         fastcgi_split_path_info ^(.+\.php)(/.+)$;
+#         fastcgi_pass unix:/var/run/php5-fpm.sock;
+#         fastcgi_index index.php;
+#         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+#         include fastcgi_params;
+#       }
+    

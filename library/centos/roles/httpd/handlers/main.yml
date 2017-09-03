@@ -1,9 +1,7 @@
 ---
 - name: httpd reload
   service: name=httpd state=reloaded
-  when: httpd_service_enabled
 
 - name: httpd restart
   service: name=httpd state=restarted
-  when: httpd_service_enabled
 

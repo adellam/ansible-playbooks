@@ -1,0 +1,20 @@
+---
+- block:
+    - name: Create the acme hooks directory if it does not yet exist
+      file: dest={{ letsencrypt_acme_services_scripts_dir }} state=directory owner=root group=root
+
+    - name: Install a letsencrypt hook for nginx
+      copy: src=nginx-letsencrypt-acme.sh dest={{ letsencrypt_acme_services_scripts_dir }}/nginx owner=root group=root mode=4555
+
+  when:
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+    - nginx_letsencrypt_managed
+  tags: [ 'nginx', 'letsencrypt' ]
+
+- block:
+    - name: Remove the letsencrypt hook for nginx
+      file: path={{ letsencrypt_acme_services_scripts_dir }}/nginx state=absent
+
+  when: not nginx_letsencrypt_managed
+  tags: [ 'nginx', 'letsencrypt' ]
+

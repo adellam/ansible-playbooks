@@ -4,6 +4,11 @@
     yum: name={{ item }} state={{ httpd_pkg_state }}
     with_items: '{{ httpd_main_packages }}'
 
+  - name: install the apache httpd mod_ssl packages
+    yum: name={{ item }} state={{ httpd_pkg_state }}
+    when: httpd_ssl_enabled
+    with_items: '{{ httpd_ssl_packages }}'
+
   - name: Install the main httpd configuration file
     template: src=httpd.conf.j2 dest={{ httpd_base_conf_dir }}/conf/httpd.conf
     notify: httpd reload
@@ -22,10 +27,10 @@
   
   - name: Ensure that httpd is stopped if it is not meant to be running
     service: name=httpd state=stopped enabled=no
-    when: not httpd_service_enabled
+    when: not http_service_enabled
 
   - name: Ensure that httpd is running and enabled
     service: name=httpd state=started enabled=yes
 
-  when: httpd_service_enabled
+  when: http_service_enabled
   tags: [ 'httpd', 'apache' ]

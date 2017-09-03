@@ -1,0 +1,7 @@
+---
+- name: Install the nginx web server
+  yum: pkg={{ item }} state={{ nginx_package_state }}
+  with_items:
+    - nginx
+  tags: nginx
+

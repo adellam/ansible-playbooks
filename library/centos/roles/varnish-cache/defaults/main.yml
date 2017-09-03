@@ -2,20 +2,33 @@
 varnish_pkg_state: present
 varnish_enabled: True
 
+varnish_vcl_conf: default.vcl
+varnish_listen_address: 127.0.0.1
 varnish_listen_port: 6810
+varnish_admin_listen_address: 127.0.0.1
+varnish_admin_listen_port: 6082
+varnish_min_threads: 2
+varnish_max_threads: 1024
+varnish_thread_timeout: 120
 varnish_static_c_timeout: 240s
 varnish_static_first_byte_timeout: 360s
 varnish_static_between_bytes_timeout: 360s
 # We are using 3000 in production
 varnish_static_max_connections: 200
-varnish_storage_file: /var/lib/varnish/varnish_storage.bin
-# We are using 12288M in production
+# Use 'malloc' and specify no path to only store on ram  
+varnish_storage_type: 'file,/var/lib/varnish/varnish_storage.bin'
 varnish_storage_size: 1G
-# Expressed in MBs. We do not use it right now
-varnish_ram_cache_size: 512
-# We are using 48000 in production
-varnish_ttl: 120
+varnish_storage: '{{ varnish_storage_type }},{{ varnish_storage_size }}'
+varnish_ttl: 48000
 varnish_user: varnish
 varnish_group: varnish
 varnish_purge_whitelist:
   - 127.0.0.1
+
+varnish_additional_options: ''
+
+varnish_set_sysctl_params: False
+varnish_sysctl_file: 30-varnish.conf
+varnish_sysctl_kernel_parameters:
+  - { name: 'net.core.rmem_max', value: '212992' }
+  - { name: 'net.core.wmem_max', value: '212992' }

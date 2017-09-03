@@ -1,5 +1,5 @@
 
-module fail2ban-journal-sepol-new 1.0;
+module fail2ban-journal-sepol 1.0;
 
 require {
 	type fail2ban_client_exec_t;
