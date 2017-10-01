@@ -4,8 +4,9 @@ letsencrypt_acme_install: True
 letsencrypt_acme_pkgs:
   - acmetool
   - libcap
-letsencrypt_acme_repo_name: hlandau-acmetool-epel-7.repo
-letsencrypt_acme_repo_url: 'https://copr.fedorainfracloud.org/coprs/hlandau/acmetool/repo/epel-7/{{ letsencrypt_acme_repo_name }}'
+letsencrypt_acme_repo_ver: 7
+letsencrypt_acme_repo_name: 'hlandau-acmetool-epel-{{ letsencrypt_acme_repo_ver }}.repo'
+letsencrypt_acme_repo_url: 'https://copr.fedorainfracloud.org/coprs/hlandau/acmetool/repo/epel-{{ letsencrypt_acme_repo_ver }}/{{ letsencrypt_acme_repo_name }}'
 letsencrypt_acme_user: acme
 letsencrypt_acme_user_home: /var/lib/acme
 letsencrypt_acme_log_dir: /var/log/acme
