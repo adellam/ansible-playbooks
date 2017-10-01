@@ -76,3 +76,10 @@ httpd_modules:
   - { name: 'unixd' }
   - { name: 'vhost_alias' }
   
+apache_letsencrypt_managed: True
+apache_letsencrypt_proxy_modules:
+  - proxy
+  - proxy_http
+
+apache_letsencrypt_proxy_conf:
+  - letsencrypt-proxy.conf

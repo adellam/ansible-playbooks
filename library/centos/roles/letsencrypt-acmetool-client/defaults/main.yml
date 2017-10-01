@@ -1,6 +1,6 @@
 ---
 # https://copr.fedorainfracloud.org/coprs/hlandau/acmetool/
-letsencrypt_acme_install: False
+letsencrypt_acme_install: True
 letsencrypt_acme_pkgs:
   - acmetool
   - libcap
@@ -33,6 +33,5 @@ letsencrypt_acme_authenticator: listener
 # desired parameters
 letsencrypt_acme_domains:
   - '{{ ansible_fqdn }}'
-  - www.wumingfoundation.com
 letsencrypt_acme_standalone_port: 4402
 
