@@ -27,10 +27,10 @@
   
   - name: Ensure that httpd is stopped if it is not meant to be running
     service: name=httpd state=stopped enabled=no
-    when: not http_service_enabled
+    when: not httpd_service_enabled
 
   - name: Ensure that httpd is running and enabled
     service: name=httpd state=started enabled=yes
 
-  when: http_service_enabled
+  when: httpd_service_enabled
   tags: [ 'httpd', 'apache' ]

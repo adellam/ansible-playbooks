@@ -6,7 +6,7 @@
       notify: httpd reload 
 
     - name: Install the apache letsencrypt directives
-      template: src={{ item }}.j2 dest=/etc/httpd/conf.d/{{ item }} owner=root group=root mode=0644
+      template: src={{ item }}.j2 dest=/etc/httpd/conf.d/00-{{ item }} owner=root group=root mode=0644
       with_items: '{{ apache_letsencrypt_proxy_conf }}'
       notify: httpd reload 
 

@@ -5,7 +5,7 @@
       notify: Initialize letsencrypt acmetool
 
     - name: Create the letsencrypt acme user
-      user: name={{ letsencrypt_acme_user }} home={{ letsencrypt_acme_user_home }} createhome=no shell=/bin/bash
+      user: name={{ letsencrypt_acme_user }} home={{ letsencrypt_acme_user_home }} createhome=no shell=/bin/bash system=yes
 
     - name: Create the letsencrypt acme home, if it does not exist already. In a separate step because it could be already there.
       file: dest={{ letsencrypt_acme_user_home }} owner={{ letsencrypt_acme_user }} group={{ letsencrypt_acme_user }} state=directory recurse=yes
@@ -64,9 +64,7 @@
       template: src=acme-cert-request.sh.j2 dest=/usr/local/bin/acme-cert-request owner=root group=root mode=0755
   
     - name: Install a daily cron job to renew the certificates when needed
-      become: True
-      become_user: '{{ letsencrypt_acme_user }}'
-      cron: name="Letsencrypt certificate renewal" special_time=daily job="/usr/local/bin/acme-cert-request > {{ letsencrypt_acme_log_dir }}/acme-cron.log 2>&1"
+      cron: name="Letsencrypt certificate renewal" special_time=daily job="/usr/local/bin/acme-cert-request > {{ letsencrypt_acme_log_dir }}/acme-cron.log 2>&1" user={{ letsencrypt_acme_user }}
 
     - name: letsencrypt acmetool request the first certificate
       become: True

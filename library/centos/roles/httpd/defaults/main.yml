@@ -58,7 +58,7 @@ httpd_serverlimit: 256
 httpd_modules:
   - { name: 'systemd' }
   - { name: 'alias' }
-  - { name: 'allowmethod' }
+  - { name: 'allowmethods' }
   - { name: 'auth_basic' }
   - { name: 'deflate' }
   - { name: 'headers' }
