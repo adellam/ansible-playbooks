@@ -1,0 +1,6 @@
+---
+gcubeapp_setup: False
+gcubehandlers_setup: False
+#gcubeapp_webapps:
+#  - { webapp_context: '', webapp_name: '', version: '', webapp_group: '', description: '', exclude_handlers: [ ">/*" ], gcubehandlers_requests: [ 'authentication-filter' ] }
+

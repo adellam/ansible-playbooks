@@ -1,11 +1,11 @@
 ---
-gcube_repository: 'gcube-staging'
 r_connector_install: False
-r_connector_ver: 2.1.1-4.2.0-135146
+r_connector_ver: latest
 r_connector_name: r-connector
-r_connector_filename: '{{ r_connector_name }}-{{ r_connector_ver }}.war'
-r_connector_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/data/analysis/{{ r_connector_name }}/{{ r_connector_ver}}/{{ r_connector_filename }}'
-r_connector_war_file: '{{ r_connector_name }}.war'
+r_connector_group_id: org.gcube.data.analysis
+r_connector_extension: war
+r_connector_filename: '{{ r_connector_name }}-{{ r_connector_ver }}.{{ r_connector_extension }}'
+
 r_connector_usershome: /home/
 r_connector_userconfig: userconfig.csv
 r_connector_adduserscript: /usr/local/bin/rusersadd
@@ -21,18 +21,10 @@ r_connector_deb_pkgs:
   - libpam-ldapd
   - nscd
 
-#   nslcd/ldap-bindpw: (password omitted)
-# * nslcd/ldap-base: dc=d4science,dc=org
-#   nslcd/ldap-sasl-mech:
-#   nslcd/ldap-sasl-realm:
-# * nslcd/ldap-reqcert: demand
-#   nslcd/ldap-sasl-authzid:
-#   nslcd/ldap-starttls: false
-#   nslcd/ldap-auth-type: none
-#   nslcd/ldap-sasl-krb5-ccname: /var/run/nslcd/nslcd.tkt
-#   nslcd/ldap-sasl-secprops:
-#   nslcd/ldap-sasl-authcid:
-# * nslcd/ldap-uris: ldaps://ldap.d4science.org/
-#   nslcd/ldap-binddn:
-# * libnss-ldapd/nsswitch: passwd
-#   libnss-ldapd/clean_nsswitch: false
+r_connector_ldap_enabled: True
+r_connector_ldap_map_common:
+  - common-account
+  - common-auth
+  - common-password
+  - common-session
+  - common-session-noninteractive

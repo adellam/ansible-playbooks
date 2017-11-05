@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: '../../library/roles/egi/voms', when: fhn_manager_install }
+  - { role: '../../library/roles/egi/occi', when: fhn_manager_install }

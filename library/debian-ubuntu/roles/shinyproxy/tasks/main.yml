@@ -1,0 +1,40 @@
+---
+- block:
+    - name: Create the shinyproxy user
+      user: name={{ shinyproxy_user }} home={{ shinyproxy_install_dir }} createhome=yes system=yes shell=/usr/sbin/nologin
+
+    - name: Download the shinyproxy jar
+      become: True
+      become_user: '{{ shinyproxy_user }}'
+      get_url: url={{ shinyproxy_url }} dest={{ shinyproxy_install_dir }}
+
+    - name: Set up a symlink to an unversioned app name
+      become: True
+      become_user: '{{ shinyproxy_user }}'
+      file: src={{ shinyproxy_install_dir }}/{{ shinyproxy_file_name }} dest={{ shinyproxy_install_dir }}/{{ shinyproxy_app_name }} state=link
+
+    - name: Install the upstart init file
+      template: src=upstart-shinyproxy.conf.j2 dest=/etc/init/shinyproxy.conf owner=root group=root mode=0644
+      when: is_trusty
+
+    - name: Install the shinyproxy configuration file
+      template: src=shinyproxy-conf.yml.j2 dest={{ shinyproxy_install_dir }}/application.yml owner=root group={{ shinyproxy_user }} mode=0640
+      notify: Restart shinyproxy
+      tags: [ 'shinyproxy', 'shinyproxy_conf', 'shinyproxy_images' ]
+
+    - name: Install the shinyproxy logrotate configuration
+      template: src=shinyproxy-logrotate.j2 dest=/etc/logrotate.d/shinyproxy owner=root group=root mode=0444
+      tags: [ 'shinyproxy', 'shinyproxy_conf' ]
+
+    - name: Ensure that the shinyproxy service is enabled and running
+      service: name=shinyproxy state=started enabled=yes
+
+    - name: Pull the Docker images of shiny apps
+      docker_image: name={{ item.docker_image }} pull=yes state={{ item.image_state | default('present') }} force=yes
+      with_items: '{{ shinyproxy_apps }}'
+      when: shinyproxy_apps is defined
+      tags: [ 'shinyproxy', 'shinyproxy_images' ]
+
+  when: shinyproxy_install
+  tags: shinyproxy
+

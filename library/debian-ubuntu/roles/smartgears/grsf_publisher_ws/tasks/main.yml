@@ -1,0 +1,32 @@
+---
+- block:
+    - name: Remove the old grsf-publisher-ws files
+      file: path={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ grsf_publisher_ws_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ grsf_publisher_ws_name }}.{{ grsf_publisher_ws_extension }}'
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  tags: [ 'smartgears', 'grsf_publisher_ws', 'tomcat' ]
+  when: not grsf_publisher_ws_install 
+
+- block:
+    - name: Get the grsf-publisher-ws war
+      maven_artifact: artifact_id={{ grsf_publisher_ws_name }} version={{ grsf_publisher_ws_version | default(omit) }} group_id={{ grsf_publisher_ws_group_id }} extension={{ grsf_publisher_ws_extension | default('war') }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ grsf_publisher_ws_file }}
+      register: grsf_publisher_download
+  
+    - name: Remove the old grsf-publisher-ws files
+      file: path={{ smartgears_instance_path }}/webapps/{{ grsf_publisher_ws_name }} state=absent
+      notify: Restart smartgears
+      when: ( grsf_publisher_download | changed )
+  
+    - name: Unarchive the grsf_publisher_ws war
+      copy: src={{ smartgears_downloads_dir }}/{{ grsf_publisher_ws_file }} dest={{ smartgears_instance_path }}/webapps/{{ grsf_publisher_ws_name }}. {{ grsf_publisher_ws_extension }} remote_src=yes force=yes
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  tags: [ 'smartgears', 'grsf_publisher_ws', 'tomcat' ]
+  when: grsf_publisher_ws_install 

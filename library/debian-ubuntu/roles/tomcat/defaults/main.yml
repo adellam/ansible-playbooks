@@ -1,0 +1,108 @@
+---
+tomcat_version: 7
+tomcat_pkg_state: installed
+tomcat_service_enabled: True
+tomcat_pkgs:
+  - 'tomcat{{ tomcat_version }}'
+  - 'libtomcat{{ tomcat_version }}-java'
+  - 'tomcat{{ tomcat_version }}-common'
+  - libapr1
+tomcat_user: tomcat7
+tomcat_max_threads: 200
+tomcat_min_heap_size: 2048m
+tomcat_permgen_defined: True
+tomcat_heap_size: '{{ tomcat_min_heap_size }}'
+tomcat_permgen_size: 512m
+tomcat_java_opts: "-Xms{{ tomcat_min_heap_size }} -Xmx{{ tomcat_heap_size }}"
+tomcat_java_gc_opts: "-XX:+UseConcMarkSweepGC"
+#tomcat_other_java_opts: "-Djsse.enableSNIExtension=false"
+tomcat_other_java_opts: ""
+tomcat_install_server_xml: True
+tomcat_install_default_conf: True
+tomcat_load_additional_default_conf: True
+tomcat_http_enabled: True
+tomcat_http_port: 8080
+tomcat_http_address: 0.0.0.0
+tomcat_webapps_autodeploy: False
+tomcat_webapps_unpack: False
+tomcat_ajp_enabled: False
+tomcat_ajp_port: 8009
+tomcat_ajp_address: 127.0.0.1
+tomcat_direct_access: False
+# There is a bug that kills tomcat after 50 days if the shutdown port is enabled
+# Disable the shutdown port by default
+#tomcat_shutdown_port: 8005
+tomcat_shutdown_port: -1
+tomcat_shutdown_pwd: "{{ lookup('password', '/tmp/passwordfile chars=ascii_letters,digits') }}"
+tomcat_restart_timeout: 300
+tomcat_max_post_size: 1000000
+tomcat_catalina_home_dir: '/usr/share/tomcat{{ tomcat_version }}'
+tomcat_catalina_base_dir: '/var/lib/tomcat{{ tomcat_version }}'
+tomcat_conf_dir: '/etc/tomcat{{ tomcat_version }}'
+tomcat_webapps_dir: '{{ tomcat_catalina_base_dir }}/webapps'
+tomcat_common_dir: '{{ tomcat_catalina_base_dir }}/common/'
+tomcat_common_classes_dir: '{{ tomcat_catalina_base_dir }}/common/classes'
+tomcat_tmp_dir: '{{ tomcat_catalina_base_dir }}/tmp/tomcat'
+
+# JMX and debugging
+tomcat_enable_remote_debugging: False
+tomcat_remote_debugging_port: '0.0.0.0:8100'
+#
+tomcat_jmx_enabled: False
+tomcat_jmx_auth_enabled: False
+tomcat_jmx_port: 8082
+tomcat_jmx_auth_dir: '{{ tomcat_conf_dir }}'
+tomcat_jmx_use_ssl: False
+# The following work with jdk >= 7.0.25 only
+tomcat_jmx_disable_additional_ports: True
+tomcat_jmx_localhost_only: False
+# tomcat_jmx_monitorpass: define_in_a_vault_file
+# tomcat_jmx_controlpass: define_in_a_vault_file
+
+# tomcat logging
+tomcat_logdir: '/var/log/tomcat{{ tomcat_version }}'
+tomcat_use_log4j: True
+tomcat_install_the_log4j_properties: True
+tomcat_retain_old_logs: 30
+tomcat_log_rotation_threshold: "ALL"
+tomcat_log_max_file_size: "100MB"
+tomcat_log_level: INFO
+tomcat_log_logger: CATALINA
+tomcat_access_log_enabled: True
+tomcat_access_log_rotation_freq: "daily"
+#
+# Define them if you want to send all the logs to an ELK installation
+tomcat_send_to_logstash: False
+tomcat_logstash_collector_host: logstash
+tomcat_logstash_collector_socketappender_port: 4560
+tomcat_logstash_collector_socketappender_reconndelay: 10000
+# Set to LOGSTASH only if you do not want local logs
+tomcat_logstash_logger: CATALINA, LOGSTASH
+
+
+#tomcat_access_log_file_name: localhost_access.log
+#
+# Administrative interface
+tomcat_install_admin: False
+tomcat_manager_gui_user_enabled: True
+tomcat_manager_gui_user: guiadmin
+tomcat_manager_gui_r: "manager-gui"
+#tomcat_manager_gui_pwd: *See the vault file*
+tomcat_manager_script_user_enabled: False
+tomcat_manager_script_user: scriptadmin
+tomcat_manager_script_r: "manager-script"
+#tomcat_manager_script_pwd: *See the vault file*
+tomcat_manager_jmx_user_enabled: False
+tomcat_manager_jmx_user: jmxadmin
+tomcat_manager_jmx_r: "manager-jmx"
+#tomcat_manager_jmx_pwd: *See the vault file*
+tomcat_manager_status_user_enabled: False
+tomcat_manager_status_user: statusadmin
+tomcat_manager_status_r: "manager-status"
+#tomcat_manager_status_pwd: *See the vault file*
+#
+tomcat_install_jdbc: False
+tomcat_install_pg_jdbc: '{{ tomcat_install_jdbc }}'
+# Not used yet
+tomcat_install_mysql_jdbc: False
+

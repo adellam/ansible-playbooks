@@ -1,0 +1,60 @@
+---
+- block:
+    - name: Remove the old dm_pool_manager files
+      file: path={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ dm_pool_manager_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ dm_pool_manager_name }}.{{ dm_pool_manager_extension }}'
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: not dm_pool_manager_install 
+  tags: [ 'smartgears', 'dm_pool_manager', 'tomcat' ]
+
+- block:
+    - name: Get the  dm_pool_manager
+      maven_artifact: artifact_id={{ dm_pool_manager_name }} version={{ dm_pool_manager_version | default(omit) }} group_id={{ dm_pool_manager_group_id }} extension={{ dm_pool_manager_extension | default('war') }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ dm_pool_manager_file }}
+      register: dm_pool_manager_download
+  
+    - name: Remove the old dm_pool_manager files
+      file: path={{ smartgears_instance_path }}/webapps/{{ dm_pool_manager_name }} state=absent
+      when: ( dm_pool_manager_download | changed )
+
+    - name: Create the dm_pool_manager working directory
+      file: path={{ smartgears_instance_path }}/webapps/{{ dm_pool_manager_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
+  
+    - name: Unarchive the dm_pool_manager war
+      unarchive: copy=no src={{ smartgears_downloads_dir }}/{{ dm_pool_manager_file }} dest={{ smartgears_instance_path }}/webapps/{{ dm_pool_manager_name }} creates={{ smartgears_instance_path }}/webapps/{{ dm_pool_manager_name }}/WEB-INF/lib
+      notify: Restart smartgears
+
+#    - name: Install the dm-pool-manager  web.xml template
+#      template: src=web.xml.j2 dest={{ smartgears_instance_path }}/webapps/dataminer-pool-manager/WEB-INF/web.xml mode=0440
+ 
+    - name: Ensures conf dir exists
+      file: path={{  item.user_home }}/dataminer-pool-manager/dpmConfig state=directory recurse=true
+      with_items: '{{ tomcat_m_instances }}'
+
+    # Create a 2048-bit SSH key for user jsmith in ~jsmith/.ssh/id_rsa
+    - name: create user key
+      user: name='{{ smartgears_user }}' generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
+
+    - name: Install the additional service default file
+      template: src=service.properties.j2 dest={{ item.user_home }}/dataminer-pool-manager/dpmConfig/service.properties mode=0444
+      with_items: '{{ tomcat_m_instances }}' 
+      notify: Restart smartgears
+
+    - name: Install the packages required to dm-pool-manager-service
+      become_user: root 
+      apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800 force=yes
+      with_items: '{{ dm_pool_manager_pkgs }}'
+
+    - name: First checkout from subversion
+      subversion: repo={{ dm_pool_svn_url }} dest={{ smartgears_user_home }}/checkout checkout=yes force=yes update=yes username="{{ svn_user }}" password="{{ svn_pass }}"
+      when: not dm_pool_manager_upgrade
+      tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_svn' ] 
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: dm_pool_manager_install 
+  tags: [ 'smartgears', 'dm_pool_manager', 'tomcat' ]

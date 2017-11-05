@@ -1,0 +1,9 @@
+---
+ic_proxy_install: False
+ic_proxy_allscopes: False
+ic_proxy_version: latest
+ic_proxy_name: icproxy
+ic_proxy_group_id: org.gcube.information-system
+ic_proxy_extension: war
+ic_proxy_file: '{{ ic_proxy_name }}-{{ ic_proxy_version }}.{{ ic_proxy_extension }}'
+

@@ -1,0 +1,19 @@
+---
+mapproxy_user: mapproxy
+mapproxy_virtualenv_path: /srv/mapproxy
+
+mapproxy_deb_deps:
+  - python-pip
+  - python-virtualenv
+  - python-imaging
+  - python-yaml
+  - libproj0
+  - libgeos-dev
+  - python-lxml
+  - libgdal-dev
+  - python-shapely
+  - python-yaml
+  - python-lxml
+  
+mapproxy_packages:
+  - MapProxy

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+RETVAL=
+
+# Add the CA certificate if it's not already present
+keytool -list -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt | grep {{ java_keyring_letsencrypt_trusted_ca }}
+RETVAL=$?
+
+if [ $RETVAL -ne 0 ] ; then
+    keytool -trustcacerts -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt -importcert -alias {{ java_keyring_letsencrypt_trusted_ca }} -dname "CN={{ ansible_fqdn }}" -file {{ letsencrypt_acme_certs_dir }}/chain
+fi
+# Remove the old certificate
+keytool -storepass {{ java_keyring_pwd }} -keystore {{ java_keyring_file }} -delete -alias {{ ansible_fqdn }}
+
+# Check if the old certificate is still present. If so, we have a problem. Otherwise, import the new one
+keytool -list -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt | grep {{ ansible_fqdn }}
+RETVAL=$?
+if [ $RETVAL -ne 0 ] ; then
+    openssl pkcs12 -export -in {{ letsencrypt_acme_certs_dir }}/cert -inkey {{ letsencrypt_acme_certs_dir }}/privkey -CAfile {{ letsencrypt_acme_certs_dir }}/chain -name "{{ ansible_fqdn }}" -out /var/tmp/{{ ansible_fqdn }}.p12 -password pass:{{ java_keyring_pwd }}
+    keytool -importkeystore -srcstorepass {{ java_keyring_pwd }} -deststorepass {{ java_keyring_pwd }} -destkeystore {{ java_keyring_file }} -srckeystore /var/tmp/{{ ansible_fqdn }}.p12 -srcstoretype PKCS12
+    rm -f /var/tmp/{{ ansible_fqdn }}.p12
+else
+    logger "orientdb letsencrypt hook: the old certificate is still present inside the keystore, aborting."
+    exit 1
+fi
+
+chmod 440 {{ java_keyring_file }}
+chgrp {{ orientdb_user }} {{ java_keyring_file }}
+logger "orientdb letsencrypt hook: shut down orientdb."
+/etc/init.d/orientdb stop
+sleep 30
+/etc/init.d/orientdb start
+logger "orientdb letsencrypt hook: start orientdb."
+logger "orientdb letsencrypt hook: the keystore has been updated with the renewed certificate."
+
+exit 0

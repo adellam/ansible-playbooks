@@ -25,6 +25,7 @@ ansible_config_options:
   - { section: 'defaults', option: 'gathering', value: '{{ ansible_gathering }}', state: 'present' }
   - { section: 'defaults', option: 'host_key_checking', value: False, state: 'present' }
   - { section: 'defaults', option: 'command_warnings', value: '{{ ansible_command_warnings }}', state: 'present' }
+  - { section: 'defaults', option: 'ssh_args', value: '-o ControlMaster=auto -o ControlPersist=60s', state: 'present' }
   - { section: 'defaults', option: 'control_path', value: '{{ ansible_control_path }}', state: 'present' }
   - { section: 'defaults', option: 'ansible_managed', value: 'Ansible managed: {file} on {host}', state: 'present' }
   - { section: 'defaults', option: 'action_plugins', value: '{{ ansible_plugins_base_dir }}/action', state: 'present' }

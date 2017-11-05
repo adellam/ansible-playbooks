@@ -1,0 +1,48 @@
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: {{ mongodb_dbpath }}
+  journal:
+    enabled: true
+  directoryPerDB: {{ mongodb_directoryperdb }}
+  engine: {{ mongodb_storage_engine }}
+#  mmapv1:
+#  wiredTiger:
+
+# where to write logging data.
+systemLog:
+  destination: {{ mongodb_systemlog_destination }}
+  path: {{ mongodb_logpath }}
+{% if not mongodb_systemlog_external_logrotate %}
+  logRotate: rename
+  logAppend: false
+{% else %}
+  logRotate: reopen
+  logAppend: true
+{% endif %}
+# network interfaces
+net:
+  port: {{ mongodb_tcp_port }}
+  bindIp: {{ mongo_bind_ip }}
+  http:
+    enabled: {{ mongodb_http_interface }}
+    JSONPEnabled: {{ mongodb_http_interface }}
+    RESTInterfaceEnabled: {{ mongodb_http_interface }}
+  
+#processManagement:
+
+{%if mongodb_cluster_enabled %}
+security:
+  keyFile: /data/mongo_home/dev-d4science-keyfile
+
+replication:
+  oplogSizeMB: 2000
+  replSetName: {{ mongodb_replicaset }}
+{% endif %}
+
+#sharding:
+

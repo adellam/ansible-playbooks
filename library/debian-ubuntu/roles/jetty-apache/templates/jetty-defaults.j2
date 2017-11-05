@@ -1,0 +1,51 @@
+# change to 0 to allow Jetty to start
+{% if jetty.activate_at_boot %}
+NO_START=0
+{% else %}
+NO_START=YES
+{% endif %}
+
+# change to 'no' or uncomment to use the default setting in /etc/default/rcS
+VERBOSE={{ jetty.verbose }}
+
+# Run Jetty as this user ID (default: jetty)
+# Set this to an empty string to prevent Jetty from starting automatically
+JETTY_USER={{ jetty.user }}
+
+# Listen to connections from this network host
+# Use 0.0.0.0 as host to accept all connections.
+# Uncomment to restrict access to localhost
+JETTY_HOST={{ jetty.listen_ip }}
+
+# The network port used by Jetty
+JETTY_PORT={{ jetty.http_port }}
+
+# Timeout in seconds for the shutdown of all webapps
+JETTY_SHUTDOWN={{ jetty.shutdown_timeout }}
+
+# Additional arguments to pass to Jetty
+#JETTY_ARGS=
+
+# Extra options to pass to the JVM
+JAVA_OPTIONS="{{ jetty.java_opts }}"
+{% if jetty.enable_jmx %}
+JAVA_OPTIONS="$JAVA_OPTIONS {{ jetty.jmx_java_options }}"
+{% endif %}
+
+# Home of Java installation.
+JAVA_HOME={{ jetty.java_home }}
+
+# Jetty uses a directory to store temporary files like unpacked webapps
+JETTY_TMP={{ jetty.tmp_dir }}
+JVM_TMP={{ jetty.jvm_tmp_dir }}
+
+# Jetty uses a config file to setup its boot classpath
+#JETTY_START_CONFIG=/etc/jetty/start.config
+
+# Default for number of days to keep old log files in /var/log/jetty/
+LOGFILE_DAYS={{ jetty.logfile_days }}
+
+{% if jetty.define_lang %}
+export LANG={{ jetty.lang }}
+{% endif %}
+

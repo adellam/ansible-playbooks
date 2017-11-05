@@ -1,0 +1,5 @@
+---
+- name: Install the sudoers config that permits the dnet users to execute some privileged commands
+  template: src=dnet-sudoers.j2 dest=/etc/sudoers.d/dnet-group owner=root group=root mode=0440
+  tags: [ 'tomcat', 'dnet', 'sudo', 'users' ]
+

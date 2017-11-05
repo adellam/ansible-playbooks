@@ -6,19 +6,19 @@
 
 - name: Set up the defaults file
   action: configfile path=/etc/default/virtuoso-opensource-{{ virtuoso_version }} key={{ item.key }} value="{{ item.value }}" syntax=shell
-  with_items: virtuoso_defaults
+  with_items: '{{ virtuoso_defaults }}'
   notify: Restart virtuoso
   tags: [ 'virtuoso', 'virtuoso_conf' ]
 
 - name: Set up the virtuoso ini file
   ini_file: dest=/etc/virtuoso-opensource-{{ virtuoso_version }}/virtuoso.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=root group=root mode=0444
-  with_items: virtuoso_ini_opts
+  with_items: '{{ virtuoso_ini_opts }}'
   notify: Restart virtuoso
   tags: [ 'virtuoso', 'virtuoso_conf' ]
 
 - name: Set up the virtuoso ini file with additional options if there are any
   ini_file: dest=/etc/virtuoso-opensource-{{ virtuoso_version }}/virtuoso.ini section={{ item.section }} option={{ item.option }} value={{ item.value }} owner=root group=root mode=0444
-  with_items: virtuoso_more_ini_opts
+  with_items: '{{ virtuoso_more_ini_opts }}'
   when:
     - virtuoso_set_more_ini_opts
     - virtuoso_more_ini_opts is defined

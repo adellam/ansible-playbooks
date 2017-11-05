@@ -1,29 +1,68 @@
 ---
-- name: Install the production gcube keys
-  get_url: url={{ item.url }} dest={{ smartgears_instance_path }}/webapps/{{ dataminer_52north_webapp_name }}/ecocfg/PARALLEL_PROCESSING owner={{ smartgears_user }} group={{ smartgears_user }} mode=0400
-  with_items:
-    - '{{ gcube_prod_key_1 }}'
-    - '{{ gcube_prod_key_2 }}'
-    - '{{ gcube_prod_key_3 }}'
-    - '{{ gcube_prod_key_4 }}'
-  notify: Restart smartgears
-  when: install_gcube_prod_key
-  tags: [ 'dataminer', 'gcube_key', 'wps' ]
+- block:
+    - name: Install the production gcube keys
+      get_url: url={{ item.url }} dest={{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }}/ecocfg/PARALLEL_PROCESSING/{{ item.name }} owner={{ smartgears_user }} group={{ smartgears_user }} mode=0600
+      with_items:
+        - '{{ gcube_prod_key_1 }}'
+        - '{{ gcube_prod_key_2 }}'
+        - '{{ gcube_prod_key_3 }}'
+        - '{{ gcube_prod_key_4 }}'
+        - '{{ gcube_prod_key_5 }}'
+        - '{{ gcube_prod_key_6 }}'
+        - '{{ gcube_prod_key_7 }}'
+        - '{{ gcube_prod_key_8 }}'
+        - '{{ gcube_prod_key_9 }}'
+      notify: Restart smartgears
+      when: install_gcube_prod_key
 
-- name: Install the devel gcube keys
-  get_url: url={{ item.url }} dest={{ smartgears_instance_path }}/webapps/{{ dataminer_52north_webapp_name }}/ecocfg/PARALLEL_PROCESSING owner={{ smartgears_user }} group={{ smartgears_user }} mode=0400
-  with_items:
-    - '{{ gcube_dev_key_1 }}'
-    - '{{ gcube_dev_key_2 }}'
-    - '{{ gcube_dev_key_3 }}'
-  notify: Restart smartgears
-  when: install_gcube_dev_key
-  tags: [ 'dataminer', 'gcube_key', 'wps' ]
+    - name: Remove the production gcube keys
+      file: dest={{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }}/ecocfg/PARALLEL_PROCESSIN/{{ item.name }} state=absent
+      with_items:
+        - '{{ gcube_prod_key_1 }}'
+        - '{{ gcube_prod_key_2 }}'
+        - '{{ gcube_prod_key_3 }}'
+        - '{{ gcube_prod_key_4 }}'
+        - '{{ gcube_prod_key_5 }}'
+        - '{{ gcube_prod_key_6 }}'
+        - '{{ gcube_prod_key_7 }}'
+        - '{{ gcube_prod_key_8 }}'
+        - '{{ gcube_prod_key_9 }}'
+      notify: Restart smartgears 
+      when: not install_gcube_prod_key
 
-- name: Install the preprod gcube keys
-  get_url: url={{ item.url }} dest={{ smartgears_instance_path }}/webapps/{{ dataminer_52north_webapp_name }}/ecocfg/PARALLEL_PROCESSING owner={{ smartgears_user }} group={{ smartgears_user }} mode=0400
-  with_items:
-    - '{{ gcube_pre_key_1 }}'
-  notify: Restart smartgears
-  when: install_gcube_preprod_key
+    - name: Install the devel gcube keys
+      get_url: url={{ item.url }} dest={{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }}/ecocfg/PARALLEL_PROCESSING/{{ item.name }} owner={{ smartgears_user }} group={{ smartgears_user }} mode=0600
+      with_items:
+        - '{{ gcube_dev_key_1 }}'
+        - '{{ gcube_dev_key_2 }}'
+        - '{{ gcube_dev_key_3 }}'
+      notify: Restart smartgears
+      when: install_gcube_dev_key
+
+    - name: Remove the devel gcube keys
+      file: dest={{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }}/ecocfg/PARALLEL_PROCESSING/{{ item.name }} state=absent
+      with_items:
+        - '{{ gcube_dev_key_1 }}'
+        - '{{ gcube_dev_key_2 }}'
+        - '{{ gcube_dev_key_3 }}'
+      notify: Restart smartgears 
+      when: not install_gcube_dev_key
+
+    - name: Install the preprod gcube keys
+      get_url: url={{ item.url }} dest={{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }}/ecocfg/PARALLEL_PROCESSING/{{ item.name }} owner={{ smartgears_user }} group={{ smartgears_user }} mode=0600
+      with_items:
+        - '{{ gcube_pre_key_1 }}'
+        - '{{ gcube_dev_key_1 }}'
+      notify: Restart smartgears
+      when: install_gcube_preprod_key
+
+    - name: Remove the preprod gcube keys
+      file: dest={{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }}/ecocfg/PARALLEL_PROCESSING/{{ item.name }} state=absent
+      with_items:
+        - '{{ gcube_pre_key_1 }}'
+      notify: Restart smartgears 
+      when: not install_gcube_preprod_key
+
+  become: True
+  become_user: '{{ smartgears_user }}'
   tags: [ 'dataminer', 'gcube_key', 'wps' ]

@@ -41,10 +41,16 @@ nagios_plugins_base_pkgs:
 nagios_plugins_contrib:
   - nagios-plugins-contrib
 
+nagios_load_per_cpu: True
+nagios_load_w: 4,3,3
+nagios_load_c: 6,5,5
+
 nagios_psql_query_time_w: 40
 nagios_psql_query_time_c: 60
 nagios_psql_db_size_w: 150000000
 nagios_psql_db_size_c: 170000000
+nagios_psql_wal_files_w: 20
+nagios_psql_wal_files_c: 40
 
 nrpe_command_timeout: 420
 nrpe_include_dir: /etc/nagios/nrpe.d/

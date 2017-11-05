@@ -1,27 +1,35 @@
 ---
 - name: Install the apache packages
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state={{ apache_pkg_state }} update_cache=yes cache_valid_time=3600
   with_items: '{{ apache_packages }}'
   tags: [ 'apache', 'apache_main_packages' ]
 
+- name: Install the apache modules packages
+  apt: pkg={{ item }} state={{ apache_pkg_state }} update_cache=yes cache_valid_time=3600
+  with_items: '{{ apache_modules_packages }}'
+  when: not apache_from_ppa
+  tags: [ 'apache', 'apache_additional_packages' ]
+
+# - name: Load the required worker module
+#   apache2_module: name={{ item.name }} state={{ item.state }} force=yes
+#   with_items: '{{ apache_worker_modules }}'
+#   when: is_trusty
+#   notify: apache2 restart
+#   ignore_errors: True
+#   tags: [ 'apache', 'apache_modules', 'apache_workers_modules' ]
+
+# - name: Load the required modules
+#   apache2_module: name={{ item }} state=present force=yes
+#   with_items: '{{ apache_default_modules }}'
+#   notify: apache2 reload
+#   ignore_errors: True
+#   tags: [ 'apache', 'apache_modules' ]
+
 - name: Install the apache additional packages, if any
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state={{ apache_pkg_state }} update_cache=yes cache_valid_time=3600
   with_items: '{{ apache_additional_packages_list }}'
   when: apache_additional_packages
   tags: [ 'apache', 'apache_additional_packages' ]
-
-- name: Load the required worker module
-  apache2_module: name={{ item.name }} state={{ item.state }}
-  with_items: '{{ apache_worker_modules }}'
-  when: is_trusty
-  notify: apache2 restart
-  tags: [ 'apache', 'apache_modules', 'apache_workers_modules' ]
-
-- name: Load the required modules
-  apache2_module: name={{ item }} state=present
-  with_items: '{{ apache_default_modules }}'
-  notify: apache2 reload
-  tags: [ 'apache', 'apache_modules' ]
 
 - name: Remove the default virtualhost file
   file: dest=/etc/apache2/sites-enabled/{{ item }} state=absent

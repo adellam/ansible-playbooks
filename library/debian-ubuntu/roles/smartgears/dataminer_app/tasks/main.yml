@@ -2,4 +2,7 @@
 - include: dataminer-upgrade.yml
   when: dataminer_app_upgrade
 - include: dataminer-app.yml
+  when: dataminer_war_install
+- include: dataminer-zip.yml
+  when: not dataminer_war_install
 - include: install-gcube-key.yml

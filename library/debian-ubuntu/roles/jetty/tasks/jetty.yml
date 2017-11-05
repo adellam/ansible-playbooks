@@ -1,0 +1,48 @@
+---
+- name: Install the jetty packages
+  apt: pkg={{ item }} state=installed force=yes
+  with_items:
+    - jetty
+  tags:
+    - jetty
+
+- name: Fix the broken jetty startup script
+  shell: perl -pi -e "s/\^\[:space:]\*/^[[:space:]]*/g" /etc/init.d/jetty
+  ignore_errors: True
+  tags:
+    - jetty
+
+- name: Install the apache mod_jk module, if needed
+  apt: pkg={{ item }} state=installed force=yes
+  with_items:
+    - libapache2-mod-jk
+  when: jetty_use_apache is defined and jetty_use_apache
+  notify:
+    apache2 reload
+  tags:
+    - jetty
+
+- name: Ensure that the jetty cache directory exists
+  file: dest={{ item }} owner={{ jetty_user }} group={{ jetty_group }} mode=0750 state=directory
+  with_items:
+    - '{{ jetty_cache_dir }}'
+    - '{{ jetty_tmp_dir }}'
+    - '{{ jetty_jvm_tmp_dir }}'
+  tags:
+    - jetty
+
+- name: Install the jetty defaults
+  template: src=jetty-defaults.j2 dest=/etc/default/jetty
+  notify:
+    Restart jetty
+  tags:
+    - jetty
+  
+- name: Set the jetty limits
+  template: src={{ item }}.j2 dest=/etc/security/limits.d/{{ item }}
+  with_items:
+    - jetty-limits.conf
+  notify:
+    Restart jetty
+  tags:
+    - jetty

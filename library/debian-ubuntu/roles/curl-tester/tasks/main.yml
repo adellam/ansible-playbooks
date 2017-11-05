@@ -1,0 +1,17 @@
+- name: wait for the service to come up
+  wait_for: host={{ inventory_hostname }} port={{ test_port }} delay=3 connect_timeout=3
+  delegate_to: localhost
+
+- name: check URL availability with curl
+  raw: curl -k "{{ test_URL }}"
+  register: curl_cmd
+  failed_when: curl_cmd.rc >= 1
+
+#raw: curl -k -m 3 "{{ test_URL }}"
+
+#- name: test the specified URL
+#  action: uri url={{ test_URL }}
+#  register: webpage
+
+#- name : check the returned contents
+#  fail: msg="service not available"

@@ -11,31 +11,25 @@
 
 - name: Create users
   user: name={{ item.login }} comment="{{ item.name }}" home={{ item.home }}/{{ item.login }} createhome={{ item.createhome }} shell={{ item.shell }} password={{ item.password | default('*') }} update_password={{ item.update_password | default('on_create') }}
-  with_items: '{{ users_system_users }}'
-  when: users_system_users is defined
+  with_items: '{{ users_system_users | default([]) }}'
   tags: users
 
 - name: ensure that the users can login with their ssh keys
   authorized_key: user="{{ item.login }}" key="{{ item.ssh_key }}" state=present
-  with_items: '{{ users_system_users }}'
-  when:
-    - users_system_users is defined
-    - item.ssh_key is defined
+  with_items: '{{ users_system_users | default([]) }}'
+  when: item.ssh_key is defined
   tags: users
 
 - name: Add the admin users to the sudoers group
   user: name={{ item.login }} groups={{ users_sudoers_group }} append=yes
-  with_items: '{{ users_system_users }}'
-  when:
-    - users_system_users is defined
-    - item.admin
+  with_items: '{{ users_system_users | default([]) }}'
+  when: item.admin
   tags: users
 
 - name: ensure that the users can login with their ssh keys as root if we want ensure direct access
   authorized_key: user=root key="{{ item.ssh_key }}" state=present
-  with_items: '{{ users_system_users }}'
+  with_items: '{{ users_system_users | default([]) }}'
   when:
-    - users_system_users is defined
     - item.ssh_key is defined
     - ( item.log_as_root is defined ) and ( item.log_as_root )
   tags: users

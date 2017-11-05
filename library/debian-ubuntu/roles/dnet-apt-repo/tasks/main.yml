@@ -1,0 +1,30 @@
+---
+- name: apt key for the internal ppa repository
+  apt_key: url=http://ppa.research-infrastructures.eu/system/keys/system-archive.asc state=present
+  when: has_apt
+  register: update_apt_cache
+  tags:
+    - dnet
+
+- name: Install the D-Net apt repositories
+  apt_repository: repo='{{ item }}'
+  with_items:
+    - deb http://ppa.research-infrastructures.eu/dnet lucid main
+    - deb http://ppa.research-infrastructures.eu/dnet unstable main
+  when: has_apt
+  register: update_apt_cache
+  tags:
+    - dnet
+
+- name: Install the D-NET repository key
+  action: apt_key url=http://ppa.research-infrastructures.eu/dnet/keys/dnet-archive.asc
+  tags:
+    - dnet
+
+- name: Update the apt cache
+  apt: update_cache=yes
+  when: update_apt_cache.changed
+  ignore_errors: True
+  tags:
+    - dnet
+

@@ -1,0 +1,21 @@
+---
+# recent versions of eXist setup do not allow for a quiet installation, therefore we switch to the 
+# last known working version
+#exist_url: 'https://bintray.com/existdb/releases/download_file?file_path=eXist-db-setup-2.2.jar'
+exist_jar: 'eXist-setup-1.2.6-rev9165.jar'
+exist_url: "http://downloads.sourceforge.net/project/exist/Stable/1.2/{{ exist_jar }}"
+exist_location: "{{ globus_location }}/exist/"
+
+repo: "gcube-staging"
+#collector_version: "3.0.2-4.1.0-126944"
+is_collector_service_version: "3.0.2-4.1.0-126944"
+collector_artifact: "is-collector-service-{{ is_collector_service_version }}"
+collector_gar: "{{ collector_artifact }}.gar"
+collector_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/informationsystem/is-collector-service/{{ is_collector_service_version }}/{{ collector_gar }}"
+
+collector_hostname: "d4s.res.eng.it"
+collector_port: "8099"
+collector_endpoint: "{{ collector_hostname }}:{{ collector_port }}"
+
+start_scopes: ''
+infrastructure: 'd4s'

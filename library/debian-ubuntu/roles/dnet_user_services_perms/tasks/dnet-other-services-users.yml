@@ -1,0 +1,6 @@
+---
+# Ignore errors because it fails if the user is already present and used to run a service.
+- name: Create users needed to operate services other than the dnet ones
+  user: name={{ item.user }} comment="{{ item.user }}" home={{ item.home }} createhome={{ item.createhome }} shell={{ item.shell }}
+  with_items: '{{ dnet_other_services_users | default([]) }}'
+  tags: [ 'users', 'dnet' ]

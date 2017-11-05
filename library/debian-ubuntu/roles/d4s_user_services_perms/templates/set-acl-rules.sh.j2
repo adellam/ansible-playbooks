@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# The X bit set the value for the directories but not for the files
+
+set -e
+set -o pipefail
+
+{% for path in d4s_users_data_directories %}
+setfacl -R -d -m g:{{ d4science_common_group }}:rwX,o:rX,m:rwX {{ path.name }}
+setfacl -R -m g:{{ d4science_common_group }}:rwX,o:rX,m:rwX {{ path.name }}
+{% endfor %}
+
+exit 0

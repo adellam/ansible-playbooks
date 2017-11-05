@@ -21,11 +21,14 @@
       when: not docker_run_as_docker_user
 
     - name: Start the Sharelatex docker container as docker user
-      command: docker run -v {{ sharelatex_host_data_dir }}:{{ sharelatex_container_data_dir }} -p {{ sharelatex_container_public_port }}:{{ sharelatex_container_local_port }} --name={{ sharelatex_container_name }} --env-file {{ docker_user_home }}/sharelatex/sharelatex-env.sh {{ sharelatex_docker_image }}
+      become: True
+      become_user: docker
+      #command: docker run -v {{ sharelatex_host_data_dir }}:{{ sharelatex_container_data_dir }} -p {{ sharelatex_container_public_port }}:{{ sharelatex_container_local_port }} --name={{ sharelatex_container_name }} --env-file {{ docker_user_home }}/sharelatex/sharelatex-env.sh {{ sharelatex_docker_image }}
+      docker_container: name={{ sharelatex_container_name }} volumes:{{ sharelatex_host_data_dir }}:{{ sharelatex_container_data_dir }} published_ports={{ sharelatex_container_public_port }}:{{ sharelatex_container_local_port }} env_file={{ docker_user_home }}/sharelatex/sharelatex-env.sh image={{ sharelatex_docker_image }} state=started
       when: docker_run_as_docker_user
 
     - name: Start the Sharelatex docker container as root
-      command: docker run -v {{ sharelatex_host_data_dir }}:{{ sharelatex_container_data_dir }} -p {{ sharelatex_container_public_port }}:{{ sharelatex_container_local_port }} --name={{ sharelatex_container_name }} --env-file /opt/sharelatex-env.sh {{ sharelatex_docker_image }}
+      command: docker run -v {{ sharelatex_host_data_dir }}:{{ sharelatex_container_data_dir }} -p {{ sharelatex_container_public_port }}:{{ sharelatex_container_local_port }} --name={{ sharelatex_container_name }} --env-file /opt/sharelatex-env.sh image={{ sharelatex_docker_image }}
       when: not docker_run_as_docker_user
 
   when: sharelatex_install

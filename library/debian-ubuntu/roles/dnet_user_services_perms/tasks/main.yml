@@ -1,0 +1,12 @@
+---
+- include: dnet-groups.yml
+- include: sudo-config.yml
+- include: dnet-other-services-users.yml
+  when: dnet_other_services_users is defined
+- include: dnet-data-dirs.yml
+  when: dnet_standard_installation
+- include: dnet-users-data-dirs.yml
+  when: dnet_users_data_directories is defined
+- include: dnet-additional-packages.yml
+- include: dnet-tomcat-acls.yml
+  when: dnet_standard_installation

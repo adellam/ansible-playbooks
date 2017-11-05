@@ -1,0 +1,15 @@
+---
+- name: Install the gcube-app file to make the webapp smartgears compatible
+  template: src=gcube-app.xml.j2 dest={{ item.webapp_path | default('/home/gcube/tomcat') }}/webapps/{{ item.webapp_context }}/WEB-INF/gcube-app.xml owner={{ smartgears_user }} group={{ smartgears_user }}
+  with_items: '{{ gcubeapp_webapps | default([]) }}'
+  notify: Restart smartgears
+  when: gcubeapp_setup
+  tags: [ 'smartgears', 'gcubeapp' ]
+
+- name: Install the gcube-handlers.xml file to manage the smartgears filters
+  template: src=gcube-handlers.xml.j2 dest={{ item.webapp_path | default('/home/gcube/tomcat') }}/webapps/{{ item.webapp_context }}/WEB-INF/gcube-handlers.xml owner={{ smartgears_user }} group={{ smartgears_user }}
+  with_items: '{{ gcubeapp_webapps | default([]) }}'
+  notify: Restart smartgears
+  when: gcubehandlers_setup
+  tags: [ 'smartgears', 'gcubeapp' ]
+

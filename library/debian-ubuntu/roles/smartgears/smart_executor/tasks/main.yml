@@ -1,22 +1,29 @@
 ---
 - block:
-    - name: Remove the old smart executor files if an upgrade is planned
+    - name: Remove the old smart executor files if we want it deinstalled
       file: path={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} state=absent
-      when: smartgears_upgrade
-  
-    - name: Remove the smart executor files if we want to remove it
-      file: path={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} state=absent
-      when: remove_smart_executor_install
-  
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: not smart_executor_install or remove_smart_executor_install
+  tags: [ 'smartgears', 'smart_executor', 'tomcat' ]
+
+- block:
     # NOTE: Install as the smartgears user so we do not mess with the permissions
     - name: Get the smart executor plugin
-      get_url: url={{ smart_executor_url }} dest={{ smartgears_user_home }}/{{ smart_executor_file }}
+      maven_artifact: artifact_id={{ smart_executor_name }} version={{ smart_executor_version | default('latest') }} group_id={{ smart_executor_group_id }} extension={{ smart_executor_extension | default('war') }} repository_url={{ smart_executor_url }} dest={{ smartgears_downloads_dir }}/{{ smart_executor_file }}
+      register: smartexecutor_download
+
+    - name: Remove the old smart executor files if an upgrade is planned
+      file: path={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} state=absent
+      when: ( smartexecutor_download | changed )
   
     - name: Create the smart executor working directory
       file: path={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
   
     - name: Unarchive the smartexecutor distribution
-      unarchive: copy=no src={{ smartgears_user_home }}/{{ smart_executor_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} creates={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
+      unarchive: copy=no src={{ smartgears_downloads_dir }}/{{ smart_executor_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} creates={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
       notify: Restart smartgears
 
   become: True

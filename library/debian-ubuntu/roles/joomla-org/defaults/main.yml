@@ -1,0 +1,20 @@
+---
+joomla_dist_name: Joomla
+joomla_dist_version: 3.4.8
+joomla_dist_file: '{{ joomla_dist_name }}_{{ joomla_dist_version }}-Stable-Full_Package.zip'
+joomla_tar_url: 'https://github.com/joomla/joomla-cms/releases/download/{{ joomla_dist_version }}/{{ joomla_dist_file }}'
+joomla_download_dir: /srv/joomla
+joomla_install_dir: /var/www
+
+joomla_php_prereq:
+  - php5-json
+  - php5-intl
+  - php5-cli
+  - php5-pgsql
+  - php5-gd
+  - php5-memcached
+  - php-pear
+  - php-date
+  - php-xml-serializer
+  - imagemagick
+

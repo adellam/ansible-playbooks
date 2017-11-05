@@ -1,0 +1,183 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+INFRA_REFERENCE={{ dataminer_infra_reference }}
+ADD_ALGORITHM_DIR={{ smartgears_user_home }}/algorithmInstaller
+ADD_ALGORITHM_PATH={{ smartgears_user_home }}/algorithmInstaller/addAlgorithm.sh
+ALGORITHMS_FILE={{ dataminer_wps_algorithms_dest }}/${INFRA_REFERENCE}/algorithms
+OUT_DIR=$( mktemp -d -t algorithms-updater.XXXXXXXXXX )
+ALGORITHMS_TEMP_SCRIPT=$OUT_DIR/add_algorithms
+LOG_DIR={{ smartgears_user_home }}/wps_algorithms_install_log
+LOG_FILE=${LOG_DIR}/algorithms_updater.log
+ALGORITHMS_INSTALLED_FILE=${LOG_DIR}/already_installed_algorithms.txt
+ALGORITHMS_INSTALLED_SORTED_FILE=${LOG_DIR}/already_installed_algorithms_sorted.txt
+LOCK_FILE=${LOG_DIR}/.algorithms_updater.lock
+ALGO_DIR={{ dataminer_wps_algorithms_dest }}/${INFRA_REFERENCE}
+RUNNING_JOB=
+RUNNING_JOB_RETVAL=
+
+trap "logger 'algorithms-updater: trap intercepted, exiting.' ; cleanup 1" SIGHUP SIGINT SIGTERM
+
+function cleanup() {
+    rm -fr $OUT_DIR
+    rm -f $LOCK_FILE
+    logger 'algorithms-updater: Exiting'
+    exit $1
+}
+
+function create_log_dir() {
+    if [ ! -d $LOG_DIR ] ; then
+        mkdir -p $LOG_DIR
+    fi
+}
+
+function check_lock_file() {
+    # Create the lock file
+    if [ -f $LOCK_FILE ] ; then
+        set +o pipefail
+        set +e
+        RUNNING_JOB=$( ps auwwx |  grep `cat $LOCK_FILE` | grep -v grep )
+        RUNNING_JOB_RETVAL=$?
+        if [ $RUNNING_JOB_RETVAL -eq 0 ] ; then
+            logger 'algorithms-updater: another job still running, exiting.'
+            rm -fr $OUT_DIR
+            exit 0
+        else
+            rm -f $LOCK_FILE
+        fi
+    else
+        logger 'algorithms-updater: no other jobs running, proceeding.'
+    fi
+    set -o pipefail
+    set -e
+    echo "$$" > $LOCK_FILE
+}
+
+function update_svn_repo() {
+    logger 'algorithms-updater: update the SVN repo'
+    cd $ALGO_DIR
+    svn update > $LOG_FILE 2>&1
+}
+
+function sort_installed_algo_file() {
+    if [ -f $ALGORITHMS_INSTALLED_FILE ] ; then
+        sort -u $ALGORITHMS_INSTALLED_FILE > $ALGORITHMS_INSTALLED_SORTED_FILE
+        mv $ALGORITHMS_INSTALLED_SORTED_FILE $ALGORITHMS_INSTALLED_FILE
+    fi
+}
+
+function algorithms_updater() {
+    logger 'algorithms-updater: scan the algorithms list and build the algorithms script. Reference infra is {{ dataminer_infra_reference }}'
+    echo "#!/bin/bash" > $ALGORITHMS_TEMP_SCRIPT.head
+    echo "cd $ADD_ALGORITHM_DIR" >> $ALGORITHMS_TEMP_SCRIPT.head
+    echo "" >> $ALGORITHMS_TEMP_SCRIPT.head
+    awk -F \| '{ print $2 "|" $6 "|" $8 }' $ALGORITHMS_FILE > $ALGORITHMS_TEMP_SCRIPT.algorithmslist
+    sed -i -e 's/<notextile>//g' $ALGORITHMS_TEMP_SCRIPT.algorithmslist
+    sed -i -e 's/<\/notextile>"//g' $ALGORITHMS_TEMP_SCRIPT.algorithmslist
+    sed -i -e 's/<\/notextile>//g' $ALGORITHMS_TEMP_SCRIPT.algorithmslist
+    sed -i -e 's/\ N\ /\ Y\ /g' $ALGORITHMS_TEMP_SCRIPT.algorithmslist
+    sed -i -e 's/\[/\ /g' $ALGORITHMS_TEMP_SCRIPT.algorithmslist
+    sed -i -e 's/\]/\ /g' $ALGORITHMS_TEMP_SCRIPT.algorithmslist
+    if [ ! -f $ALGORITHMS_INSTALLED_FILE ] ; then
+        touch $ALGORITHMS_INSTALLED_FILE
+    fi
+    set +o pipefail
+    set +e
+    while read algo ; do
+        ALGO_PRESENT=
+        ALGO_NAME=$( echo "$algo" | awk -F \| '{ print $1 }' )
+        ALGO_BODY_PRE=$( echo "$algo" | awk -F \| '{ print $2 }' )
+        ALGO_BODY="${ALGO_BODY_PRE} ${INFRA_REFERENCE}/software"
+        ALGO_BODY=$( sed "s/'/ /g" <<< ${ALGO_BODY} )
+        ALGO_DATE=$( echo "$algo" | awk -F \| '{ print $3 }' )
+        ALGO_TIMESTAMP=$( date +%s -d "$ALGO_DATE" 2>/dev/null )
+        if [ $? -ne 0 ] ; then
+            echo "the date for algorithm $ALGO_NAME is wrong"
+        else
+            ALGO_LINE=$( egrep ^"$ALGO_NAME " $ALGORITHMS_INSTALLED_FILE )
+            ALGO_PRESENT=$?
+            if [ $ALGO_PRESENT -ne 0 ] ; then
+                echo "logger 'algorithms-updater: New algorithm $ALGO_NAME'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "logger 'algorithms-updater: running the add command of algorithm $ALGO_NAME'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "logger 'algorithms-updater: the add command string is ${ALGO_BODY}'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "RETVAL=" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "echo ''" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "echo '-------------------------------------------'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "echo ''" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "echo 'Adding algorithm $ALGO_NAME'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "echo 'With command ${ALGO_BODY}'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "echo ''" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "cd ${ADD_ALGORITHM_DIR}" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "${ALGO_BODY}" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo 'RETVAL=$?' >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "echo 'Done.'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "echo ''" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo 'if [ $RETVAL -ne 0 ] ; then' >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "    logger 'algorithms-updater: the adding of algorithm $ALGO_NAME failed'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "else" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "    egrep -v ^\"$ALGO_NAME \"  $ALGORITHMS_INSTALLED_FILE > ${ALGORITHMS_INSTALLED_FILE}_" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "    mv ${ALGORITHMS_INSTALLED_FILE}_ $ALGORITHMS_INSTALLED_FILE" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "    echo '$ALGO_NAME | $ALGO_DATE' >> $ALGORITHMS_INSTALLED_FILE" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "    logger 'algorithms-updater: the adding of algorithm $ALGO_NAME succeeded'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                echo "fi" >> $ALGORITHMS_TEMP_SCRIPT.body_
+            else
+                ALGO_LOCAL_TIMESTAMP=0
+                ALGO_LOCAL_DATE=$( egrep ^"$ALGO_NAME " $ALGORITHMS_INSTALLED_FILE | tail -1 | awk -F \| '{ print $2 }' | grep -v \' )
+                ALGO_LOCAL_TIMESTAMP=$( date +%s -d "$ALGO_LOCAL_DATE" 2>/dev/null )
+                if [ $? -ne 0 ] || [ $ALGO_LOCAL_TIMESTAMP -ne $ALGO_TIMESTAMP ]; then
+                    echo "logger 'algorithms-updater: algorithm $ALGO_NAME is already present but a newer version exists'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "logger 'algorithms-updater: running the add command of algorithm $ALGO_NAME'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "logger 'algorithms-updater: the add command string is ${ALGO_BODY}'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "RETVAL=" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "echo ''" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "echo '-------------------------------------------'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "echo ''" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "echo 'Adding algorithm $ALGO_NAME'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "echo 'With command ${ALGO_BODY}'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "echo ''" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "cd ${ADD_ALGORITHM_DIR}" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "${ALGO_BODY}" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo 'RETVAL=$?' >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "echo 'Done.'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "echo ''" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo 'if [ $RETVAL -ne 0 ] ; then' >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "    logger 'algorithms-updater: the adding of algorithm $ALGO_NAME failed'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "else" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "    egrep -v \"^$ALGO_NAME \"  $ALGORITHMS_INSTALLED_FILE > ${ALGORITHMS_INSTALLED_FILE}_" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "    mv ${ALGORITHMS_INSTALLED_FILE}_ $ALGORITHMS_INSTALLED_FILE" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "    echo '$ALGO_NAME | $ALGO_DATE' >> $ALGORITHMS_INSTALLED_FILE" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "    logger 'algorithms-updater: the adding of algorithm $ALGO_NAME succeeded'" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                    echo "fi" >> $ALGORITHMS_TEMP_SCRIPT.body_
+                fi
+            fi                
+        fi
+    done < ${ALGORITHMS_TEMP_SCRIPT}.algorithmslist
+    set -o pipefail
+    set -e
+    if [ -f $ALGORITHMS_TEMP_SCRIPT.body_ ] ; then
+        mv $ALGORITHMS_TEMP_SCRIPT.body_ $ALGORITHMS_TEMP_SCRIPT.body
+        cat $ALGORITHMS_TEMP_SCRIPT.head $ALGORITHMS_TEMP_SCRIPT.body > $ALGORITHMS_TEMP_SCRIPT
+        chmod 755 $ALGORITHMS_TEMP_SCRIPT
+        if [ -x $ADD_ALGORITHM_PATH ] ; then
+            logger 'algorithms-updater: add the algorithms configurations. Reference infra is {{ dataminer_infra_reference }}'
+            $ALGORITHMS_TEMP_SCRIPT >> $LOG_FILE 2>&1
+        else
+            logger 'algorithms-updater: {{ smartgears_user_home }}/algorithmInstaller/addAlgorithm.sh is not an executable, aborting'
+            cleanup 1
+        fi
+    else
+        cleanup 0
+    fi
+}
+
+#
+# Main
+#
+create_log_dir
+check_lock_file
+update_svn_repo
+sort_installed_algo_file
+algorithms_updater
+cleanup 0

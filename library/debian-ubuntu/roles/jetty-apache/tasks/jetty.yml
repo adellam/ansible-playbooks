@@ -1,0 +1,53 @@
+---
+- name: Install the jetty packages
+  apt: pkg={{ item }} state=installed force=yes
+  with_items:
+    - jetty
+    - libapache2-mod-jk
+  notify:
+    apache2 reload
+  tags:
+    - jetty
+
+- name: Ensure that the jetty cache directory exists
+  file: dest={{ item }} owner={{ jetty.user }} group={{ jetty.group }} mode=0750 state=directory
+  with_items:
+    - '{{ jetty.cache_dir }}'
+    - '{{ jetty.tmp_dir }}'
+    - '{{ jetty.jvm_tmp_dir }}'
+  tags:
+    - jetty
+
+- name: Install the jetty defaults
+  template: src=jetty-defaults.j2 dest=/etc/default/jetty
+  notify:
+    Restart jetty
+  tags:
+    - jetty
+  
+# - name: Set the jetty limits
+#   template: src={{ item }}.j2 dest=/etc/jetty/{{ item }}
+#   with_items:
+#     - jetty-setuid.xml
+#   notify:
+#     Restart jetty
+#   tags:
+#     - jetty
+  
+# - name: Load jetty-setuid.xml in /etc/jetty/jetty.conf
+#   lineinfile: name=/etc/jetty/jetty.conf line={{ item }}
+#   with_items:
+#     - '/etc/jetty/jetty-setuid.xml'
+#   notify:
+#     Restart jetty
+#   tags:
+#     - jetty
+
+- name: Set the jetty limits
+  template: src={{ item }}.j2 dest=/etc/security/limits.d/{{ item }}
+  with_items:
+    - jetty-limits.conf
+  notify:
+    Restart jetty
+  tags:
+    - jetty

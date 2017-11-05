@@ -1,0 +1,17 @@
+---
+- block: 
+    - name: add the user that will run the jenkins jobs
+      user: name={{ jenkins_username }} home={{ jenkins_dest }} shell={{ jenkins_shell }} generate_ssh_key=yes
+
+    - name: ensure the jenkins master has ssh access on each slave, as jenkins user
+      authorized_key: user={{ jenkins_username }} key="{{ item }}" state=present
+      with_items:
+        - '{{ jenkins_master_pubkey }}'
+
+    - name: Daily cron job to cleanup the /tmp junk
+      template: src={{ item }}.j2 dest=/etc/cron.daily/{{ item }} owner=root group=root mode=0755
+      with_items:
+        - tmp-cleaner
+
+  when: jenkins_slave
+  tags: [ 'jenkins', 'jenkins_slave' ]

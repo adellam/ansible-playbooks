@@ -1,0 +1,83 @@
+---
+- block:
+    - name: Create the Geonetwork download directory
+      file: path={{ geonetwork_download_directory }} state=directory
+
+    - name: Create the Geonetwork data directory
+      file: path={{ geonetwork_data_directory }} state=directory owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+      
+    - name: Remove the geonetwork webapp if we are upgrading
+      file: dest={{ item.instance_path }}/webapps/{{ geonetwork_app_name }} state=absent
+      with_items: '{{ tomcat_m_instances }}'
+      when: geonetwork_upgrade
+
+    - name: Remove the geonetwork distribution file if we are upgrading
+      file: dest={{ geonetwork_download_directory }}/geonetwork.war state=absent
+      when: geonetwork_upgrade
+
+    - name: Create the Geonetwork webapp directory
+      file: path={{ item.instance_path }}/webapps/{{ geonetwork_app_name | lower }} state=directory owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+
+    - name: Download the Geonetwork file distribution
+      get_url: url='{{ geonetwork_download_url }}' dest={{ geonetwork_download_directory }}/geonetwork.{{ geonetwork_version }}.war
+      register: geonetwork_download
+
+    - name: Remove the geonetwork webapp if we downloaded a new version
+      file: dest={{ item.instance_path }}/webapps/{{ geonetwork_app_name }} state=absent
+      with_items: '{{ tomcat_m_instances }}'
+      when: ( geonetwork_download | changed )
+
+    - name: Unpack the Geonetwork war file
+      unarchive: copy=no src={{ geonetwork_download_directory }}/geonetwork.{{ geonetwork_version }}.war dest={{ item.instance_path }}/webapps/{{ geonetwork_app_name | lower }} creates={{ item.instance_path }}/webapps/{{ geonetwork_app_name | lower }}/WEB-INF/lib owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+      notify: tomcat instances restart
+
+    - name: Configure geonetwork using our template, geonetwork version 2.x
+      template: src=geonetwork_config.xml.j2 dest={{ item.instance_path }}/webapps/{{ geonetwork_app_name | lower }}/WEB-INF/config.xml owner={{ item.user }} group={{ item.user }} mode=0440
+      with_items: '{{ tomcat_m_instances }}'
+      when: geonetwork_major_version < 3
+      notify: tomcat instances restart
+
+    - name: Configure geonetwork using our template, geonetwork version 3+
+      template: src={{ geonetwork_major_version }}.{{ geonetwork_point_version }}-{{ item.1 }}.j2 dest={{ item.0.instance_path }}/webapps/{{ geonetwork_app_name | lower }}/WEB-INF/config/{{ item.1 }} owner={{ item.0.user }} group={{ item.0.user }} mode=0440
+      with_nested:
+        - '{{ tomcat_m_instances }}'
+        - '{{ geonetwork_config_files }}'
+      when: geonetwork_major_version >= 3
+      notify: tomcat instances restart
+
+    - name: Set the geonetwork JDBC properties
+      template: src=jdbc.properties.j2 dest={{ item.instance_path }}/webapps/{{ geonetwork_app_name | lower }}/WEB-INF/config-db/jdbc.properties owner={{ item.user }} group={{ item.user }} mode=0440
+      with_items: '{{ tomcat_m_instances }}'
+      when: geonetwork_major_version >= 3
+      notify: tomcat instances restart
+
+    - name: Select the geonetwork database type
+      template: src=srv.xml.j2 dest={{ item.instance_path }}/webapps/{{ geonetwork_app_name | lower }}/WEB-INF/config-node/srv.xml owner={{ item.user }} group={{ item.user }} mode=0444
+      with_items: '{{ tomcat_m_instances }}'
+      when: geonetwork_major_version >= 3
+      notify: tomcat instances restart
+
+    - name: Install the geonetwork database initialization sql with the customized properties
+      template: src={{ geonetwork_major_version }}.{{ geonetwork_point_version }}-data-db-default.sql.j2 dest={{ item.instance_path }}/webapps/{{ geonetwork_app_name | lower }}/WEB-INF/classes/setup/sql/data/data-db-default.sql owner={{ item.user }} group={{ item.user }} mode=0440
+      with_items: '{{ tomcat_m_instances }}'
+      when: geonetwork_major_version >= 3
+      notify: tomcat instances restart
+
+  when: geonetwork_install
+  tags: geonetwork
+
+- block:
+    - name: Remove the Geonetwork webapp directory
+      file: path={{ item.instance_path }}/webapps/{{ geonetwork_app_name | lower }} state=absent
+      with_items: '{{ tomcat_m_instances }}'
+      notify: tomcat instances restart
+
+    - name: Remove the geonetwork distribution file
+      file: dest={{ geonetwork_download_directory }}/geonetwork.war state=absent
+
+  when: not geonetwork_install
+  tags: geonetwork
+

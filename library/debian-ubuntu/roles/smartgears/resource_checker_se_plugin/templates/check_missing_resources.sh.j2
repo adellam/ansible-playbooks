@@ -1,0 +1,33 @@
+#!/bin/bash
+
+COMMON_SH_LIB={{ nagios_isti_plugdir }}/check_library.sh
+RESOURCES_STATUS_FILE={{ smartgears_user_home }}/missing_resources/identifiers
+
+# First things first: check if the service is running
+RUNNING_FILE=$( find /{{ smartgears_user_home }}/missing_resources/identifiers -mmin -120 )
+if [ -z $RUNNING_FILE ] ; then
+    echo "CRITICAL - The resource checker did not update for more than two hours"
+    exit $NAGIOS_CRITICAL
+fi
+
+if [  -f $COMMON_SH_LIB ] ; then
+    . $COMMON_SH_LIB
+else
+    echo "UNKNOWN - Library file $COMMON_SH_LIB does not exist"
+    exit $NAGIOS_UNKNOWN
+fi
+
+if [ ! -f $RESOURCES_STATUS_FILE ] ; then
+    echo "UNKNOWN - File $RESOURCES_STATUS_FILE does not exist"
+    exit $NAGIOS_UNKNOWN
+fi
+
+RESOURCES_DATA=$( cat $RESOURCES_STATUS_FILE )
+if [ "$RESOURCES_DATA" == "none" ] ; then
+    echo "OK - No resources are missing"
+    exit $NAGIOS_OK
+else
+    echo "CRITICAL - Missing resources: $RESOURCES_DATA"
+    exit $NAGIOS_CRITICAL
+fi
+

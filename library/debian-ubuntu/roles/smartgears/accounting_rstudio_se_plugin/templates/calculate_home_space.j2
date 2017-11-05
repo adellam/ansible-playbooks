@@ -1,0 +1,9 @@
+#!/bin/bash
+
+DEST_FILE={{ accounting_rstudio_quota_dest_file }}
+mkdir -p {{ accounting_rstudio_quota_dest_dir }}
+
+> $DEST_FILE
+cd /home ; for h in $( /bin/ls -1 . | grep -v gcube ) ; do du -s ${h} >> $DEST_FILE ; done
+
+exit 0

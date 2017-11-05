@@ -1,0 +1,14 @@
+---
+- name: Download the telegraf deb file
+  get_url: url={{ telegraf_deb_url }} dest=/srv/{{ telegraf_deb_file }}
+  tags: [ 'influxdata', 'telegraf', 'tick' ]
+
+- name: Install the telegraf package
+  apt: deb=/srv/{{ telegraf_deb_file }}
+  tags: [ 'influxdata', 'telegraf', 'tick' ]
+  
+- name: Ensure that telegraf is enabled and running
+  service: name=telegraf state=started enabled=yes
+  when: telegraf_enabled
+  tags: [ 'influxdata', 'telegraf', 'tick' ]
+  

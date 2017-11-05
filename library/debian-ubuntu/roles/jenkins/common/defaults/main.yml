@@ -1,0 +1,12 @@
+---
+# There are some duplicates here
+jenkins_dest: "/var/lib/jenkins"
+jenkins_username: jenkins
+jenkins_group: jenkins
+jenkins_shell: /bin/bash
+
+jenkins_maven_config: True
+jenkins_maven_settings_dirs:
+  - .m2
+
+jenkins_maven_settings_url: http://localhost/settings.xml

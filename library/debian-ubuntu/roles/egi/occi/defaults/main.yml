@@ -1,0 +1,8 @@
+---
+# Reference: https://github.com/EGI-FCTF/rOCCI-cli
+rocci_egi_install: True
+rocci_repo_key: 'http://repository.egi.eu/community/keys/APPDBCOMM-DEB-PGP-KEY.asc'
+rocci_repo: 'deb [arch=amd64] http://repository.egi.eu/community/software/rocci.cli/4.3.x/releases/ubuntu precise main'
+
+rocci_pkgs:
+  - occi-cli

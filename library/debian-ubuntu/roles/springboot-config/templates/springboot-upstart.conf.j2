@@ -1,0 +1,17 @@
+# {{ item.name }}
+
+description	"{{ item.name }}"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+respawn
+respawn limit 10 5
+
+setuid {{ item.user }}
+setgid {{ item.user }}
+
+script
+    cd {{ item.install_dir }}
+    exec java {{ item.java_opts }} -jar ./{{ item.name }}.jar
+end script
+

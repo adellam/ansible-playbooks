@@ -1,6 +1,11 @@
 user www-data;
-worker_processes {{ nginx_workers }};
 pid /run/nginx.pid;
+{% if nginx_use_ppa %}
+worker_processes auto;
+include /etc/nginx/modules-enabled/*.conf;
+{% else %}
+worker_processes {{ nginx_workers }};
+{% endif %}
 
 events {
     worker_connections {{ nginx_worker_connections }};

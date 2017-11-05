@@ -1,0 +1,29 @@
+---
+- block:
+    - name: Remove the old resource checker plugin 
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/resource-checker-se-plugin-*-jar-with-dependencies.jar
+      when:  resource_checker_se_plugin_upgrade
+
+    - name: Install the resource checker plugin inside the smart executor lib directory
+      maven_artifact: artifact_id={{ resource_checker_se_plugin_name }} version={{ resource_checker_se_plugin_version | default(omit) }} group_id={{ resource_checker_se_plugin_group_id }} extension={{ resource_checker_se_plugin_extension | default('war') }} repository_url={{ smartgears_global_base_url }} classifier={{ resource_checker_se_plugin_classifier }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ resource_checker_se_plugin_file }}
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: resource_checker_se_plugin_install
+  tags: [ 'smartgears', 'resource_checker_se', 'tomcat' ]
+
+- block:
+    - name: Install the resource checker nagios check
+      template: src=check_missing_resources.sh.j2 dest={{ nagios_plugdir | default('/usr/lib/nagios/plugins') }}/check_missing_resources mode=0755
+      when: nagios_enabled is defined and nagios_enabled
+
+    - name: Install the nrpe job to run the check
+      template: src=resource_checker_nrpe.cfg.j2 dest=/etc/nagios/nrpe.d/resource_checker_nrpe.cfg owner=root group=root mode=0444
+      when: nagios_enabled is defined and nagios_enabled
+      notify: Reload NRPE server
+
+  become: False
+  when: resource_checker_se_plugin_install and resource_checker_nagios_nrpe
+  tags: [ 'smartgears', 'resource_checker_se', 'nagios' ]
+

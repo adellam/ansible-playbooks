@@ -1,0 +1,6 @@
+ENABLE_MONGOD="{{ mongodb_start_server }}"
+CONF={{ mongodb_conf_file }}
+DAEMON={{ mongodb_daemon }}
+DAEMONUSER={{ mongodb_user }}
+DAEMON_OPTS="{{ mongod_additional_options }} --config $CONF"
+

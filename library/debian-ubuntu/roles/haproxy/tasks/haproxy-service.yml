@@ -19,13 +19,13 @@
   tags: haproxy
 
 - name: Install the haproxy package
-  apt: name=haproxy state=present default_release={{ ansible_lsb.codename }}-backports
+  apt: name=haproxy state=present default_release={{ ansible_lsb.codename }}-backports update_cache=yes cache_valid_time=3600
   when: not haproxy_latest_release
   register: install_haproxy
   tags: haproxy
 
 - name: Install the haproxy package
-  apt: name=haproxy state=latest default_release={{ ansible_lsb.codename }}-backports-{{ haproxy_version }}
+  apt: name=haproxy state=latest default_release={{ ansible_lsb.codename }}-backports-{{ haproxy_version }} update_cache=yes cache_valid_time=3600
   when:
     - haproxy_latest_release
     - is_debian
@@ -33,7 +33,7 @@
   tags: haproxy
 
 - name: Install the haproxy package
-  apt: name=haproxy state=latest
+  apt: name=haproxy state=latest update_cache=yes cache_valid_time=3600
   when:
     - haproxy_latest_release
     - is_ubuntu

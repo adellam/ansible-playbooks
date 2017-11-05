@@ -1,0 +1,7 @@
+The java options are set inside /etc/default/tomcat-instance-{{ item.0.http_port }}
+
+The commands that start and stop the containers are:
+{{ d4science_user_home }}/startContainer.sh
+{{ d4science_user_home }}/stopContainer.sh
+
+The log files live inside /home/gcube/tomcat/logs (it's a symbolic link to {{ tomcat_m_instances_logdir_base }}/{{ item.0.http_port }})

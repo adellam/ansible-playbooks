@@ -6,6 +6,5 @@ composer_get_url: https://getcomposer.org/installer
 composer_dest_dir: /usr/local/bin
 composer_exec_name: composer
 composer_signature_type: SHA384
-composer_signature: 'e115a8dc7871f15d853148a7fbac7da27d6c0030b848d9b3dc09e2a0388afed865e6a3d6b3c0fad45c48e2b5fc1196ae'
 composer_setup: composer-setup.php
 

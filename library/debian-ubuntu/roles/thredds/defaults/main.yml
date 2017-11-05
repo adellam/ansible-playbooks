@@ -1,0 +1,20 @@
+---
+thredds_install: False
+thredds_upgrade: False
+thredds_version: 4.6.9
+thredds_name: tds
+thredds_app_name: Thredds
+thredds_group_id: edu.ucar
+thredds_extension: war
+thredds_file: '{{ thredds_name }}-{{ thredds_version }}.{{ thredds_extension }}'
+thredds_repository_url: 'https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases'
+thredds_download_directory: /srv
+thredds_data_content_dir: /data/thredds
+thredds_public_netcdf_dir: '{{ thredds_data_content_dir }}/thredds/public/netcdf/'
+thredds_server_name: 'Thredds instance'
+thredds_logo_url: '/thredds/threddsIcon.gif'
+thredds_logo_alt_text: '{{ thredds_server_name }}'
+thredds_organization: 'ORG'
+thredds_email: ''
+thredds_host_institution_name: 'ORG'
+thredds_host_institution_web: ''

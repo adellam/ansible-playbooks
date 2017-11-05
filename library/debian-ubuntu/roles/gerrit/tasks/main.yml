@@ -1,0 +1,43 @@
+---
+- block:
+
+    - name: Create a gerrit user
+      become: False
+      user: name={{ gerrit_user }} home={{ gerrit_base_dir }} createhome=yes shell=/bin/bash
+
+    - name: Create the gerrit service and download directories
+      file: path={{ item }} state=directory
+      with_items: [ '{{ gerrit_service_dir }}', '{{ gerrit_download_dir }}' ]
+
+    - name: Download gerrit
+      get_url: url='{{ gerrit_release_site }}/{{ gerrit_war_file }}' dest={{ gerrit_download_dir }}/gerrit.war validate_certs=no
+
+    - name: Initialize gerrit not interactively
+      shell: java -jar {{ gerrit_download_dir }}/gerrit.war init -d {{ gerrit_service_dir }}
+      args:
+        creates: '{{ gerrit_service_dir }}/etc/gerrit.config }}'
+
+    # - name: Install some additional plugins
+
+    - name: Install our gerrit configuration file
+      template: src=gerrit.config.j2 dest={{ gerrit_service_dir }}/etc/gerrit.config
+
+    - name: Install the DB password
+      ini_file: dest={{ gerrit_service_dir }}/etc/secure.config section=database option=password value='{{ gerrit_db_password }}' mode=0600
+
+    - name: Install the gerrit startup script
+      become: False
+      copy: src=gerrit.sh dest=/etc/init.d/gerrit mode=0755 owner=root group=root
+
+    - name: Install the gerrit default
+      become: False
+      template: src=gerritcodereview.default.j2 dest=/etc/default/gerritcodereview mode=0644 owner=root group=root
+
+    - name: Start and enable the gerrit service
+      become: False
+      service: name=gerrit state=started enabled=yes
+
+  become: True
+  become_user: '{{ gerrit_user }}' 
+  when: gerrit_install
+  tags: gerrit

@@ -1,0 +1,13 @@
+---
+repo: "gcube-staging"
+notifier_version: "1.4.0-4.1.0-126911"
+notifier_artifact: "notifier-service-{{ notifier_version }}"
+notifier_gar: "{{ notifier_artifact }}.gar"
+notifier_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/informationsystem/notifier-service/{{ notifier_version }}/{{ notifier_gar }}"
+
+notifier_hostname: "d4s.res.eng.it"
+notifier_port: "d4s.res.eng.it"
+notifier_endpoint: "{{ notifier_hostname }}:{{ notifier_port }}"
+
+start_scopes: ''
+infrastructure: 'd4s'

@@ -1,0 +1,18 @@
+---
+- block:
+    - name: Create the mapproxy user
+      become_user: root
+      user: name={{ mapproxy_user }} home={{ mapproxy_virtualenv_path }} createhome=yes shell=/usr/sbin/nologin system=yes
+
+    - name: Install the mapproxy deb dependencies
+      become_user: root
+      apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
+      with_items: '{{ mapproxy_deb_deps }}'
+
+    - name: Install mapproxy inside a virtualenv. inherit the site packages
+      pip: name={{ item }} virtualenv={{ mapproxy_virtualenv_path }} virtualenv_site_packages=yes
+      with_items: '{{ mapproxy_packages }}'
+      
+  become: True
+  become_user: '{{ mapproxy_user }}'
+  tags: [ 'mapproxy', 'geoserver' ]

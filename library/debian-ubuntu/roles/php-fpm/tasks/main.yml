@@ -29,7 +29,7 @@
 
 - name: Modify the global php cli settings
   ini_file: dest={{ phpfpm_cli_dir }}/php.ini section={{ item.section | default('PHP') }} option={{ item.option }} value={{ item.value }} backup=yes state={{ item.state | default('present') }}
-  with_items: '{{ php_global_settings | default([]) }}'
+  with_items: '{{ php_cli_global_settings | default([]) }}'
   tags: [ 'php', 'php_ini' ]
 
 - name: Activate the memcache sessions support and redundancy if needed

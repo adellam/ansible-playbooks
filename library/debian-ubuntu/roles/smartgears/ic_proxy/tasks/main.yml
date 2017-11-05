@@ -1,0 +1,42 @@
+---
+- block: 
+    - name: Remove the old ic_proxy files
+      file: path={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ ic_proxy_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ ic_proxy_name }}.{{ ic_proxy_extension }}'
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: not ic_proxy_install
+  tags: [ 'smartgears', 'ic_proxy', 'tomcat' ]
+  
+- block:
+    - name: Get the ic_proxy war
+      maven_artifact: artifact_id={{ ic_proxy_name }} version={{ ic_proxy_version | default('latest') }} group_id={{ ic_proxy_group_id }} extension={{ ic_proxy_extension }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ ic_proxy_file }}
+      register: ic_proxy_download
+
+    - name: Remove the old ic_proxy files
+      file: path={{ smartgears_instance_path }}/webapps/{{ ic_proxy_name }} state=absent
+      when: ( ic_proxy_download | changed )
+  
+    - name: Create the ic proxy working directory
+      file: path={{ smartgears_instance_path }}/webapps/{{ ic_proxy_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
+  
+    - name: Copy the ic_proxy war into the webapps dir
+      copy: src={{ smartgears_downloads_dir }}/{{ ic_proxy_file }} dest={{ smartgears_instance_path }}/webapps/{{ ic_proxy_name }}.{{ ic_proxy_extension }} remote_src=yes force=yes 
+      notify: Restart smartgears
+
+    - name: Unarchive the ic_proxy war
+      unarchive: copy=no src={{ smartgears_downloads_dir }}/{{ ic_proxy_file }} dest={{ smartgears_instance_path }}/webapps/{{ ic_proxy_name }} creates={{ smartgears_instance_path }}/webapps/{{ ic_proxy_name }}/WEB-INF/lib
+      notify: Restart smartgears
+
+    - name: Fix the exclude tag in gcube-app.xml
+      template: src=gcube-app.xml.j2 dest={{ smartgears_instance_path }}/webapps/{{ ic_proxy_name }}/WEB-INF/gcube-app.xml owner={{ d4science_user }} group={{ d4science_user }}
+      notify: Restart smartgears
+      when: ic_proxy_allscopes
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: ic_proxy_install 
+  tags: [ 'smartgears', 'ic_proxy', 'tomcat' ]

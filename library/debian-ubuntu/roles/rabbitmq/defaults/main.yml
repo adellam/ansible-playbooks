@@ -13,14 +13,19 @@ rabbitmq_disabled_plugins: ''
 rabbitmq_default_f: /etc/default/rabbitmq-server
 rabbitmq_fileno: 4096
 rabbitmq_admin_u: r_admin
-
-
 #
-#
+# See http://www.rabbitmq.com/networking.html
 # 4369 (epmd), 25672 (Erlang distribution)
 # 5672, 5671 (AMQP 0-9-1 without and with TLS)
 # 15672 (if management plugin is enabled)
 # 61613, 61614 (if STOMP is enabled)
 # 1883, 8883 (if MQTT is enabled)
 #
+rabbitmq_epmd_port: 4369
+rabbitmq_client_port: 5672
+rabbitmq_internode_port: '{{ rabbitmq_client_port + 20000 }}'
+rabbitmq_management_port: 15672
+rabbitmq_stomp_port: '61613:61614'
+rabbitmq_mqtt_port_low: 1883
+rabbitmq_mqtt_port_high: 8883
 

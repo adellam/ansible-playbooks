@@ -2,8 +2,8 @@
 fusiondirectory_install: False
 fusiondirectory_schemas_install: True
 # We use the debian wheezy repo for Ubuntu precise and Ubuntu trusty
-fusiond_repo: 'deb http://repos.fusiondirectory.org/debian-wheezy wheezy main'
-fusiond_extra_repo: 'deb http://repos.fusiondirectory.org/debian-extra wheezy main'
+fusiond_repo: 'deb http://repos.fusiondirectory.org/fusiondirectory-current/debian-wheezy wheezy main'
+fusiond_extra_repo: 'deb http://repos.fusiondirectory.org/fusiondirectory-extra/debian-jessie jessie main'
 fusiond_repo_key: 62B4981F
 fusiond_gpg_repo: keys.gnupg.net
 

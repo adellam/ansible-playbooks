@@ -16,7 +16,7 @@
 		<password>{{ orientdb_hazelcast_group_password }}</password>
 	</group>
 	<network>
-		<port auto-increment="true">2434</port>
+		<port auto-increment="true">{{ orientdb_hazelcast_multicast_port }}</port>
 		<join>
 			<multicast enabled="{{ orientdb_hazelcast_multicast_enabled | ternary('true','false') }}">
 				<multicast-group>{{ orientdb_hazelcast_multicast_group }}</multicast-group>

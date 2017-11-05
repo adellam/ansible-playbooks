@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# Exec /usr/bin/arping as root via sudo
+
+RETVAL=
+CMD=/usr/bin/arping
+
+sudo $CMD $@
+RETVAL=$?
+
+exit $RETVAL
+

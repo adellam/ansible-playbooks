@@ -1,0 +1,32 @@
+---
+- block:
+    - name: Create the PKI directory
+      file: dest={{ java_keyring_dir }} state=directory owner=root group=root mode=0755
+
+  when: not java_keyring_use_default
+  tags: java_keyring
+
+- block:
+    - name: Import the certificates
+      shell: RETVAL= ; {{ java_keytool_bin }} -list -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt | grep {{ item.alias }} ; RETVAL=$? ; if [ $RETVAL -ne 0 ] ; then {{ java_keytool_bin }} -trustcacerts -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt -importcert -alias {{ item.alias }} -file {{ item.certfile }} ; fi
+      with_items: '{{ java_keyring_certs_list | default([]) }}'
+
+    - name: Import the certificate key
+      shell: RETVAL= ; {{ java_keytool_bin }} -import -alias NOME -keyalg RSA -keystore {{ java_keyring_file }} -dname "CN={{ ansible_fqdn }}" -keypass {{ java_keyring_pwd }} -storepass {{ java_keyring_pwd }} -file {{ item.keyfile }}
+      with_items: '{{ java_keyring_certs_list | default([]) }}'
+      
+  when: java_keyring_certs_list is defined
+  tags: java_keyring
+
+- block:
+    - name: Import the Letsencrypt intermediate CA cert
+      shell: RETVAL= ; {{ java_keytool_bin }} -list -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt | grep {{ java_keyring_letsencrypt_trusted_ca }} ; RETVAL=$? ; if [ $RETVAL -ne 0 ] ; then {{ java_keytool_bin }} -trustcacerts -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt -importcert -alias {{ java_keyring_letsencrypt_trusted_ca }} -dname "CN={{ ansible_fqdn }}" -file {{ letsencrypt_acme_certs_dir }}/chain ; fi
+
+    - name: Import the letsencrypt certificate
+      shell: RETVAL= ; {{ java_keytool_bin }} -list -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt | grep {{ ansible_fqdn }} ; RETVAL=$? ; if [ $RETVAL -ne 0 ] ; then openssl pkcs12 -export -in {{ letsencrypt_acme_certs_dir }}/cert -inkey {{ letsencrypt_acme_certs_dir }}/privkey -CAfile {{ letsencrypt_acme_certs_dir }}/chain -name "{{ ansible_fqdn }}" -out /var/tmp/{{ ansible_fqdn }}.p12 -password pass:{{ java_keyring_pwd }} ; {{ java_keytool_bin }} -importkeystore -srcstorepass {{ java_keyring_pwd }} -deststorepass {{ java_keyring_pwd }} -destkeystore {{ java_keyring_file }} -srckeystore /var/tmp/{{ ansible_fqdn }}.p12 -srcstoretype PKCS12 ; rm -f /var/tmp/{{ ansible_fqdn }}.p12 ; fi
+
+  when:
+    - java_import_letsencrypt_cert
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+  tags: java_keyring
+

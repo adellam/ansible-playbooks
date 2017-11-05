@@ -1,0 +1,25 @@
+---
+- name: Create the users dnet data dirs
+  file: name={{ item.name }} state=directory owner={{ item.owner }} group={{ item.group }} mode={{ item.perms }}
+  with_items: '{{ dnet_users_data_directories | default([]) }}'
+  when: item.create and not item.file
+  tags: [ 'dnet', 'users', 'dnet_u_acl' ]
+
+- name: Set the read/write/access permissions on the users dnet data dirs
+  acl: name={{ item.name }} entity={{ dnet_group }} etype=group permissions={{ item.aclperms | default ('rwx') }} state=present
+  with_items: '{{ dnet_users_data_directories | default([])  }}'
+  when: not item.file
+  tags: [ 'dnet', 'users', 'dnet_u_acl' ]
+
+- name: Set the default read/write/access permissions on the users dnet data dirs
+  acl: name={{ item.name }} entity={{ dnet_group }} etype=group permissions={{ item.aclperms | default ('rwx') }} state=present default=yes
+  with_items: '{{ dnet_users_data_directories | default([])  }}'
+  when: not item.file
+  tags: [ 'dnet', 'users', 'dnet_u_acl' ]
+
+- name: Set the read/write permissions on pre-existing files inside the users dnet data dirs
+  acl: name={{ item.name }} entity={{ dnet_group }} etype=group permissions={{ item.aclperms | default ('rw') }} state=present
+  with_items: '{{ dnet_users_data_directories | default([])  }}'
+  when: item.file
+  tags: [ 'dnet', 'users', 'dnet_u_acl' ]
+

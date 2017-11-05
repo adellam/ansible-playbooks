@@ -36,7 +36,7 @@ path.data: {{ elasticsearch_data_dir }}
 #
 path.logs: {{ elasticsearch_log_dir }}
 #
-{% if elasticsearch_define_heap_size %}
+{% if elasticsearch_major_version <= 2 %}
 # ----------------------------------- Memory -----------------------------------
 #
 # Lock the memory on startup:
@@ -47,8 +47,8 @@ bootstrap.mlockall: true
 # available on the system and that the owner of the process is allowed to use this limit.
 #
 # Elasticsearch performs poorly when the system is swapping the memory.
-#
 {% endif %}
+#
 # ---------------------------------- Network -----------------------------------
 #
 # Set the bind address to a specific IP (IPv4 or IPv6):
@@ -77,15 +77,17 @@ discovery.zen.minimum_master_nodes: {{ elasticsearch_majority_of_nodes }}
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html>
 #
+{% if elasticsearch_real_cluster %}
 # ---------------------------------- Gateway -----------------------------------
 #
 # Block initial recovery after a full cluster restart until N nodes are started:
 #
-gateway.recover_after_nodes: 
+gateway.recover_after_nodes: {{ elasticsearch_recover_after_nodes }}
 #
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-gateway.html>
 #
+{% endif %}
 {% endif %}
 # ---------------------------------- Various -----------------------------------
 #

@@ -16,9 +16,11 @@
   <Rule path="/token/node" requiresToken="false" />
   <Rule path="/token/service" requiresToken="true" acceptedTokenTypes="CONTAINER"/>
   <Rule path="/token/resolve" requiresToken="false">
+{% if authorized_ips is defined %}
     {% for ip in authorized_ips %}
     <Entity type="IP" value="{{ ip }}" />
     {% endfor %}
+{% endif %}
   </Rule>
 </Configuration>
 

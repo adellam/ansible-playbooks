@@ -1,0 +1,11 @@
+---
+gcube_repository: gcube-staging
+spd_service_install: False
+spd_service_upgrade: False
+spd_service_version: latest
+spd_service_name: species-products-discovery
+
+spd_group_id: org.gcube.data.spd
+spd_extension: war
+spd_service_file: '{{ spd_service_name }}-{{ spd_service_version }}.{{ spd_extension }}'
+spd_service_repository_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}'

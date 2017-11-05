@@ -1,34 +1,19 @@
 ---
 - block:
-    
     - name: Install the python virtualenv packages
       apt: name={{ item }} state={{ py_virtenv_pkgs_state }}
       with_items: '{{ py_virtenv_pkgs }}'
 
-    - name: Create the virtenv environments.
-      command: virtualenv {{ py_virtenv_env_base_dir }}
-      when: '{{ py_virtenv_env_base_dir }} != ""'
+#    - name: Create the virtenv environments.
+#      command: virtualenv {{ py_virtenv_env_base_dir }}
 
-    - name: Install a list of pip packages inside the virtualenv, inherit the global site-packages
-      pip: name={{ item }} virtualenv={{ py_virtenv_env_base_dir }} virtualenv_site_packages=yes
+    - name: Install a list of pip packages inside the virtualenv, inherit the global site-packages if that is the choice
+      pip: name={{ item }} virtualenv={{ py_virtenv_env_base_dir }} virtualenv_site_packages={{ py_virtenv_site | default(False) }}
       with_items: '{{ py_virtenv_pip_pkgs | default ([]) }}'
-      when: py_virtenv_site
-
-    - name: Install a list of pip packages inside the virtualenv
-      pip: name={{ item }} virtualenv={{ py_virtenv_env_base_dir }}
-      with_items: '{{ py_virtenv_pip_pkgs | default ([]) }}'
-      when: not py_virtenv_site
 
     - name: Install a list of pip packages inside the virtualenv from a requirements.txt file, inherit the global site-packages
-      pip: requirements={{ py_virtenv_pip_requirements }} virtualenv={{ py_virtenv_env_base_dir }} virtualenv_site_packages=yes
-      when: 
-        - py_virtenv_pip_requirements is defined
-        - py_virtenv_site
+      pip: requirements={{ py_virtenv_pip_requirements }} virtualenv={{ py_virtenv_env_base_dir }} virtualenv_site_packages={{ py_virtenv_site | default(False) }}
+      when: py_virtenv_pip_requirements is defined
 
-    - name: Install a list of pip packages inside the virtualenv from a requirements.txt file
-      pip: requirements={{ py_virtenv_pip_requirements }} virtualenv={{ py_virtenv_env_base_dir }}
-      when:
-        - py_virtenv_pip_requirements is defined
-        - not py_virtenv_site
-
+  when: py_virtenv_env_base_dir is defined
   tags: [ "python", "py_virtenv" ]

@@ -1,0 +1,15 @@
+---
+java_keyring_use_default: False
+java_default_keyring: '{{ jdk_java_home }}/jre/lib/security/cacerts'
+java_keyring_dir: "{{ pki_dir | default('/etc/pki') }}/jdk"
+#java_keyring_file: '{{ java_default_keyring }}'
+java_keyring_file: '{{ java_keyring_dir }}/java.jks'
+java_keytool_bin: '{{ jdk_java_home }}/jre/bin/keytool'
+
+#java_keyring_certs_list: []
+java_keyring_cert_alias: '{{ ansible_fqdn }}'
+# This is the default java password. No need to hide it.
+# Change it inside a vault file if you need something good
+java_keyring_pwd: changeit
+java_keyring_letsencrypt_trusted_ca: identrustdstx3
+java_import_letsencrypt_cert: True

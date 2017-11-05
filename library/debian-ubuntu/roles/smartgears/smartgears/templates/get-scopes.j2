@@ -6,10 +6,42 @@ CONTAINER_XML_TAIL={{ smartgears_user_home }}/.containerxml/3-container.xml
 LOCAL_LIB=/usr/local/lib
 LOCAL_ETC=/usr/local/etc
 LOG_PREFIX="get-scopes: "
+GHN_ENV_FILE=/etc/default/tomcat-instance-{{ item.http_port }}.local
+SMARTGEARS_VO_AUTH={{ smartgears_authorized_on_all_scopes }}
+SMARTGEARS_SAVED_STATE_F=saved_scopes_list.xml
+SMARTGEARS_SAVED_STATE_PATH={{ smartgears_user_home }}/SmartGears/$SMARTGEARS_SAVED_STATE_F
+SMARTGEARS_SCRIPTS_DIR={{ smartgears_user_home }}/SmartGears/scripts
+SMARTGEARS_RUNNING_STATE_FILE={{ smartgears_install_path }}/state/ghn.xml
 
 CONTAINER_XML_FILE={{ smartgears_install_path }}/container.xml
 
+# 0: True, 1: False
+USE_SAVED_STATE=1
+TOKEN=
 RETVAL=
+
+if [ $# -eq 0  ] ; then
+    if [ -f $SMARTGEARS_RUNNING_STATE_FILE ] ; then
+        if [ "$SMARTGEARS_VO_AUTH" == 'true' ] ; then
+            # - The node must run on all VOs
+            logger "$LOG_PREFIX When the node must run on all the VOs a valid token is mandatory, aborting without doing anything"
+            exit 0
+        fi
+        USE_SAVED_STATE=0
+        echo "No token, assuming that we can use the local state"
+        logger "$LOG_PREFIX No token, assuming that we can use the local state"
+    else
+        # - First installation, no upgrade.
+        logger "$LOG_PREFIX No token was passed and not working state available, aborting"
+        exit 1
+    fi
+elif [ $# -eq 1 ] ; then
+    logger "$LOG_PREFIX We have an authorization token"
+    TOKEN=$1
+else
+    logger "$LOG_PREFIX More than one parameter was passed, aborting"
+    exit 1
+fi
 
 SCOPES_LIST=""
 if [ -f $LOCAL_ETC/scopes.list ] ; then
@@ -18,48 +50,61 @@ else
     logger "$LOG_PREFIX There is no token list, aborting"
     exit 1
 fi
-    
-
-if [ $# -ne 1 ] ; then
-    echo "The token must be passed as the sole argument"
-    logger "$LOG_PREFIX The token must be passed as the sole argument"
-    exit 1
-fi
-TOKEN=$1
 
 {%if setup_nginx %}
-{%if https_port is defined %}
-{% if http_redirect_to_https is defined and http_redirect_to_https %}
-HTTP_PORT={{ https_port }}
-{% else %}
 HTTP_PORT={{ http_port }}
-{% endif %}
 {% else %}
 {%if http_port is defined %}
 HTTP_PORT={{ http_port }}
-{% endif %}
-{% endif %}
 {% else %}
 HTTP_PORT={{ item.http_port }}
 {% endif %}
+{% endif %}
 
-for jar in $( ls -1 /home/gcube/tomcat/lib/ ) ; do
-    export CLASSPATH="/home/gcube/SmartGears/lib/${jar}:$CLASSPATH"
-done
+function get_scopes_from_auth() {
+    for jar in $( ls -1 /home/gcube/tomcat/lib/ ) ; do
+        export CLASSPATH="/home/gcube/SmartGears/lib/${jar}:$CLASSPATH"
+    done
+    cd $LOCAL_LIB
+    java TokenGenerator {{ smartgears_hostname }} $TOKEN $HTTP_PORT $SCOPES_FILE $SCOPES_LIST >/dev/null 2>&1
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ] ; then
+        logger "$LOG_PREFIX We got the scope tokens"
+    else
+        logger "$LOG_PREFIX Unable to obtain the scope tokens, aborting"
+        exit 1
+    fi
+}
 
-cd $LOCAL_LIB
-
-java TokenGenerator {{ smartgears_hostname }} $TOKEN $HTTP_PORT $SCOPES_FILE $SCOPES_LIST
-RETVAL=$?
-if [ $RETVAL -eq 0 ] ; then
-    logger "$LOG_PREFIX We got the scope tokens"
+if [ $USE_SAVED_STATE -ne 0 ] ; then
+    logger "$LOG_PREFIX First installation or moving avay to a configuration that needs to be present on all the VREs. Using our scopes list and not the state memorized one"
+    get_scopes_from_auth
 else
-    logger "$LOG_PREFIX Unable to obtain the scope tokens, aborting"
-    exit 1
+    logger "$LOG_PREFIX We are going to use the scopes memorized into the state"
+    SCOPES_FILE=$SMARTGEARS_SAVED_STATE_PATH
+fi
+
+# We always remove the current state
+cd $SMARTGEARS_SCRIPTS_DIR
+. $GHN_ENV_FILE
+./clean-container-state -s $SMARTGEARS_SAVED_STATE_F
+RETVAL=$?
+if [ $RETVAL -ne 0 ] ; then
+    # We were not able to get the running state from the IS. Try to get new scope tokens 
+    logger "$LOG_PREFIX We were not able to get the running state from the IS. Try to get new scope tokens from the authorization service"
+    SCOPES_FILE={{ smartgears_user_home }}/.containerxml/2-container.xml
+    get_scopes_from_auth
 fi
 
 # Now that we have the tokens, we can assemble the container.xml file
-cat $CONTAINER_XML_HEAD $SCOPES_FILE $CONTAINER_XML_TAIL > $CONTAINER_XML_FILE
+chmod 640 $CONTAINER_XML_FILE
+CREATE_CONTAINER_XML_RES=0
+CREATE_CONTAINER_XML=$( cat $CONTAINER_XML_HEAD $SCOPES_FILE $CONTAINER_XML_TAIL > $CONTAINER_XML_FILE )
+CREATE_CONTAINER_XML_RES=$?
+if [ $CREATE_CONTAINER_XML_RES -ne 0 ] ; then
+    logger "$LOG_PREFIX $CONTAINER_XML_FILE cannot be updated. Error is $CREATE_CONTAINER_XML"
+    exit $CREATE_CONTAINER_XML_RES
+fi
 chmod 440 $CONTAINER_XML_FILE
 logger "$LOG_PREFIX $CONTAINER_XML_FILE updated"
 

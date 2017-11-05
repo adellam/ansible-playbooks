@@ -7,7 +7,7 @@
 command={{ ckan_virtenv }}/bin/paster --plugin=ckanext-harvest harvester gather_consumer --config={{ ckan_config_file }}
 
 ; user that owns virtual environment.
-user=ckan
+user={{ ckan_shell_user }}
 
 numprocs=1
 stdout_logfile={{ ckan_logdir }}/gather_consumer.log

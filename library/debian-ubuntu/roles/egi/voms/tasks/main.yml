@@ -1,0 +1,47 @@
+---
+- block:
+    - name: Install the EGI repos key
+      apt_key: url={{ item }} state=present 
+      with_items: '{{ voms_egi_repo_key }}'
+
+    - name: Install the egi-trustedanchors repository
+      apt_repository: repo='{{ voms_egi_trustanchors_repo }}' state=present filename='egi-trustanchors' update_cache=yes
+
+    - name: Install the UMD-3-base repository
+      apt_repository: repo='{{ voms_base_client_repo }}' state=present filename='UMD-3-base' update_cache=yes
+
+    - name: Install the UMD-3-updates repository
+      apt_repository: repo='{{ voms_updates_client_repo }}' state=present filename='UMD-3-updates' update_cache=yes
+
+    - name: Install the CRL fetcher package
+      apt: pkg={{ item }} state=present force=yes
+      with_items: '{{ voms_fetch_crl_pkgs }}'
+      
+    - name: Install the CRL fetcher package
+      apt: pkg={{ item }} state=present
+      with_items: '{{ voms_client_pkgs }}'
+      
+    - name: Enable the fetch-crls service. A cron job, really
+      service: name=fetch-crl-cron state=started enabled=yes
+
+    - name: Create the VOMS directory
+      file: dest={{ voms_config_base_directory }} state=directory
+
+    - name: Create the VOMS trusted anchors directories
+      file: dest={{ voms_trustanchors_base_directory }}/{{ item.name }} state=directory
+      with_items: '{{ voms_trusted_anchors_data }}'
+
+    - name: Define the VOMS trusted anchors, lsc version
+      template: src=lsc-gridsecurity-content.j2 dest={{ voms_trustanchors_base_directory }}/{{ item.dirname }}/{{ item.name }}.lsc
+      with_items: '{{ voms_trusted_anchors_data }}'
+      
+    - name: Define the VOMS trusted anchors
+      template: src=gridsecurity-content.j2 dest={{ voms_trustanchors_base_directory }}/{{ item.name }}/{{ d4science_voms_provider }}
+      with_items: '{{ voms_trusted_anchors_data }}'
+      
+    - name: Define the VOMS definitions
+      template: src=voms-data.j2 dest={{ voms_config_base_directory }}/{{ item.name }}
+      with_items: '{{ voms_data }}'
+
+  when: voms_egi_install
+  tags: [ 'voms', 'egi', 'occi', 'rocci' ]

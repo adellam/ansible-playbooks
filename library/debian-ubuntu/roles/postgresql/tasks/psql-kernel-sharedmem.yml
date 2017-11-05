@@ -1,0 +1,8 @@
+---
+- name: Configure the kernel shared memory to please postgresql
+  sysctl: name={{ item.name }} value={{ item.value }} sysctl_file=/etc/sysctl.d/{{ psql_sysctl_file }} reload=yes state=present
+  with_items: '{{ psql_sysctl_kernel_sharedmem_parameters }}'
+  when: psql_set_shared_memory
+  tags:
+    - sysctl
+    - postgresql

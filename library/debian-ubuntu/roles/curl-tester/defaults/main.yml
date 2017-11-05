@@ -1,0 +1,2 @@
+test_port: "8080"
+test_URL: "http://{{ inventory_hostname }}:{{ test_port }}"

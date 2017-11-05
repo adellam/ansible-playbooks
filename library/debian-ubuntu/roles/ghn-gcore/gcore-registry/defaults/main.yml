@@ -1,0 +1,13 @@
+---
+repo: "gcube-staging"
+registry_version: "2.1.4-4.1.0-126945"
+registry_artifact: "is-registry-service-{{ registry_version }}"
+registry_gar: "{{ registry_artifact }}.gar"
+registry_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/informationsystem/is-registry-service/{{ registry_version }}/{{ registry_gar }}"
+
+start_scopes: ''
+infrastructure: 'd4s'
+
+registry_port: '8080'
+registry_hostname: "{{ ansible_hostname }}"
+registry_published_host: '{{ registry_hostname }}:{{ registry_port }}'

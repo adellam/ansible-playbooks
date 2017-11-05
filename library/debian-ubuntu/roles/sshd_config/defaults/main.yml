@@ -1,4 +1,5 @@
 ---
+sshd_install_config: True
 sshd_port: 22
 sshd_config_dir: /etc/ssh
 sshd_config_file: sshd_config
@@ -10,7 +11,7 @@ sshd_permit_empty_passwords: "no"
 sshd_permit_root_login: "without-password"
 sshd_strict_mode: "yes"
 # If set to no, the locked users cannot log in. adduser creates the users that have no password as locked
-sshd_use_pam: "no"
+sshd_use_pam: "yes"
 # set to "yes" only if you are using s/key or something equivalent
 sshd_challenge_response_authentication: "no"
 sshd_enable_sftp_subsystem: True

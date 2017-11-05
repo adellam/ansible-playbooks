@@ -1,29 +1,24 @@
 ---
 - name: Install the required packages needed by the external varnish repo
-  apt: pkg={{ item }} state=present
+  apt: pkg={{ item }} state=present cache_valid_time=1800 update_cache=yes
   with_items: '{{ varnish_repo_requirements }}'
   when: varnish_repo
   tags: varnish
 
 - name: Get the varnish repo key
-  apt_key: url=https://repo.varnish-cache.org/GPG-key.txt state=present
+  apt_key: url=https://packagecloud.io/varnishcache/varnish{{ varnish_compact_ver }}/gpgkey state=present
   when: varnish_repo
   register: varnish_repo_list
   tags: varnish
 
 - name: Define the varnish repository
-  apt_repository: repo='deb {{ varnish_repo_url }}' state=present
+  apt_repository: repo='{{ varnish_repo_url }}' state=present update_cache=yes
   when: varnish_repo
   register: varnish_repo_list
   tags: varnish
 
-- name: Update the apt cache if needed
-  apt: update_cache=yes
-  when: ( varnish_repo_list | changed )
-  tags: varnish
-  
 - name: Install the varnish package
-  apt: pkg={{ item }} state={{ varnish_pkg_state }}
+  apt: pkg={{ item }} state={{ varnish_pkg_state }} cache_valid_time=1800 update_cache=yes
   with_items: '{{ varnish_pkg_name }}'
   tags: varnish
 

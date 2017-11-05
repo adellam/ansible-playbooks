@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
+<!-- =============================================================== -->
+<!-- Configure the Jetty SetUIDServer                                 -->
+<!-- this configuration file should be used in combination with      -->
+<!-- other configuration files.  e.g.                                -->
+<!--    java -jar start.jar etc/jetty-setuid.xml etc/jetty.xml       -->
+<!-- =============================================================== -->
+<Configure id="Server" class="org.mortbay.setuid.SetUIDServer">
+  <Set name="startServerAsPrivileged">false</Set>
+  <Set name="umask">2</Set>
+  <Set name="uid">{{ jetty_user }}</Set>
+  <Set name="gid">{{ jetty_group }}</Set>
+  <Call name="setRLimitNoFiles">
+    <Arg>
+        <New class="org.mortbay.setuid.RLimit">
+          <Set name="soft">{{ jetty_open_files }}</Set>
+          <Set name="hard">{{ jetty_open_files }}</Set>
+        </New>
+    </Arg>
+  </Call>
+</Configure>

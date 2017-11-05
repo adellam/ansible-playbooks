@@ -1,9 +1,9 @@
 ---
-gcube_repository: 'gcube-staging'
+ckan_connector_gcube_repository: 'gcube-staging'
 ckan_connector_plugin_install: False
-ckan_connector_ver: 1.1.1-4.2.0-134821
+ckan_connector_ver: 1.1.2-4.3.0-142056
 ckan_connector_name: ckan-connector
 ckan_connector_filename: '{{ ckan_connector_name }}-{{ ckan_connector_ver }}.war'
-ckan_connector_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/data/access/{{ ckan_connector_name }}/{{ ckan_connector_ver}}/{{ ckan_connector_filename }}'
+ckan_connector_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ ckan_connector_gcube_repository }}/org/gcube/data/access/{{ ckan_connector_name }}/{{ ckan_connector_ver}}/{{ ckan_connector_filename }}'
 ckan_connector_war_file: '{{ ckan_connector_name }}.war'
 ckan_connector_user: ckan_connector

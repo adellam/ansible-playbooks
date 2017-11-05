@@ -1,16 +1,25 @@
 ---
-- name: Create a file system on the new disks
-  filesystem: dev=/dev/{{ item.device }} fstype={{ item.fstype }} force=no
-  with_items: '{{ disks_and_mountpoints_list | default([]) }}'
-  when:
-    - additional_disks
-    - item.create_filesystem
-  tags: [ 'data_disk', 'mountpoint' ]
+- block:
+    - name: Create a file system on the new disks
+      filesystem: dev=/dev/{{ item.device }} fstype={{ item.fstype }} force=no
+      with_items: '{{ disks_and_mountpoints_list | default([]) }}'
+      when:
+        - additional_disks
+        - item.create_filesystem
 
-- name: Manage the additional file systems
-  mount: name={{ item.mountpoint }} src=/dev/{{ item.device }} fstype={{ item.fstype }} opts={{ item.opts }} state={{ item.state }}
-  with_items: '{{ disks_and_mountpoints_list | default([]) }}'
+    - name: Install the NFS client utilities when we are going to mount a NFS file system
+      apt: pkg=nfs-common state=present update_cache=yes cache_valid_time=1800
+      with_items: '{{ disks_and_mountpoints_list | default([]) }}'
+      when: item.fstype == 'nfs'
+
+    - name: Install the NFS 4 acl tools when we are going to mount a NFS file system
+      apt: pkg=nfs4-acl-tools state=present update_cache=yes cache_valid_time=1800
+      with_items: '{{ disks_and_mountpoints_list | default([]) }}'
+      when: item.fstype == 'nfs'
+
+    - name: Manage the additional file systems
+      mount: name={{ item.mountpoint }} src={{ item.root_device | default('/dev') }}/{{ item.device }} fstype={{ item.fstype }} opts={{ item.opts }} state={{ item.state }}
+      with_items: '{{ disks_and_mountpoints_list | default([]) }}'
+
   when: additional_disks
   tags: [ 'data_disk', 'mountpoint' ]
-
-  

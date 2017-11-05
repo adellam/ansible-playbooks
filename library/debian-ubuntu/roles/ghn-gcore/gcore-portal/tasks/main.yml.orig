@@ -1,0 +1,188 @@
+---
+- name: Test if liferay is already installed
+  raw: ls -l /var/lib/tomcat7/webapps/ROOT/WEB-INF/classes/portal-developer.properties
+  register: liferay_install
+  ignore_errors: True
+  tags:
+    - liferay
+
+- name: Download the liferay war file
+  get_url: url="http://downloads.sourceforge.net/project/lportal/Liferay%20Portal/6.1.2%20GA3/liferay-portal-6.1.2-ce-ga3-20130816114619181.war?r=http%3A%2F%2Fwww.liferay.com%2Fit%2Fdownloads%2Fliferay-portal%2Fadditional-files&ts=1383123826&use_mirror=garr" dest=/var/tmp/liferay-6.1.war
+  when: liferay_install.rc != 0
+  tags:
+    - liferay
+
+- name: Explode the liferay war
+  shell: cd /var/lib/tomcat7/webapps/ROOT ; jar xf /var/tmp/liferay-6.1.war ; chown -R root:root . ; rm -f /var/tmp/liferay-6.1.war
+  when: liferay_install.rc != 0
+  notify:
+    tomcat7 restart
+  tags:
+    - liferay
+
+- name: Create the /usr/share/tomcat7/lib/ext directory
+  file: dest=/usr/share/tomcat7/lib/ext state=directory owner=root group=root mode=0755
+  tags:
+    - liferay
+
+- name: Install other liferay dependencies (taken from the liferay bundle)
+  copy: src={{ item }} dest=/usr/share/tomcat7/lib/ext/{{ item }}
+  with_items:
+    - activation.jar
+    - ccpp.jar
+#    - hsql.jar
+    - jms.jar
+    - jta.jar
+    - jtds.jar
+    - junit.jar
+    - jutf7.jar
+    - mail.jar
+#    - mysql.jar
+    - persistence.jar
+    - portal-service.jar
+    - portlet.jar
+#    - postgresql.jar
+    - support-tomcat.jar
+  notify: tomcat7 restart
+  tags:
+    - liferay
+
+- name: Install liferay patch for ldap without using the test password
+  copy: src={{ item }} dest=/var/lib/tomcat7/webapps/ROOT/WEB-INF/lib/{{ item }}
+  with_items:
+    - lps9001-ldap-ce6101-portal-impl.jar
+  when: liferay_ldap_fix is defined and liferay_ldap_fix == 'True'
+  notify: tomcat7 restart
+  tags:
+    - liferay
+    - liferaycfg
+
+- name: Ensure that the ldap authentication patch is not installed
+  file: dest=/var/lib/tomcat7/webapps/ROOT/WEB-INF/lib/{{ item }} state=absent
+  with_items:
+    - lps9001-ldap-ce6101-portal-impl.jar
+  when: liferay_ldap_fix is not defined or liferay_ldap_fix == 'False'
+  notify: tomcat7 restart
+  tags:
+    - liferay
+    - liferaycfg
+
+- name: Create the funny /var/lib/tomcat7/temp/liferay/com/liferay/portal/deploy/dependencies directory
+  file: dest=/var/lib/tomcat7/temp/liferay/com/liferay/portal/deploy/dependencies state=directory owner=root group=root mode=0755
+  tags:
+    - liferay
+
+- name: Create the temp directory /var/lib/tomcat7/temp
+  file: dest=/var/lib/tomcat7/temp owner=tomcat7 group=tomcat7 mode=0750 state=directory
+  tags:
+    - liferay
+
+- name: Create the funny path needed by some liferay dependencies
+  file: dest=/var/lib/tomcat7/temp/liferay/com/liferay/portal/deploy/dependencies state=directory owner=root group=root mode=0755
+  tags:
+    - liferay
+
+- name: Install other liferay dependencies in funny places
+  copy: src=../files/{{ item }} dest=/var/lib/tomcat7/temp/liferay/com/liferay/portal/deploy/dependencies/{{ item }}
+  with_items:
+    - resin.jar
+    - script-10.jar
+  notify:
+    tomcat7 restart
+  tags:
+    - liferay
+
+#
+# Note: we have the dependencies as local files. The two following tasks are not needed anymore
+#
+# - name: get the liferay dependencies
+#   get_url: url="http://downloads.sourceforge.net/project/lportal/Liferay%20Portal/6.1.2%20GA3/liferay-portal-dependencies-6.1.2-ce-ga3-20130816114619181.zip?r=http%3A%2F%2Fwww.liferay.com%2Fit%2Fdownloads%2Fliferay-portal%2Fadditional-files&ts=1383130399&use_mirror=garr" dest=/var/tmp/liferay-dependencies.zip
+#   register: dependencies_download
+
+# - name: Install the liferay dependencies
+#   shell: cd /usr/share/tomcat7/lib ; unzip /var/tmp/liferay-dependencies.zip ; chown -R root:root . ; ln -s */*.jar ./ext ; /bin/rm -f ./ext/hsql.jar
+#   when: dependencies_download.changed
+#   notify: tomcat7 restart
+
+- name: liferay basic configuration
+  template: src=../templates/portal-ext.properties.j2 dest=/var/lib/tomcat7/webapps/ROOT/WEB-INF/classes/portal-ext.properties owner=root group=tomcat7 mode=0640
+  notify:
+    tomcat7 restart
+  tags:
+    - liferay
+    - liferaycfg
+
+- name: Create the portal home directory outside the webapp root
+  file: dest={{ liferay.portal_home }} state=directory owner=tomcat7 group=tomcat7 mode=0750
+  tags:
+    - liferay
+    - liferaycfg
+
+- name: Create data and deploy directories
+  file: dest={{ liferay.portal_home }}/{{ item }} state=directory owner=tomcat7 group=tomcat7 mode=0750
+  with_items:
+    - data
+    - deploy
+    - liferay
+  tags:
+    - liferay
+    - liferaycfg
+
+- name: Force the logs in the right place
+  file: src=/var/log/tomcat7 dest={{ liferay.portal_home }}/logs state=link
+  tags:
+    - liferay
+    - liferaycfg
+
+- name: Give write permissions to some directories
+  file: dest=/var/lib/tomcat7/webapps/ROOT/html/{{ item }} state=directory owner=tomcat7 group=tomcat7
+  with_items:
+    - icons
+    - themes
+  notify: Recursively set liferay write permissions
+  tags:
+    - liferay
+    - liferaycfg
+
+- name: Put the static properties in the portal home directory
+  template: src=../templates/home-portal-ext.properties.j2 dest={{ liferay.portal_home }}/portal-ext.properties owner=root group=tomcat7 mode=0640
+  notify: tomcat7 restart
+  tags:
+    - liferay
+    - liferaycfg
+
+- name: Create an empty portal-setup-wizard.properties if does not exist
+  copy: content="" dest={{ liferay.portal_home }}/portal-setup-wizard.properties owner=root group=tomcat7 mode=0660 force=no
+  tags:
+    - liferay
+    - liferaycfg
+
+- name: Test if the related webapps are installed
+  raw: ls -l /var/lib/tomcat7/webapps/marketplace-portlet
+  register: liferay_bundled_apps
+  ignore_errors: True
+  tags:
+    - liferay
+
+- name: Download the liferay bundle. Needed for the related webapps
+  get_url: url="http://downloads.sourceforge.net/project/lportal/Liferay%20Portal/6.1.2%20GA3/liferay-portal-tomcat-6.1.2-ce-ga3-20130816114619181.zip?r=http%3A%2F%2Fwww.liferay.com%2Fit%2Fdownloads%2Fliferay-portal%2Favailable-releases&ts=1383043780&use_mirror=garr" dest=/var/tmp/liferay-bundle.zip
+  when: liferay_bundled_apps.rc != 0
+  tags:
+    - liferay
+
+- name: Explode the liferay bundle and install the needed webapps
+  shell: cd /var/tmp ; /var/lib/tomcat7/webapps/ROOT ; unzip /var/tmp/liferay-bundle.zip ; cd /var/tmp/liferay-portal-6.1.2-ce-ga3/tomcat-7.0.40/webapps ; cp -a marketplace-portlet portal-compat-hook resources-importer-web welcome-theme /var/lib/tomcat7/webapps/ ; cd /var/tmp ; rm -fr /var/tmp/liferay-bundle.zip /var/tmp/liferay-portal-6.1.2-ce-ga3
+  when: liferay_bundled_apps.rc != 0
+  notify:
+    tomcat7 restart
+  tags:
+    - liferay
+
+- name: The images directory of the theme must be writeable by tomcat(!)
+  file: dest=/var/lib/tomcat7/webapps/welcome-theme/images state=directory owner=tomcat7 group=tomcat7 mode=0750
+  notify:
+    Recursively change welcome-theme images permissions
+  tags:
+    - liferay
+    - liferaycfg
+

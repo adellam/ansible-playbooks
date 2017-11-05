@@ -7,13 +7,19 @@
 - name: Additional nagios plugins when available
   apt: pkg={{ item }} state=installed
   with_items: '{{ nagios_plugins_contrib }}'
-  when: is_not_debian_less_than_6
+  when: is_debian7
   tags: [ 'nagios', 'nagios_plug_contrib' ]
 
 - name: Additional nagios plugins when available
   apt: pkg={{ item }} state=installed
   with_items: '{{ nagios_plugins_contrib }}'
-  when: is_not_ubuntu_less_than_trusty
+  when: is_debian8
+  tags: [ 'nagios', 'nagios_plug_contrib' ]
+
+- name: Additional nagios plugins when available
+  apt: pkg={{ item }} state=installed
+  with_items: '{{ nagios_plugins_contrib }}'
+  when: is_trusty
   tags: [ 'nagios', 'nagios_plug_contrib' ]
 
 - name: Create the directory where our local plugins are installed

@@ -1,0 +1,15 @@
+# Customize location of Docker binary (especially for development testing).
+#DOCKERD="/usr/local/bin/dockerd"
+
+
+CUSTOM_DOCKER_SOCKET="-H tcp://{{ docker_tcp_socket_host }}:{{ docker_tcp_socket_port }} -H unix:///var/run/docker.sock"
+#CUSTOM_DOCKER_DNS_SERVERS="--dns 8.8.8.8 --dns 8.8.4.4"
+
+# Use DOCKER_OPTS to modify the daemon startup options.
+DOCKER_OPTS="{% if docker_enable_tcp_socket %}$CUSTOM_DOCKER_SOCKET {% endif %}"
+
+# If you need Docker to use an HTTP proxy, it can also be specified here.
+#export http_proxy="http://127.0.0.1:3128/"
+
+# This is also a handy place to tweak where Docker's temporary files go.
+#export DOCKER_TMPDIR="/mnt/bigdrive/docker-tmp"

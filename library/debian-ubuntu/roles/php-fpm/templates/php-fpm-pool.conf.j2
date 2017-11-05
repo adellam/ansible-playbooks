@@ -276,10 +276,16 @@ php_flag[display_errors] = {{ item.display_errors | default('off') }}
 php_admin_value[error_log] = {{ phpfpm_logdir }}/$pool-error.log
 php_admin_flag[log_errors] = {{ item.log_errors | default('on') }}
 php_admin_value[memory_limit] = {{ item.memory_limit | default('64M') }}
-php_admin_value[upload_max_filesize] = {{ item.upload_max_filesize | default('100M') }}
+php_admin_value[upload_max_filesize] = {{ item.upload_max_filesize | default('20M') }}
+php_admin_value[post_max_size] = {{ item.upload_max_filesize | default('20M') }}
+php_admin_value[upload_tmp_dir] = {{ item.upload_tmp_dir | default('/var/tmp') }}
 ; Set session path to a directory owned by process user
 php_value[session.save_handler] = '{{ item.session_save_handler | default('files') }}'
-php_value[session.save_path] = '{{ item.session_save_path | default('/var/lib/php/www') }}'
+{% if phpfpm_session_prefix is defined %}
+php_value[session.save_path] = '{{ phpfpm_session_prefix }}/{{ item.pool_name }}'
+{% else %}
+php_value[session.save_path] = '/var/lib/php/www'
+{% endif %}
 {% if item.define_custom_variables is defined and item.define_custom_variables %}
 {% for php_var in phpfpm_php_variables %}
 php_value[{{ php_var.prop }}] = {{ php_var.value }}

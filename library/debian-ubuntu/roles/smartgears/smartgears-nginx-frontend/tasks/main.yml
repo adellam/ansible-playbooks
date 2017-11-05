@@ -1,13 +1,13 @@
 ---
 # Install the nginx virtualhosts
-- name: Install the nginx virtualhosts
+- name: Install the nginx virtualhost, if a specific one has been defined
   template: src={{ item.servername }}-virtualhost.j2 dest=/etc/nginx/sites-available/{{ item.servername }} owner=root group=root mode=0444
   with_items: '{{ tomcat_m_instances }}'
   when: not smartgears_install_generic_virthost
   notify: Reload nginx
   tags: [ 'nginx', 'virtualhost' ]
 
-- name: Install the nginx smartexecutor virtualhost
+- name: Install the nginx generic virtualhost
   template: src=generic-smartgears-virtualhost.j2 dest=/etc/nginx/sites-available/{{ item.servername }} owner=root group=root mode=0444
   with_items: '{{ tomcat_m_instances }}'
   when: smartgears_install_generic_virthost
@@ -15,7 +15,19 @@
   tags: [ 'nginx', 'virtualhost' ]
 
 - name: Enable the nginx virtualhosts
-  file: src=/etc/nginx/sites-available/{{ item.servername }} dest=/etc/nginx/sites-enabled/{{ item.servername }}.conf state=link
+  file: src=/etc/nginx/sites-available/{{ item.servername }} dest=/etc/nginx/sites-enabled/smartgears_{{ item.smartgears_id }}.conf state=link
+  with_items: '{{ tomcat_m_instances }}'
+  notify: Reload nginx
+  tags: [ 'nginx', 'virtualhost' ]
+
+- name: Remove the old hostname based virtualhost filename
+  file: dest=/etc/nginx/sites-enabled/{{ item.servername }}.conf state=absent
+  with_items: '{{ tomcat_m_instances }}'
+  notify: Reload nginx
+  tags: [ 'nginx', 'virtualhost' ]
+
+- name: Remove the old ubuntu.conf virtualhost filename
+  file: dest=/etc/nginx/sites-enabled/ubuntu.conf state=absent
   with_items: '{{ tomcat_m_instances }}'
   notify: Reload nginx
   tags: [ 'nginx', 'virtualhost' ]

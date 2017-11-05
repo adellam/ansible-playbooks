@@ -1,6 +1,6 @@
 ---
 - name: Install the ganglia client
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=installed update_cache=yes cache_valid_time=3600
   with_items:
     - ganglia-monitor
   tags: [ 'monitoring', 'ganglia' ]

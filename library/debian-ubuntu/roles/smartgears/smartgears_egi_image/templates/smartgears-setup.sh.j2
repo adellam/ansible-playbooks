@@ -1,9 +1,10 @@
 #!/bin/bash
 
 SM_DIR={{ smartgears_install_path }}
-SM_CONF_F={{ smartgears_user_home }}/.containerxml/1-container.xml
-SM_CONF_TOKENS_F={{ smartgears_user_home }}/.containerxml/2-container.xml
-SM_CONF_TAIL_F={{ smartgears_user_home }}/.containerxml/3-container.xml
+SM_DOT_CONF_D={{ smartgears_user_home }}/.containerxml
+SM_CONF_F=${SM_DOT_CONF_D}/1-container.xml
+SM_CONF_TOKENS_F=${SM_DOT_CONF_D}/2-container.xml
+SM_CONF_TAIL_F=${SM_DOT_CONF_D}/3-container.xml
 SM_CONF_SCOPES_F=/usr/local/etc/scopes.list
 SM_CONF_DEST_F=${SM_DIR}/container.xml
 SM_LIB_DIR=${SM_DIR}/lib
@@ -18,10 +19,15 @@ FQDN_HOST=
 PUB_FQDN_HOST=
 PUBLIC_IP=
 MAIN_IP=
+AUTHORIZE_CHILDREN=
+WORKING_REVERSE_RESOLUTION=0
 RETVAL=0
 CLOUD_INSTANCE_DIR=/var/lib/cloud/instance
 MEM=$( free -m | egrep ^Mem | awk '{ print $2 }'  )
 JAVA_MAX_HEAP=$( expr $MEM - 2048 )
+
+# WPS configuration data
+WPS_CONFIG_FIXER=/usr/local/bin/wps-config-fixer
 
 # Init some variables that should be passed
 if [ -z "${SMARTGEARS_SCOPES}" ] ; then
@@ -66,20 +72,29 @@ function find_public_ip() {
     RET_FQDN=$?
     if [ $RET_FQDN -eq 0 ] ; then
         PUB_FQDN_HOST=$( host $PUBLIC_IP | awk '{print $5}' | sed -e 's/\.$//g' )
+    else
+        echo "No reverse resolution available. WPS will not work." >> $LOG_FILE
+        WORKING_REVERSE_RESOLUTION=1
     fi
 }
 
 function modify_hosts_file() {
     echo "-- modify_hosts_file" >> $LOG_FILE
-    # Set the hosts file with the new data
-    grep -v $HOST $HOSTS_FILE > $HOSTS_FILE.tmp
-    if [ "${FQDN_HOST}" == "${HOST}" ] ; then
-        FQDN_HOST=${HOST}.localhost
+    # Set the hosts file with the new data. Set /etc/hostname too
+    if [ $WORKING_REVERSE_RESOLUTION -eq 0 ] ; then
+        grep -v $HOST $HOSTS_FILE > $HOSTS_FILE.tmp
+        if [ "${FQDN_HOST}" == "${HOST}" ] ; then
+            LOCAL_HOSTNAME=${HOST}
+        fi
+        SHORT_HOSTNAME=$( echo ${PUB_FQDN_HOST} | cut -d . -f 1 - )
+        echo "${PUBLIC_IP} ${PUB_FQDN_HOST} ${SHORT_HOSTNAME} ${LOCAL_HOSTNAME}" >> $HOSTS_FILE.tmp
+        mv $HOSTS_FILE.tmp $HOSTS_FILE
+        chmod 644 $HOSTS_FILE
+        chown root:root $HOSTS_FILE
+        if [ ! -z ${SHORT_HOSTNAME} ] ; then
+            echo "${SHORT_HOSTNAME}" > /etc/hostname
+        fi
     fi
-    echo "${PUBLIC_IP} ${FQDN_HOST} ${PUB_FQDN_HOST} ${HOST}" >> $HOSTS_FILE.tmp
-    mv $HOSTS_FILE.tmp $HOSTS_FILE
-    chmod 644 $HOSTS_FILE
-    chown root:root $HOSTS_FILE
 }
     
 function smartgears_config_parameters_check() {
@@ -113,6 +128,19 @@ function populate_head_containerxml() {
     sed -i -e "s#@SMARTGEARS_VO_NAME@#${SCOPE}#g" $SM_CONF_F
     sed -i -e "s#@SMARTGEARS_COUNTRY@#${COUNTRY}#g" $SM_CONF_F
     sed -i -e "s#@SMARTGEARS_LOCATION@#${LOCATION}#g" $SM_CONF_F
+    sed -i -e "s#@SMARTGEARS_AUTHORIZE_CHILDREN@#${AUTHORIZE_CHILDREN}#g" $SM_CONF_F
+}
+
+function fix_wps_configuration() {
+    echo "-- fix_wps_configuration" >> $LOG_FILE
+    if [ -f $WPS_CONFIG_FIXER ] ; then
+        echo "This is a dataminer node" >> $LOG_FILE
+        sed -i -e "s#@SMARTGEARS_HOSTNAME@#${PUB_FQDN_HOST}#g" $WPS_CONFIG_FIXER
+        # Run the command to fix the dataminer configuration
+        $WPS_CONFIG_FIXER
+    else
+        echo "This is not a dataminer node, doing nothing here" >> $LOG_FILE
+    fi
 }
 
 {% endraw %}
@@ -149,12 +177,20 @@ function get_smartgears_scope_tokens() {
     fi
 }
 
-function merge_container_xml() {
-    echo "-- merge_container_xml: compose the file" >> $LOG_FILE
-    cat $SM_CONF_F $SM_CONF_TOKENS_F $SM_CONF_TAIL_F > $SM_CONF_DEST_F
+function fix_containerxml_perms() {
+    chown -R gcube:gcube ${SM_DOT_CONF_D}
+    chmod 640 ${SM_DOT_CONF_D}/.*
     chown gcube:gcube $SM_CONF_DEST_F
     chmod 640 $SM_CONF_DEST_F
 }
+
+
+# function merge_container_xml() {
+#     echo "-- merge_container_xml: compose the file" >> $LOG_FILE
+#     cat $SM_CONF_F $SM_CONF_TOKENS_F $SM_CONF_TAIL_F > $SM_CONF_DEST_F
+#     chown gcube:gcube $SM_CONF_DEST_F
+#     chmod 640 $SM_CONF_DEST_F
+# }
 
 function get_gcube_keys() {
     echo "-- get_gcube_keys" >> $LOG_FILE
@@ -203,9 +239,10 @@ modify_hosts_file
 smartgears_config_parameters_check
 set_scopes_list
 populate_head_containerxml
+fix_wps_configuration
 fix_get_scopes
 get_smartgears_scope_tokens
-merge_container_xml
+fix_containerxml_perms
 get_gcube_keys
 set_java_heap
 cleanup_cloud_user_data

@@ -1,0 +1,16 @@
+---
+- name: Distribute the jmx authorization file
+  template: src=jmxremote.passwd.j2 dest={{ tomcat_jmx_auth_dir }}/jmxremote.passwd owner={{ tomcat_user }} mode=0600
+  when:
+    - tomcat_jmx_enabled
+    - tomcat_jmx_auth_enabled
+  notify: tomcat restart
+  tags: [ 'tomcat', 'jmx' ]
+
+- name: Distribute the jmx role file
+  copy: src=jmxremote.access dest={{ tomcat_jmx_auth_dir }}/jmxremote.access owner=root mode=0644
+  when:
+    - tomcat_jmx_enabled
+    - tomcat_jmx_auth_enabled
+  notify: tomcat restart
+  tags: [ 'tomcat', 'jmx' ]

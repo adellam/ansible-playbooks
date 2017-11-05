@@ -11,7 +11,7 @@ if [ -f /var/log/backuppc.log ] ; then
     TMSTMP=$( date +%s )
     . /var/log/backuppc.log
     LAST_BACKUP_TIME=$( expr $TMSTMP - $BACKUP_TIMESTAMP )
-    if [ $LAST_BACKUP_TIME -gt 86400 -a $BACKUP_RESULT == 'OK' ] ; then
+    if [ $LAST_BACKUP_TIME -lt 86400 -a $BACKUP_RESULT == 'OK' ] ; then
         echo "BackupPC is active, doing nothing" > $LOG_FILE
         exit 0
     fi

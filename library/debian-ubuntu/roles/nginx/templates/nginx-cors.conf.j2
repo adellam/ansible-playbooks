@@ -1,17 +1,59 @@
+{% if nginx_cors_extended_rules %}
+if ($request_method = 'OPTIONS') {
 {% if nginx_cors_limit_origin %}
-set $cors '';
-if ($http_origin ~* '{{ nginx_cors_acl_origin }}') {
-    set $cors 'true';
-}
-if ($cors = 'true') {
-{% endif %}
-    add_header 'Access-Control-Allow-Origin' "$http_origin";
+    add_header 'Access-Control-Allow-Origin' '{{ nginx_cors_acl_origin | default("$http_origin") }}';
     add_header 'Access-Control-Allow-Credentials' 'true';
-    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-    add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With';
-{% if nginx_cors_limit_origin %}
-}
+{% else %}
+    add_header 'Access-Control-Allow-Origin' '*';
 {% endif %}
+    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    #
+    # Custom headers and headers various browsers *should* be OK with but aren't
+    #
+    add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
+    #
+    # Tell client that this pre-flight info is valid for 20 days
+    #
+    add_header 'Access-Control-Max-Age' 1728000;
+    add_header 'Content-Type' 'text/plain charset=UTF-8';
+    add_header 'Content-Length' 0;
+    return 204;
+}
+if ($request_method = 'POST') {
+{% if nginx_cors_limit_origin %}
+    add_header 'Access-Control-Allow-Origin' '{{ nginx_cors_acl_origin | default("$http_origin") }}';
+    add_header 'Access-Control-Allow-Credentials' 'true';
+{% else %}
+    add_header 'Access-Control-Allow-Origin' '*';
+{% endif %}
+    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
+    add_header 'Access-Control-Expose-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
+}
+if ($request_method = 'GET') {
+{% if nginx_cors_limit_origin %}
+    add_header 'Access-Control-Allow-Origin' '{{ nginx_cors_acl_origin | default("$http_origin") }}';
+    add_header 'Access-Control-Allow-Credentials' 'true';
+{% else %}
+    add_header 'Access-Control-Allow-Origin' '*';
+{% endif %}
+    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
+    add_header 'Access-Control-Expose-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
+}
+{% else %}
+{% if nginx_cors_limit_origin %}
+add_header 'Access-Control-Allow-Origin' '{{ nginx_cors_acl_origin | default("$http_origin") }}';
+add_header 'Access-Control-Allow-Credentials' 'true';
+{% else %}
+add_header 'Access-Control-Allow-Origin' '*';
+{% endif %}
+add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
+{% if nginx_cors_limit_origin %}
 if ($request_method = 'OPTIONS') {
     return 204;
 }
+{% endif %}
+{% endif %}
+

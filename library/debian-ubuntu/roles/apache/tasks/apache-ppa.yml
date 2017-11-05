@@ -1,0 +1,14 @@
+---
+- block:
+    - name: Install the Ubuntu apache PPA
+      apt_repository: repo='{{ apache_ppa_repo }}' update_cache=yes
+
+  when: apache_from_ppa
+  tags: [ 'apache', 'apache_ppa' ]
+
+- block:
+    - name: Remove the Ubuntu apache PPA
+      apt_repository: repo='{{ apache_ppa_repo }}' update_cache=yes state=absent
+
+  when: not apache_from_ppa
+  tags: [ 'apache', 'apache_ppa' ]

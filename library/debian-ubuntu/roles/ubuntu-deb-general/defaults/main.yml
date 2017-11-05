@@ -30,6 +30,12 @@ common_packages:
   - xmlstarlet
   - bsdutils
 
+default_python_packages:
+  - python-software-properties
+  - python-lxml
+  - python-boto
+  
+
 # Set this variable in your playbook
 # additional_packages:
 #   - pkg1
@@ -98,7 +104,7 @@ install_resolvconf: True
 configure_munin: False
 
 # Manage the root ssh keys
-manage_root_ssh_keys: False
+manage_root_ssh_keys: True
 
 install_additional_ca_certs: False
 additional_ca_dest_dir: /usr/local/share/ca-certificates
@@ -114,6 +120,9 @@ default_security_limits:
 # default_rsyslog_custom_rules:
 #   - ':msg, contains, "icmp6_send: no reply to icmp error" ~'
 #   - ':msg, contains, "[PYTHON] Can\'t call the metric handler function for" ~'
+
+#
+infrascience_internal_ppa: False
 
 #
 # debian/ubuntu distributions controllers

@@ -1,0 +1,28 @@
+---
+repo: "gcube-staging"
+#ghn_distribution_version: "7.0.0-4.2.1-132334"
+ghn_distribution_bundle_version: "7.0.0-4.2.1-132334"
+
+#### this gets the latest version in the specified repo
+#globus_url: "http://maven.research-infrastructures.eu/nexus/service/local/artifact/maven/redirect?r={{ repo }}&g=org/gcube/distribution&a=ghn-distribution&v=LATEST&e=tar.gz"
+
+#### this is for the ghn-distribution-bundle
+#globus_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/distribution/ghn-distribution-bundle/{{ ghn_distribution_bundle_version }}/ghn-distribution-bundle-{{ ghn_distribution_bundle_version }}-bundle.tar.gz"
+
+globus_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/distribution/ghn-distribution/{{ ghn_distribution_bundle_version }}/ghn-distribution-{{ ghn_distribution_bundle_version }}.tar.gz"
+ant_url: 'http://archive.apache.org/dist/ant/binaries/apache-ant-1.6.5-bin.tar.gz'
+
+ghn_user: 'gCore'
+globus_location: "/opt/{{ ghn_user }}"
+ant_location: '/opt/ant/'
+
+ghn_port: 8080
+ghn_hostname: "{{ ansible_hostname }}"
+ghn_published_host: "{{ ghn_hostname }}:{{ ghn_port }}"
+
+gcube_key: 'd4s.gcubekey'
+servicemap_xmlfile: 'ServiceMap_d4s.xml'
+servicemap_endpoint: "{{ ghn_published_host }}"
+
+common_scope_maps_file: "common-scope-maps-1.0.4-4.2.0-128425-patched.jar"
+patch_common_scope: 0

@@ -1,5 +1,10 @@
 ---
 is_sweeper_se_plugin_install: False
-is_sweeper_se_plugin_ver: 1.0.0-4.0.0-128833
-is_sweeper_se_plugin_name: 'is-sweeper-se-plugin-{{ is_sweeper_se_plugin_ver }}-jar-with-dependencies.jar'
-is_sweeper_se_plugin_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/information-system/is-sweeper-se-plugin/{{ is_sweeper_se_plugin_ver }}/{{ is_sweeper_se_plugin_name }}'
+is_sweeper_se_plugin_upgrade: False
+is_sweeper_se_plugin_version: latest
+
+is_sweeper_se_plugin_group_id: 'org.gcube.information-system'
+is_sweeper_se_plugin_name: 'is-sweeper-se-plugin'
+is_sweeper_se_plugin_extension: 'jar'
+is_sweeper_se_plugin_classifier: 'jar-with-dependencies'
+is_sweeper_se_plugin_file: '{{ is_sweeper_se_plugin_name }}-{{ is_sweeper_se_plugin_version }}-jar-with-dependencies.{{ is_sweeper_se_plugin_extension }}'

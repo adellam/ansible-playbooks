@@ -5,6 +5,9 @@ satisfy:
 {% endfor %}
 
 request:
+{% if letsencrypt_ocsp_must_staple %}
+  ocsp-must-staple: true
+{% endif %}
   challenge:
     http-ports:
       - {{ letsencrypt_acme_standalone_port }}
@@ -16,5 +19,7 @@ key:
 {% else %}
   ecdsa-curve: {{ letsencrypt_acme_ecdsa_curve }}
 {% endif %}
-
+{% if letsencrypt_specify_key_id %}
+  id: {{ letsencrypt_key_id }}
+{% endif %}
 

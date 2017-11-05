@@ -1,0 +1,14 @@
+---
+- name: Download the chronograf deb file
+  get_url: url={{ chronograf_deb_url }} dest=/srv/{{ chronograf_deb_file }}
+  tags: [ 'influxdata', 'chronograf', 'tick' ]
+
+- name: Install the chronograf package
+  apt: deb=/srv/{{ chronograf_deb_file }}
+  tags: [ 'influxdata', 'chronograf', 'tick' ]
+  
+- name: Ensure that chronograf is enabled and running
+  service: name=chronograf state=started enabled=yes
+  when: chronograf_enabled
+  tags: [ 'influxdata', 'chronograf', 'tick' ]
+  

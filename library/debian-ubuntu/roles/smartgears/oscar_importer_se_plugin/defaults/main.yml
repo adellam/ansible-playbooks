@@ -1,0 +1,12 @@
+---
+oscar_importer_se_plugin_install: False
+oscar_importer_se_plugin_upgrade: False
+oscar_importer_se_plugin_version: latest
+
+oscar_importer_se_plugin_group_id: 'org.gcube.dataanalysis'
+oscar_importer_se_plugin_name: 'oscar-importer-se-plugin'
+oscar_importer_se_plugin_extension: 'jar'
+oscar_importer_se_plugin_classifier: 'jar-with-dependencies'
+oscar_importer_se_plugin_file: '{{ oscar_importer_se_plugin_name }}-{{ oscar_importer_se_plugin_version }}-jar-with-dependencies.{{ oscar_importer_se_plugin_extension }}'
+
+# Note: the deb package libnetcdfc7 is required

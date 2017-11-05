@@ -1,0 +1,41 @@
+---
+- name: Install the script that allows the tomcat user to start and stop the service without using the full path
+  template: src={{ item.1 }}.j2 dest={{ item.0.user_home }}/{{ item.1 }} owner={{ item.0.user }} group={{ item.0.user }} mode=0755
+  with_nested:
+    - '{{ tomcat_m_instances | default ([]) }}'
+    - [ 'startContainer.sh', 'stopContainer.sh' ]
+  when: tomcat_m_instances is defined
+  tags: [ 'tomcat', 'd4science', 'sudo', 'startup_cmd' ]
+
+- name: Install the README file that explains where the options files are placed and how start/stop the service
+  template: src={{ item.1 }}.j2 dest={{ item.0.user_home }}/{{ item.1 }} owner={{ item.0.user }} group={{ item.0.user }} mode=0444
+  with_nested:
+    - '{{ tomcat_m_instances | default([])  }}'
+    - [ 'README-tomcat' ]
+  when: tomcat_m_instances is defined
+  tags: [ 'tomcat', 'd4science', 'd4s_readme' ]
+
+# A manual tomcat installation. We try to fix it in some way
+- name: Create the d4science tomcat user
+  user: name={{ d4science_user }} home={{ d4science_user_home }} createhome={{ d4science_user_create_home }} shell={{ d4science_user_shell }}
+  when: tomcat_m_instances is not defined
+  tags: [ 'tomcat', 'd4science', 'users' ]
+
+- name: Install the script that allows the tomcat user to start and stop the service without using the full path
+  template: src={{ item }}.j2 dest=/home/{{ d4science_user }}/{{ item }} owner={{ d4science_user }} group={{ d4science_user }} mode=0755
+  with_items:
+    - 'startContainer.sh'
+    - 'stopContainer.sh'
+  when: tomcat_m_instances is not defined
+  tags: [ 'tomcat', 'd4science', 'sudo', 'startup_cmd' ]
+
+- name: Install a logrotate rule for catalina.out and access_log
+  template: src=catalina-logrotate.j2 dest=/etc/logrotate.d/catalina_access owner=root group=root mode=0644
+  when: tomcat_m_instances is not defined
+  tags: [ 'tomcat', 'd4science', 'startup_cmd' ]
+
+# We always install the sudoers file
+- name: Install the sudoers config that permits the tomcat user to restart the service
+  template: src=tomcat-sudoers.j2 dest=/etc/sudoers.d/tomcat-d4science owner=root group=root mode=0440
+  tags: [ 'tomcat', 'd4science', 'sudo', 'startup_cmd' ]
+

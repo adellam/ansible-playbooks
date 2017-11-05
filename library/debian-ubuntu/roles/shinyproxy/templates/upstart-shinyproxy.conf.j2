@@ -1,0 +1,17 @@
+# shinyproxy - springboot based shiny executor
+
+description	"shinyproxy service"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+respawn
+respawn limit 10 5
+
+setuid {{ shinyproxy_user }}
+setgid {{ shinyproxy_user }}
+
+script
+    cd {{ shinyproxy_install_dir }}
+    exec java -jar ./{{ shinyproxy_app_name }}
+end script
+

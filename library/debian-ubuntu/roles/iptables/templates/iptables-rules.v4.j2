@@ -69,12 +69,14 @@
 {% if psql_firewall_enabled %}
 {% if psql_db_port is defined %}
 {% if psql_listen_on_ext_int %}
+{% if psql_db_data is defined %}
 # postgresql clients
 {% for db in psql_db_data %}
 {% for ip in db.allowed_hosts %}
 -A INPUT -m state --state NEW -s {{ ip }} -p tcp -m tcp --dport {{ psql_db_port }} -j ACCEPT
 {% endfor %}
 {% endfor %}
+{% endif %}
 {% endif %}
 -A INPUT -m state --state NEW -s {{ ansible_default_ipv4.address }} -p tcp -m tcp --dport {{ psql_db_port }} -j ACCEPT
 -A INPUT -p tcp -m tcp --dport {{ psql_db_port }} -j DROP
@@ -239,7 +241,13 @@
 {% for tcp_rule in iptables.tcp %}
 {% if tcp_rule.allowed_hosts is defined %}
 {% for ip in tcp_rule.allowed_hosts %}
+{% if ip is string %}
 -A INPUT -m state --state NEW -s {{ ip }} -p tcp -m tcp --dport {{ tcp_rule.port }} -j ACCEPT
+{% else %}
+{% for ip_really in ip  %}
+-A INPUT -m state --state NEW -s {{ ip_really }} -p tcp -m tcp --dport {{ tcp_rule.port }} -j ACCEPT
+{% endfor %}
+{% endif %}
 {% endfor %}
 {% else %}
 -A INPUT -m state --state NEW -m tcp -p tcp --dport {{ tcp_rule.port }} -j ACCEPT
@@ -251,7 +259,13 @@
 {% for udp_rule in iptables.udp %}
 {% if udp_rule.allowed_hosts is defined %}
 {% for ip in udp_rule.allowed_hosts %}
+{% if ip is string %}
 -A INPUT -s {{ ip }} -p udp -m udp --dport {{ udp_rule.port }}  -j ACCEPT
+{% else %}
+{% for ip_really in ip  %}
+-A INPUT -s {{ ip_really }} -p udp -m udp --dport {{ udp_rule.port }}  -j ACCEPT
+{% endfor %}
+{% endif %}
 {% endfor %}
 {% else %}
 -A INPUT -p udp -m udp --dport {{ udp_rule.port }}  -j ACCEPT

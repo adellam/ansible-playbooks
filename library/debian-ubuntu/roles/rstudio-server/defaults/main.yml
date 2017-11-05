@@ -1,5 +1,9 @@
 ---
 rstudio_install_server: False
 rstudio_enabled: True
-rstudio_file: rstudio-server-0.99.903-amd64.deb
+rstudio_file: rstudio-server-1.0.143-amd64.deb
 rstudio_download_url: 'https://download2.rstudio.org/{{ rstudio_file }}'
+
+rstudio_install_kill_script: True
+# cron job minutes
+rstudio_kill_script_frequency: "*/5"

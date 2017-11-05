@@ -1,6 +1,7 @@
 ---
 - name: Install the basic packages
-  apt: pkg=python-software-properties state=installed
+  apt: pkg={{ item }} state=installed
+  with_items: '{{ default_python_packages }}'
   tags: packages
 
 - name: Install software-properties-common if needed
@@ -46,18 +47,35 @@
   when:
     - is_ubuntu
     - egi_image is not defined or not egi_image
+    - infrascience_internal_ppa
   ignore_errors: True
   tags: packages
 
-- name: setup system apt repository
-  apt_repository: repo='deb http://ppa.research-infrastructures.eu/system stable main' update_cache=yes
+- name: Remove the broken system apt repository
+  apt_repository: repo='deb http://ppa.research-infrastructures.eu/system stable main' state=absent
   when: is_ubuntu
   ignore_errors: True
   tags: packages
 
-- name: setup system apt repository for specific distributions
-  apt_repository: repo='deb http://ppa.research-infrastructures.eu/system {{ ansible_distribution_release }} main' update_cache=yes
+- name: setup system apt repository
+  apt_repository: repo='deb [arch=amd64] http://ppa.research-infrastructures.eu/system stable main' update_cache=yes
+  when:
+    - is_ubuntu
+    - infrascience_internal_ppa
+  ignore_errors: True
+  tags: packages
+
+- name: Remove the broken system apt repository for specific distributions
+  apt_repository: repo='deb http://ppa.research-infrastructures.eu/system {{ ansible_distribution_release }} main' state=absent
   when: is_trusty
+  ignore_errors: True
+  tags: packages
+
+- name: setup system apt repository for specific distributions
+  apt_repository: repo='deb [arch=amd64] http://ppa.research-infrastructures.eu/system {{ ansible_distribution_release }} main' update_cache=yes
+  when:
+    - is_trusty
+    - infrascience_internal_ppa
   ignore_errors: True
   tags: packages
 

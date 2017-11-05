@@ -1,4 +1,99 @@
 ---
-- include: mongodb.yml
-- include: ganglia-plugin.yml
-  when: ganglia_enabled
+- name: Install the mongodb apt key
+  #apt_key: id=7F0CEB10 state=present
+  raw: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+  when: mongodb_install_from_external_repo
+  tags: mongodb
+
+- name: Install the mongodb repository
+  ansible_repository: repo="deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" update_cache=yes state=present
+  when: mongodb_install_from_external_repo
+  register: external_repo
+  tags: mongodb
+
+- name: Update the apt cache
+  apt: update_cache=yes
+  when: ( external_repo | changed )
+  ignore_errors: True
+  tags: mongodb
+
+- name: Install the latest version of mongodb server
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - mongodb-10gen
+  when:
+    - mongodb_install_from_external_repo
+    - mongodb_install_packages
+    - mongodb_latest_version
+  tags: mongodb
+
+- name: Install the mongodb-10gen server
+  apt: pkg={{ item }}={{ mongodb_specific_version }} state=present
+  with_items:
+    - mongodb-10gen
+  when:
+    - mongodb_install_from_external_repo
+    - mongodb_install_packages
+    - not mongodb_latest_version
+#    - not mongodb-org_version
+  tags: mongodb
+
+#- name: Install the mongodb-org server
+#  apt: pkg={{ item }}={{ mongodb_specific_version }} state=present
+#  with_items:
+#    - mongodb-org
+#    - mongodb-org-server
+#    - mongodb-org-shell
+#    - mongodb-org-mongos
+#    - mongodb-org-tools
+#  when:
+#    - mongodb_install_from_external_repo
+#    - mongodb_install_packages
+#    - not mongodb_latest_version
+#    - mongodb-org_version
+#  tags: mongodb
+
+- name: Install the mongodb server
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - mongodb-server
+  when:
+    - not mongodb_install_from_external_repo
+    - mongodb_install_packages
+  tags: mongodb
+
+- name: Install the mongodb defaults file
+  copy: content="ENABLE_MONGODB={{ mongodb_start_server }}" dest=/etc/default/mongodb owner=root group=root mode=0444
+  when: mongodb_install_conf
+  tags: mongodb
+
+- name: Create the mongodb db directory
+  file: dest={{ mongodb_dbpath }} state=directory owner={{ mongodb_user }} group={{ mongodb_group }} mode=0755
+  when: mongodb_install_conf
+  tags: mongodb
+
+- name: Create the mongodb log directory
+  file: dest={{ mongodb_logdir }} state=directory owner={{ mongodb_user }} group={{ mongodb_group }} mode=0755
+  when: mongodb_install_conf
+  tags: mongodb
+
+- name: Install the mongodb 2.4 configuration
+  template: src=mongodb-2.4.conf.j2 dest=/etc/mongodb.conf owner=root group=root mode=0444
+  when: ( mongodb_start_server is defined ) and ( mongodb_start_server == 'yes' ) and ( mongodb_install_conf )
+  notify: Restart mongodb
+  tags: mongodb
+
+- name: Install the cron job that manages log files rotation
+  template: src=mongo_log_rotate.sh.j2 dest=/etc/cron.daily/mongo_log_rotate owner=root group=root mode=0555
+  tags: mongodb
+
+- name: Ensure mongodb is started
+  service: name=mongodb state=started enabled=yes
+  when: ( mongodb_start_server is defined ) and ( mongodb_start_server == 'yes' ) and ( mongodb_install_conf )
+  tags: mongodb
+
+- name: Ensure mongodb is stopped and disabled
+  service: name=mongodb state=stopped enabled=no
+  when: ( mongodb_start_server is defined ) and ( mongodb_start_server == 'no' ) and ( mongodb_install_conf )
+  tags: mongodb
+

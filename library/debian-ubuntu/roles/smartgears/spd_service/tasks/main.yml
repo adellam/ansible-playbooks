@@ -1,0 +1,31 @@
+---
+- block:
+    - name: Remove the old spd files
+      file: path={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ spd_service_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ spd_service_name }}.{{ spd_extension }}'
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: not spd_service_install 
+  tags: [ 'smartgears', 'spd_service', 'tomcat' ]
+
+- block:
+    - name: Get the spd-service 
+      maven_artifact: artifact_id={{ spd_service_name }} version={{ spd_service_version | default('latest') }} group_id={{ spd_group_id }} extension={{ spd_extension | default('war') }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ spd_service_file }}
+      register: spd_service_download
+  
+    - name: Remove the old spd files
+      file: path={{ smartgears_instance_path }}/webapps/{{ spd_service_name }} state=absent
+      when: ( spd_service_download | changed )
+
+    - name: Copy the spd war into the webapps directory
+      copy: src={{ smartgears_downloads_dir }}/{{ spd_service_file }} dest={{ smartgears_instance_path }}/webapps/{{ spd_service_name }}.{{ spd_extension }} remote_src=yes force=yes
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: spd_service_install 
+  tags: [ 'smartgears', 'spd_service', 'tomcat' ]
+

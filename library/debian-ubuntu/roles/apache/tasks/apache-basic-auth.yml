@@ -19,20 +19,19 @@
     - apache
     - apache_basic_auth
   
-- name: Create the basic auth file
-  htpasswd: path={{ apache_basic_auth_file }} name={{ item.username }} password={{ item.password }} create=yes state={{ item.state }}
+- name: Create the basic auth file when it is unique to all the virtualhosts
+  htpasswd: path={{ apache_basic_auth_file }} name={{ item.username }} password={{ item.password }} create=yes state={{ item.state }} owner=root group={{ apache_group }} mode=0640
   when: apache_basic_users is defined and apache_basic_auth_single_file
+  with_items: '{{ apache_basic_users }}'
   tags:
     - apache
     - apache_basic_auth
-  ignore_errors: True
 
-- name: Create the basic auth file
-  htpasswd: path={{ item.auth_file }} name={{ item.username }} password={{ item.password }} create=yes state={{ item.state }}
+- name: Create the basic auth files
+  htpasswd: path={{ item.auth_file }} name={{ item.username }} password={{ item.password }} create=yes state={{ item.state }} owner=root group={{ apache_group }} mode=0640
   with_items: '{{ apache_basic_users | default([]) }}'
   when: apache_basic_users is defined and not apache_basic_auth_single_file
   tags:
     - apache
     - apache_basic_auth
-  ignore_errors: True
 

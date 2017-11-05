@@ -1,0 +1,27 @@
+---
+dnet_standard_installation: True
+dnet_user: dnet
+dnet_group: '{{ dnet_user }}'
+dnet_sudoers_group: dnetsu
+
+dnet_data_directory: /var/lib/dnet
+dnet_data_directories:
+  - /var/lib/dnet
+
+dnet_log_directories:
+  - /var/log/dnet
+  - /var/log/dnet/search  
+
+#dnet_other_services_users:
+#  - { user: 'dli', home: '/var/lib/dli_portal', createhome: True, shell: '/bin/bash' }
+
+# Define the following if you want some directories readable and writable by the dnet group but outside the dnet app data dirs
+#dnet_users_data_directories:
+#  - { name: '/data/1', perms: 0755, create: True, file: False, owner: 'root', group: 'dnet', aclperms: 'rwx' }
+#  - { name: '/data/2', create: False, perms: 0755, file: False, owner: 'root', group: 'dnet', aclperms: 'rwx' }
+#  - { name: '/data/bah', create: False, perms: 0644, file: True, aclperms: 'rw' }
+
+# Define the following array when you want to add commands to the sudoers file
+#dnet_sudo_commands:
+#  - /etc/init.d/virtuoso-opensource-7
+#  - /sbin/reboot

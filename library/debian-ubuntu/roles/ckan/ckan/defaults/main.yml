@@ -25,13 +25,27 @@ ckan_logdir: /var/log/ckan
 ckan_db_name: ckan
 ckan_db_user: ckan
 
+# By default, initialize the db and solr. Disable if you want to reinstall and maintain the old data
+ckan_init_db_and_solr: True
+
 # CKAN plugins
-ckan_plugins_state: latest
+ckan_plugins_state: present
+# yes: update the repository. no, do not update
+ckan_git_plugins_state: 'no'
 # Order is important
 ckan_geonetwork_harvester: False
 ckan_ckanext_harvester_url: 'git+https://github.com/ckan/ckanext-harvest.git#egg=ckanext-harvest'
 ckan_ckanext_spatial_url: 'git+https://github.com/okfn/ckanext-spatial.git#egg=ckanext-spatial' 
 ckan_geonetwork_harvester_url: 'https://github.com/geosolutions-it/ckanext-geonetwork.git'
+ckan_geoview: False
+ckan_geoview_url: ckanext-geoview
+ckan_geoview_name: resource_proxy
+ckan_dcat: False
+ckan_dcat_url: 'git+https://github.com/ckan/ckanext-dcat.git#egg=ckanext-dcat'
+# dcat implement harvesters too.
+# ckan_dcat_name: 'dcat dcat_rdf_harvester dcat_json_harvester dcat_json_interface'
+ckan_dcat_name: 'dcat dcat_json_interface'
+
 # Set this to true to install a cron job that regularly runs the harvesters
 ckan_harvester_run: False
 ckan_pdfview: False
@@ -63,7 +77,8 @@ ckan_ckanext_lire_url: 'https://github.com/milicp/ckanext-lire.git'
 # OAI-PMH
 ckan_oai_pmh: False
 ckan_oai_pmh_name: oaipmh
-ckan_oai_pmh_url: 'https://github.com/kata-csc/ckanext-oaipmh.git'
+ckan_oai_pmh_state: absent
+ckan_oai_pmh_url: 'git+https://github.com/florenthemmi/ckanext-oaipmh#egg=ckanext-oaipm'
 # Google analytics
 ckan_google_analytics: False
 ckan_google_analytics_name: googleanalytics
@@ -73,6 +88,8 @@ ckan_google_analytics_fixed_file: 'http://svn.research-infrastructures.eu/public
 ckan_ga_reports: False
 ckan_ga_reports_name: ga-report
 ckan_ga_reports_url: 'git+https://github.com/datagovuk/ckanext-ga-report.git#egg=ckanext-ga-report'
+ckan_profiler: False
+ckan_profiler_url: 'git+https://github.com/morty/ckanext-profile.git#egg=ckanext-profile'
 
 
 # Needed to install some CKAN plugins
@@ -97,6 +114,13 @@ ckan_pip_dependencies:
   - rdflib
   - 'urllib3[secure]'
   - bleach
+  - pyOpenSSL
+  - cryptography
+  - idna
+  - certifi
+  - xmltodict
+  - ndg-httpsclient
+  - pyasn1
 
 ckan_pip_versioned_dependencies:
   - { name: 'SQLAlchemy', version: '0.9.6', state: 'present' }
@@ -142,3 +166,7 @@ ckan_production_ini_plugins_opts:
 
 ckan_gather_fetch_pkgs:
   - supervisor
+
+ckan_gather_fetch_apps:
+  - ckan_gather_consumer
+  - ckan_fetch_consumer

@@ -1,0 +1,13 @@
+---
+repo: "gcube-staging"
+software_gateway_version: "1.1.6-4.1.0-126706"
+software_gateway_artifact: "softwaregateway-service-{{ software_gateway_version }}"
+software_gateway_gar: "{{ software_gateway_artifact }}.gar"
+software_gateway_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/resourcemanagement/softwaregateway-service/{{ software_gateway_version }}/{{ software_gateway_gar }}"
+
+software_gateway_hostname: "d4s.res.eng.it"
+software_gateway_port: "8599"
+software_gateway_endpoint: "{{ software_gateway_hostname }}:{{ software_gateway_port }}"
+
+start_scopes: ''
+infrastructure: 'd4s'

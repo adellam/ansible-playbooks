@@ -1,0 +1,139 @@
+<configuration>
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>{{ smartgears_log_dir }}/ghn.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+    </encoder>
+{% if smartgears_log_use_timesize_appender %}
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ smartgears_log_dir }}/ghn.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+      <maxFileSize>{{ smartgears_log_max_file_size }}</maxFileSize>
+      <totalSizeCap>{{ smartgears_log_total_file_cap }}</totalSizeCap>
+    </rollingPolicy>
+{% else %}
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>{{ smartgears_log_dir }}/ghn.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+    </rollingPolicy>
+{% endif %}
+  </appender>
+
+  <appender name="ACCOUNT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>{{ smartgears_log_dir }}/accounting.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+    </encoder>
+{% if smartgears_log_use_timesize_appender %}
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ smartgears_log_dir }}/accounting.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+      <maxFileSize>{{ smartgears_log_max_file_size }}</maxFileSize>
+      <totalSizeCap>{{ smartgears_log_total_file_cap }}</totalSizeCap>
+    </rollingPolicy>
+{% else %}
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>{{ smartgears_log_dir }}/accounting.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+    </rollingPolicy>
+{% endif %}
+  </appender>
+
+  <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>{{ smartgears_log_dir }}/access.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+    </encoder>
+{% if smartgears_log_use_timesize_appender %}
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ smartgears_log_dir }}/access.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+      <maxFileSize>{{ smartgears_log_max_file_size }}</maxFileSize>
+      <totalSizeCap>{{ smartgears_log_total_file_cap }}</totalSizeCap>
+    </rollingPolicy>
+{% else %}
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>{{ smartgears_log_dir }}/access.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+    </rollingPolicy>
+{% endif %}
+  </appender>
+
+{% if dataminer_app_install is defined and dataminer_app_install %}
+  <appender name="ANALYSIS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>{{ smartgears_log_dir }}/analysis.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+    </encoder>
+{% if smartgears_log_use_timesize_appender %}
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ smartgears_log_dir }}/analysis.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+      <maxFileSize>{{ smartgears_log_max_file_size }}</maxFileSize>
+      <totalSizeCap>{{ smartgears_log_total_file_cap }}</totalSizeCap>
+    </rollingPolicy>
+{% else %}
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <maxFileSize>{{ smartgears_log_max_file_size }}</maxFileSize>
+      <fileNamePattern>{{ smartgears_log_dir }}/analysis.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+    </rollingPolicy>
+{% endif %}
+  </appender>
+
+  <logger name="org.gcube.dataanalysis" level="{{ smartgears_dataanalysis_loglevel }}">
+    <appender-ref ref="ANALYSIS" />
+  </logger>
+  <logger name="AnalysisLogger" level="{{ smartgears_dataanalysis_loglevel }}">
+    <appender-ref ref="ANALYSIS" />
+  </logger>
+{% endif %}
+
+{% if smartgears_appender_list is defined %}
+{% for obj in smartgears_appender_list %}
+ <appender name="{{ obj.appender_name }}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>/home/gcube/tomcat/logs/{{ obj.appender_file_name }}.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>/home/gcube/tomcat/logs/{{ obj.appender_file_name | default('custom') }}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxHistory>{{ obj.appender_maxHistory | default('30') }}</maxHistory>
+      <maxFileSize>{{ obj.appender_maxFileSize | default('10MB') }}</maxFileSize>
+      <totalSizeCap>{{ obj.appender_totalSizeCap | default('2GB') }}</totalSizeCap>
+    </rollingPolicy>
+  </appender>
+  <logger name="{{ obj.appender_package }}" level="{{ obj.appender_level | default('WARN') }}">
+    <appender-ref ref="{{ obj.appender_name | default('SERVICE')  }}" />
+  </logger>
+{% endfor %}
+{% endif %}
+
+
+  <logger name="org.gcube.data.publishing" level="FATAL">
+    <appender-ref ref="ACCOUNT_FILE" />
+  </logger>
+  <logger name="org.gcube.documentstore" level="FATAL">
+    <appender-ref ref="ACCOUNT_FILE" />
+  </logger>
+
+  <logger name="org.gcube.smartgears.handlers.application.request"
+          level="INFO">
+    <appender-ref ref="ACCESS_FILE" />
+  </logger>
+
+  <logger name="org.gcube" level="{{ smartgears_loglevel }}" />
+  <logger name="org.gcube.smartgears" level="{{ smartgears_loglevel }}" />
+  <logger name="org.gcube.common.events" level="{{ smartgears_loglevel }}" />
+  <logger name="org.gcube.data.publishing" level="FATAL" />
+  <logger name="org.gcube.documentstore" level="FATAL" />
+
+  <root level="{{ smartgears_loglevel }}">
+    <appender-ref ref="FILE" />
+  </root>
+</configuration>

@@ -30,7 +30,9 @@
 
     - name: Initialize the CKAN ckanext-harvest plugin
       shell: . /usr/lib/ckan/default/bin/activate ; paster --plugin=ckanext-harvest harvester initdb --config={{ ckan_config_file }}
-      when: ( ckanext_harvest_install | changed )
+      when:
+        - ( ckanext_harvest_install | changed )
+        - ckan_init_db_and_solr
       tags: [ 'ckan', 'geonetwork', 'ckan_plugins' ]
 
     - name: Download the CKAN ckanext-spatial plugin
@@ -48,11 +50,31 @@
 
     - name: Initialize the CKAN ckanext-spatial plugin
       shell: . /usr/lib/ckan/default/bin/activate ; paster --plugin=ckanext-spatial spatial initdb --config={{ ckan_config_file }}
-      when: ( ckanext_spatial_install | changed )
+      when:
+        - ( ckanext_spatial_install | changed )
+        - ckan_init_db_and_solr
       tags: [ 'ckan', 'ckan_spatial', 'ckan_plugins' ]
 
+    - name: Download the CKAN ckanext-geoview plugin
+      pip: name='{{ ckan_geoview_url }}' virtualenv={{ ckan_virtenv }} state={{ ckan_plugins_state }}
+      notify: Restart CKAN
+      when: ckan_geoview
+      tags: [ 'ckan', 'ckan_geoview', 'ckan_plugins' ]
+
+    - name: Download the CKAN ckanext-dcat plugin code
+      pip: name={{ ckan_dcat_url }} virtualenv={{ ckan_virtenv }} state={{ ckan_plugins_state }}
+      when: ckan_dcat
+      notify: Restart CKAN
+      tags: [ 'ckan', 'ckan_dcat', 'ckan_plugins' ]
+
+    - name: Download the CKAN ckanext-dcat requirements
+      pip: requirements={{ ckan_virtenv }}/src/ckanext-dcat/requirements.txt virtualenv={{ ckan_virtenv }} state=present
+      when: ckan_dcat
+      notify: Restart CKAN
+      tags: [ 'ckan', 'ckan_dcat', 'ckan_plugins' ]
+  
     - name: Download the CKAN Geonetwork plugin code
-      git: repo={{ ckan_geonetwork_harvester_url }} dest=/usr/lib/ckan/default/src/ckanext-geonetwork
+      git: repo={{ ckan_geonetwork_harvester_url }} dest=/usr/lib/ckan/default/src/ckanext-geonetwork force=yes update={{ ckan_git_plugins_state }}
       when: ckan_geonetwork_harvester
       register: install_geonetwork_harvester
       tags: [ 'ckan', 'ckan_geonetwork', 'ckan_plugins' ]
@@ -98,7 +120,7 @@
       tags: [ 'ckan', 'ckan_pages', 'ckan_plugins' ]
 
     - name: Download the CKAN LDAP plugin code
-      git: repo={{ ckan_ldap_url }} dest=/usr/lib/ckan/default/src/ckanext-ldap
+      git: repo={{ ckan_ldap_url }} dest=/usr/lib/ckan/default/src/ckanext-ldap force=yes update={{ ckan_git_plugins_state }}
       when: ckan_ldap
       register: install_ldap_plugin
       tags: [ 'ckan', 'ckan_ldap', 'ckan_plugins' ]
@@ -110,7 +132,7 @@
       tags: [ 'ckan', 'ckan_ldap', 'ckan_plugins' ]
 
     - name: Download the CKAN LIRE plugin code
-      git: repo={{ ckan_ckanext_lire_url }} dest={{ ckan_virtenv }}/src/ckanext-lire
+      git: repo={{ ckan_ckanext_lire_url }} dest={{ ckan_virtenv }}/src/ckanext-lire force=yes update={{ ckan_git_plugins_state }}
       when: ckan_ckanext_lire
       register: install_lire_plugin
       tags: [ 'ckan', 'ckan_lire', 'ckan_plugins' ]
@@ -122,17 +144,11 @@
       tags: [ 'ckan', 'ckan_lire', 'ckan_plugins' ]
 
     - name: Download the CKAN OAI-PMH plugin
-      git: repo={{ ckan_oai_pmh_url }} dest=/usr/lib/ckan/default/src/ckanext-oaipmh
+      pip: name='{{ ckan_oai_pmh_url }}' virtualenv={{ ckan_virtenv }} state={{ ckan_plugins_state }}
       when: ckan_oai_pmh
-      register: install_ckan_oai_pmh
+      notify: Restart CKAN 
       tags: [ 'ckan', 'ckan_oai_pmh', 'ckan_plugins' ]
   
-    - name: Setup the CKAN OAI-PMH plugin
-      shell: . /usr/lib/ckan/default/bin/activate ; cd /usr/lib/ckan/default/src/ckanext-oaipmh ; python setup.py develop
-      when: ( install_ckan_oai_pmh | changed )
-      notify: Restart CKAN
-      tags: [ 'ckan', 'ckan_oai_pmh', 'ckan_plugins' ]
-
     - name: Download the CKAN google analytics plugin python requirements
       pip: name='genshi' virtualenv={{ ckan_virtenv }} state={{ ckan_plugins_state }}
       when: ckan_google_analytics
@@ -164,9 +180,23 @@
 
     - name: Setup the CKAN google analytics reports plugin
       shell: . /usr/lib/ckan/default/bin/activate ; cd /usr/lib/ckan/default/src/ckanext-ga-report ; paster initdb --config={{ ckan_config_file }}
-      when: ( install_ckan_ga_reports | changed )
+      when:
+        - ( install_ckan_ga_reports | changed )
+        - ckan_init_db_and_solr
       notify: Restart CKAN
       tags: [ 'ckan', 'ckan_google_analytics', 'ckan_ga_reports', 'ckan_plugins' ]
+
+    - name: Install the CKAN profiler plugin
+      pip: name='{{ ckan_profiler_url }}' virtualenv={{ ckan_virtenv }} state={{ ckan_plugins_state }}
+      when: ckan_profiler
+      notify: Restart CKAN
+      tags: [ 'ckan', 'ckan_profiler', 'ckan_plugins' ]
+
+    - name: Create the profiler plugin log directory
+      become: False
+      file: dest=/var/log/ckan-profiler owner=www-data group=www-data state=directory
+      when: ckan_profiler
+      tags: [ 'ckan', 'ckan_profiler', 'ckan_plugins' ]
 
   become: True
   become_user: '{{ ckan_shell_user }}'

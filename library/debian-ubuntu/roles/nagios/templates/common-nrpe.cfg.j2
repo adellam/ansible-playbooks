@@ -1,8 +1,8 @@
 #
 command[global_check_disk]={{ nagios_plugins_dir }}/check_disk -w {{ nagios_check_disk_w }}% -c {{ nagios_check_disk_c }}% -X tmpfs -X proc -X sysfs -X devpts -X dev -A -i /mnt/.*
 
-command[global_check_load]={{ nagios_plugins_dir }}/check_load -w 20,15,10 -c 35,30,25
-command[global_check_memory]={{ nagios_plugins_dir }}/check_memory -u G -w 5% -c 1%
+command[global_check_load]={{ nagios_plugins_dir }}/check_load {% if nagios_load_per_cpu %}-r{% endif %} -w {{ nagios_load_w }} -c {{ nagios_load_c }}
+command[global_check_memory]={{ nagios_plugins_dir }}/check_memory -u M -w 5% -c 1%
 command[global_check_swap]={{ nagios_plugins_dir }}/check_swap -w 20% -c 5%
 command[global_check_zombie_procs]={{ nagios_plugins_dir }}/check_procs -w 5 -c 10 -s Z
 command[global_check_total_procs]={{ nagios_plugins_dir }}/check_procs -w 800 -c 1000 

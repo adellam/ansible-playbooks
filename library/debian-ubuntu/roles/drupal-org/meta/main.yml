@@ -1,4 +1,4 @@
 ---
 dependencies:
-  - { role: '../../library/debian-ubuntu/roles/composer', when: drupal_install_drush }
+  - { role: '../../library/roles/composer', when: drupal_install_drush }
 

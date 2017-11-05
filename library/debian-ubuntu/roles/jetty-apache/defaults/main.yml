@@ -1,0 +1,22 @@
+---
+jetty:
+  activate_at_boot: True
+  listen_ip: 127.0.0.1
+  user: jetty
+  group: jetty
+  verbose: "Yes"
+  java_opts: "-Xmx1024m -Djava.awt.headless=true"
+  http_port: 8080
+  java_opts: "-Xmx2048m -XX:MaxPermSize=512m -Djava.awt.headless=true -Dorg.mortbay.util.URI.charset=utf-8"
+  enable_jmx: False
+  jmx_java_options: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=8286 -Dcom.sun.management.jmxremote.ssl=false"
+  cache_dir: /var/cache/jetty
+  tmp_dir: /var/cache/jetty/data
+  jvm_tmp_dir: /var/cache/jetty/tmp
+  shutdown_timeout: 30
+  java_home: ""
+  logfile_days: 14
+  define_lang: False
+  lang: "en_US.UTF-8"
+  open_files: 2048
+

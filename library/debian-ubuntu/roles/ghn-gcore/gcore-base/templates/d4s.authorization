@@ -1,0 +1,1 @@
+<authorization-endpoint priority="1" infrastructure="d4s"><host>{{ authorization_hostname }}</host><secure>false</secure><port>{{ authorization_port }}</port></authorization-endpoint>

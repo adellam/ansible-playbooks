@@ -1,0 +1,78 @@
+#!/bin/bash
+#
+# TODO:
+# - print nagios friendly output into a file
+# - kill rsession processes older than N days
+#
+
+set -e
+set -o pipefail
+
+CMD_NAME=$0
+
+USER_N=
+USER_SESSION_PID=
+USER_PROCS_PIDS_ALL=
+USER_PROCS_TO_KILL=
+USER_PROCS_PARENTS=
+USER_PROCS_PARENT_PID=
+SPARE_MEM=1048576
+OUT_DIR=$( mktemp -d -t kill-rogue-jobs.XXXXXXXXXX )
+USER_PROCS_LIST=$OUT_DIR/proclist
+USER_PROCS_PARENTS=$OUT_DIR/parents
+
+trap "eval logger '$CMD_NAME: trap intercepted, exiting.' ; cleanup" SIGHUP SIGINT SIGTERM
+
+function cleanup() {
+    rm -fr $OUT_DIR
+}
+
+function find_rogue_processes() {
+    eval logger '$CMD_NAME: find_rogue_processes for user $USER_N'
+    ps -edaf | grep rsession | grep -v grep | grep ${USER_N}  | awk '{ print $3 }' | uniq > $USER_PROCS_PARENTS
+    ps -edaf | grep rsession | grep -v grep | grep ${USER_N}  | awk '{ print $2 }' | uniq > $USER_PROCS_LIST
+    for parent in $( cat $USER_PROCS_PARENTS ) ; do
+        grep -v $parent $USER_PROCS_LIST > $USER_PROCS_LIST.tmp
+        mv $USER_PROCS_LIST.tmp $USER_PROCS_LIST
+    done
+    USER_PROCS_TO_KILL=$( cat $USER_PROCS_LIST )
+}
+
+function exterminate() {
+    eval logger '$CMD_NAME: exterminate killing user $USER_N processes'
+    for pid in $( echo $USER_PROCS_TO_KILL ) ; do
+        kill -15 $pid
+    done
+}
+
+USERS_SESSIONS=$( ps -edaf | grep rsession | grep -v defunct | grep -v grep | awk '{ print $10 }' | uniq )
+
+if [ -z $USERS_SESSIONS ] ; then
+    eval logger '$CMD_NAME: There are no active sessions'
+    exit 0
+fi
+NUM_CPUS=$( grep processor /proc/cpuinfo  | wc -l )
+ALLOWED_THREADS=$(( $NUM_CPUS - 1 ))
+TOTAL_MEM=$( grep MemTotal /proc/meminfo | awk '{ print $2 }' )
+ALLOWED_USED_MEM=$(( $TOTAL_MEM - $SPARE_MEM ))
+
+for USER_N in $( echo $USERS_SESSIONS ) ; do
+    USER_PROCS=$( ps -edaf | grep rsession | grep -v grep | grep ${USER_N}  | wc -l )
+    USER_MEM=$( ps -eo pid,rss,vsz,args | grep rsession | grep -v grep | grep ${USER_N} | awk '{ print $2}' | paste -sd+ | bc )
+    if [ $USER_PROCS -gt $ALLOWED_THREADS ] || [ $USER_MEM -gt $ALLOWED_USED_MEM ] ; then
+        if [ $USER_PROCS -gt $ALLOWED_THREADS ] ; then
+            eval logger '$CMD_NAME: user $USER_N is running too many processes'
+        fi
+        if [ $USER_MEM -gt $ALLOWED_USED_MEM ] ; then
+            eval logger '$CMD_NAME: user $USER_N is using too much memory'
+        fi
+        find_rogue_processes
+        exterminate
+    else
+        eval logger '$CMD_NAME: we do not need to kill any processes for user $USER_N'
+    fi
+done
+
+trap cleanup EXIT
+exit 0
+

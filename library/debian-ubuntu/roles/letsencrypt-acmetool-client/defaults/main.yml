@@ -25,13 +25,16 @@ letsencrypt_acme_services_scripts_dir: /usr/lib/acme/hooks
 letsencrypt_tos_url: 'https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf'
 letsencrypt_acme_agree_tos: true  
 letsencrypt_acme_rsa_key_size: 4096
+letsencrypt_ocsp_must_staple: True
 # rsa|ecdsa
 letsencrypt_acme_key_type: ecdsa
 letsencrypt_acme_ecdsa_curve: nistp256
 letsencrypt_acme_email: sysadmin@example.com
-# We 'listener' or 'proxy'. Use 'listener' if we need a certificate for a non web service.
+letsencrypt_specify_key_id: False
+letsencrypt_key_id: 'some random string'
+# We 'listener' or 'proxy'. Use 'listener' if we need a certificate for a non web service or before the web service has been configured.
 # Need to set cap_net_bind_service=+ep for the acmetool binary so that it is able to bind port 80 in that case.
-letsencrypt_acme_authenticator: proxy
+letsencrypt_acme_authenticator: listener
 
 # desired parameters
 letsencrypt_acme_domains:

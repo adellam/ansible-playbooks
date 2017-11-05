@@ -4,7 +4,7 @@ virtuoso_from_external_repo: False
 virtuoso_external_repo_key: 'http://packages.comsode.eu/key/odn.gpg.key'
 virtuoso_external_repo: 'deb http://packages.comsode.eu/debian wheezy main'
 virtuoso_pkg_state: installed
-virtuoso_version: 6.1
+virtuoso_version: 7
 virtuoso_user: virtuoso
 virtuoso_base_dir: '/var/lib/virtuoso-opensource-{{ virtuoso_version }}'
 virtuoso_db_dir: '{{ virtuoso_base_dir }}/db'
@@ -41,7 +41,7 @@ virtuoso_set_more_ini_opts: False
 #virtuoso_more_ini_opts:
  
 virtuoso_pkg_list:
-  - virtuoso-opensource
+  - 'virtuoso-opensource-{{ virtuoso_version }}'
   - virtuoso-server
   - virtuoso-vad-isparql
   - virtuoso-vad-bpel

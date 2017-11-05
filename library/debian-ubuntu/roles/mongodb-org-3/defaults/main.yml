@@ -1,0 +1,42 @@
+---
+mongodb_install_from_external_repo: True
+mongodb_install_packages: True
+mongodb_install_conf: True
+# Set to 'latest' if you want to get the latest available package
+mongodb_pkg_state: latest
+mongodb_start_server: 'no'
+mongodb_tcp_port: 27017
+mongodb_http_interface: 'false'
+mongodb_http_port: 28017
+mongodb_user: mongodb
+mongodb_group: mongodb
+mongodb_logdir: /var/log/mongodb
+mongodb_log_file: mongod.log
+mongodb_logpath: '{{ mongodb_logdir }}/{{ mongodb_log_file }}'
+mongodb_dbpath: /var/lib/mongodb
+mongodb_directoryperdb: 'false'
+mongodb_conf_file: /etc/mongod.conf
+mongodb_daemon: /usr/bin/mongod
+mongod_additional_options: ""
+mongodb_allowed_hosts:
+  - 127.0.0.1/8
+  - '{{ ansible_default_ipv4.address }}/32'
+
+mongodb_storage_engine: wiredTiger
+
+# Do not change the default. We do not manage a logrotate configuration yet
+mongodb_systemlog_external_logrotate: False
+mongodb_systemlog_destination: file
+mongodb_log_retain_days: 7
+# Not used anymore inside the template. Now we use different values based on mongodb_systemlog_external_logrotate
+mongodb_systemlog_logappend: 'true'
+mongodb_systemlog_logrotate: reopen
+
+mongodb_cluster_enabled: False
+mongodb_replicaset: storagedev
+mongodb_replica_keyfile: '{{ mongodb_dbpath }}/replica_keyfile'
+
+mongodb_ganglia_auth_enabled: False
+mongodb_ganglia_db: admin
+mongodb_ganglia_auth_mechanism: MONGODB-CR
+# User and password are stored in the variables mongo_monitoring_u and mongo_monitoring_pwd

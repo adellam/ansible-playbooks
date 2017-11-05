@@ -1,0 +1,19 @@
+<application mode="{{ smartgears_application_mode }}">
+
+        <name>{{ item.webapp_name }}</name>
+        <group>{{ item.webapp_group }}</group>
+        <version>{{ item.version }}</version>
+{% if item.description is defined %}
+        <description> "{{ item.description }}" </description>
+{% endif %}
+{% if item.persistence_location is defined %}
+        <persistence location="{{ item.persistence_location }}"/>
+{% endif %}
+{% if item.exclude_handlers is defined %}
+{% for eh in item.exclude_handlers %}
+        <exclude {{ eh }}</exclude>
+{% endfor %}
+{% endif %}        
+
+</application>
+

@@ -1,0 +1,6 @@
+<ServiceMap>    
+        <Service name ="ISICAllQueryPT" endpoint ="http://{{ servicemap_endpoint }}/wsrf/services/gcube/informationsystem/collector/XQueryAccess"/>
+        <Service name ="ISICAllRegistrationPT" endpoint ="http://{{ servicemap_endpoint }}/wsrf/services/gcube/informationsystem/collector/Sink"/>
+        <Service name ="ISICAllCollectionPT" endpoint ="http://{{ servicemap_endpoint }}/wsrf/services/gcube/informationsystem/collector/wsdaix/XMLCollectionAccess"/>
+        <Service name ="ISICAllStoragePT" endpoint ="http://{{ servicemap_endpoint }}/wsrf/services/gcube/informationsystem/collector/XMLStorageAccess"/>
+</ServiceMap>

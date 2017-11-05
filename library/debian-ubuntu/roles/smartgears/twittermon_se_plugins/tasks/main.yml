@@ -1,0 +1,41 @@
+---
+- block:
+    - name: Remove the old twittermon
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ item }}
+      with_items:
+        - '{{ twittermon_twmoncron_se_plugin_name }}'
+        - '{{ twittermon_twmoncrawler_se_plugin_name }}'
+      when: twittermon_se_plugin_upgrade
+
+    - name: Get the twittermon TwMonCron smart executor plugin
+      get_url: url={{ twittermon_twmoncron_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ twittermon_twmoncron_se_plugin_name }}
+      when: twittermon_se_plugin_install
+      notify: Restart smartgears
+      tags: [ 'smartgears', 'twittermon_se', 'tomcat' ]
+
+    - name: Get the twittermon TwMonCrawler smart executor plugin
+      get_url: url={{ twittermon_twmoncrawler_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ twittermon_twmoncrawler_se_plugin_name }}
+      when: twittermon_se_plugin_install
+      notify: Restart smartgears
+      tags: [ 'smartgears', 'twittermon_se', 'tomcat' ]
+
+    - name: Create the directories needed by twittermon
+      file: dest={{ item }} state=directory
+      with_items:
+        - '{{ smartgears_user_home }}/twittermon_utils'
+        - '{{ smartgears_user_home }}/twmon/scripts'
+        - '{{ smartgears_user_home }}/twmon/scripts/data'
+        - '{{ smartgears_user_home }}/twmon/scripts/include'
+
+    - name: Get the twittermon php utilities
+      unarchive: remote_src=yes src={{ twittermon_php_crawler_url }} dest={{ smartgears_user_home }}/twittermon_utils
+
+    - name: Move the php utilities in the correct place
+      shell: 'cp {{ smartgears_user_home }}/twittermon_utils/php/sbd_twmonitor_crawler.php {{ smartgears_user_home }}/twmon/scripts/sbd_twmonitor_crawler.php ; chmod 755 {{ smartgears_user_home }}/twmon/scripts/sbd_twmonitor_crawler.php ; cp -rp {{ smartgears_user_home }}/twittermon_utils/php/include/* {{ smartgears_user_home }}/twmon/scripts/include'
+      args:
+        creates: '{{ smartgears_user_home }}/twmon/scripts/sbd_twmonitor_crawler.php'
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: twittermon_se_plugin_install
+  tags: [ 'smartgears', 'twittermon_se', 'tomcat' ]

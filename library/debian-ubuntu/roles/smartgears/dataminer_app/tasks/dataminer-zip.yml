@@ -1,0 +1,29 @@
+---
+- block: 
+    - name: Get and unpack the dataminer application
+      unarchive: src={{ dataminer_zip_url }} dest={{ smartgears_instance_path }}/webapps copy=no creates={{ smartgears_instance_path }}/webapps/wps/config/wps_config.xml
+
+    - name: Create a directory where to install the gebco_08.nc data file
+      file: path={{ smartgears_user_home }}/data state=directory
+
+    - name: Install the gebco_08.nc file from thredds. It is big, mostly 2GB
+      get_url: url={{ dataminer_data_file_from_thredds }} dest={{ smartgears_user_home }}/data/gebco_08.nc timeout=2400
+
+    - name: Create a symlink to the gebco_08.nc file
+      file: src={{ smartgears_user_home }}/data/gebco_08.nc dest={{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }}/ecocfg/gebco_08.nc state=link
+      notify: Restart smartgears
+  
+    - name: Install the script that fixes the WPS configuration
+      become_user: "{{ d4science_ansible_become_user | default('root') }}"
+      template: src=wps-config-fixer.j2 dest=/usr/local/bin/wps-config-fixer owner=root group=root mode=0555
+      with_items: '{{ tomcat_m_instances }}'
+
+    - name: Fix the WPS config file
+      shell: /usr/local/bin/wps-config-fixer
+#      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: dataminer_app_install
+  tags: [ 'tomcat', 'dataminer', 'wps' ]
+

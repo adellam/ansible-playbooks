@@ -1,9 +1,30 @@
 ---
-- name: Get the smart generic worker plugin and install it inside the smart executor
+- block:
+    - name: Remove the smart generic worker plugin
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ smart_generic_worker_plugin_name }}-*-jar-with-dependencies.jar
+      notify: Restart smartgears
+
   become: True
   become_user: '{{ smartgears_user }}'
-  get_url: url={{ smart_generic_worker_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
-  when: generic_worker_install
-  notify: Restart smartgears 
+  when: not generic_worker_install
   tags: [ 'smartgears', 'generic_worker', 'tomcat' ]
+
+- block:
+    - name: Get the smart generic worker plugin and install it inside the smart executor
+      maven_artifact: artifact_id={{ smart_generic_worker_plugin_name }} version={{ smart_generic_worker_plugin_version | default('latest') }} group_id={{ smart_generic_worker_plugin_group_id }} extension={{ smart_generic_worker_plugin_extension | default('war') }} repository_url={{ smartgears_global_base_url }} classifier={{ smart_generic_worker_plugin_classifier }} dest={{ smartgears_downloads_dir }}/{{ smart_generic_worker_plugin_file }}
+      register: generic_worker_download
+
+    - name: Remove the old accounting aggregator plugin 
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ smart_generic_worker_plugin_name }}-*-jar-with-dependencies.jar
+      when: (generic_worker_download | changed)
+
+    - name: Copy the accounting aggregator plugin to its final destination
+      copy: src={{ smartgears_downloads_dir }}/{{ smart_generic_worker_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ smart_generic_worker_plugin_file }} remote_src=yes force=yes
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: generic_worker_install
+  tags: [ 'smartgears', 'generic_worker', 'tomcat' ]
+
 

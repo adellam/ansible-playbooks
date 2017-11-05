@@ -1,6 +1,7 @@
 ---
 piwik_repo_key: 'https://debian.piwik.org/repository.gpg'
 piwik_repo: 'deb https://debian.piwik.org/ piwik main'
+piwik_pkg_state: latest
 
 piwik_install_archive_cron: True
 

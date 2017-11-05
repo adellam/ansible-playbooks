@@ -1,0 +1,12 @@
+---
+resource_checker_se_plugin_install: False
+resource_checker_se_plugin_upgrade: False  
+resource_checker_se_plugin_version: 1.0.0-4.6.0-147153
+# resource_checker_se_plugin_version: 1.0.0-SNAPSHOT
+resource_checker_se_plugin_group_id: 'org.gcube.information-system'
+resource_checker_se_plugin_name: 'resource-checker-se-plugin'
+resource_checker_se_plugin_extension: 'jar'
+resource_checker_se_plugin_classifier: 'jar-with-dependencies'
+resource_checker_se_plugin_file: '{{ resource_checker_se_plugin_name }}-{{ resource_checker_se_plugin_version }}-jar-with-dependencies.{{ resource_checker_se_plugin_extension }}'
+
+resource_checker_nagios_nrpe: True

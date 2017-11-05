@@ -1,0 +1,27 @@
+---
+- block:
+    - name: Remove the old resource-registry-handlers files
+      shell: rm -f {{ smartgears_instance_path }}/lib/{{ resource_registry_handlers_name }}-*.{{ resource_registry_handlers_extension }}
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  tags: [ 'smartgears', 'resource_registry_handlers', 'tomcat' ]
+  when: not resource_registry_handlers_install 
+
+- block:
+    - name: Get the resource_registry_handlers jar
+      maven_artifact: artifact_id={{ resource_registry_handlers_name }} version={{ resource_registry_handlers_version | default('latest') }} group_id={{ resource_registry_handlers_group_id }} extension={{ resource_registry_handlers_extension }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ resource_registry_handlers_file }}
+      register: resource_registry_handlers_download
+
+    - name: Remove the old resource-registry-handlers file
+      shell: rm -f {{ smartgears_instance_path }}/lib/{{ resource_registry_handlers_name }}-*.{{ resource_registry_handlers_extension }}
+      when: ( resource_registry_handlers_download | changed )
+
+    - name: Copy the resource registry jar file into the tomcat lib directory
+      copy: src={{ smartgears_downloads_dir }}/{{ resource_registry_handlers_file }} dest={{ smartgears_instance_path }}/lib/{{ resource_registry_handlers_file }} remote_src=yes force=yes
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  tags: [ 'smartgears', 'resource_registry_handlers', 'tomcat' ]
+  when: resource_registry_handlers_install 

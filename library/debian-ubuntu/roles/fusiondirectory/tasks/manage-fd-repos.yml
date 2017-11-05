@@ -11,7 +11,7 @@
       apt_repository: repo={{ fusiond_extra_repo }}
 
   when: fusiondirectory_install
-  tags: fusiondirectory
+  tags: [ 'fusiondirectory', 'fusiondirectory_repo' ]
   
 - block:
 
@@ -25,5 +25,5 @@
       apt_repository: repo={{ fusiond_extra_repo }} state=absent update_cache=yes
 
   when: not fusiondirectory_install
-  tags: fusiondirectory
+  tags: [ 'fusiondirectory', 'fusiondirectory_repo' ]
   

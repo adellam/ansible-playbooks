@@ -1,0 +1,9 @@
+---
+- name: Do not load the postgresql jdbc driver on tomcat if not needed
+  file: dest={{ tomcat_catalina_home_dir }}/lib/{{ item }} state=absent
+  with_items:
+    - postgresql-jdbc4.jar
+  when: not tomcat_install_pg_jdbc
+  notify: tomcat restart
+  tags: tomcat
+

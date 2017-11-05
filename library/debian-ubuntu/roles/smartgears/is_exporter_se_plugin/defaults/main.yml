@@ -1,0 +1,10 @@
+---
+is_exporter_se_plugin_install: False
+is_exporter_se_plugin_upgrade: False
+is_exporter_se_plugin_version: latest
+
+is_exporter_se_plugin_group_id: 'org.gcube.information-system'
+is_exporter_se_plugin_name: 'is-exporter-se-plugin'
+is_exporter_se_plugin_extension: 'jar'
+is_exporter_se_plugin_classifier: 'jar-with-dependencies'
+is_exporter_se_plugin_file: '{{ is_exporter_se_plugin_name }}-{{ is_exporter_se_plugin_version }}-jar-with-dependencies.{{ is_exporter_se_plugin_extension }}'

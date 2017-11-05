@@ -5,8 +5,9 @@ couchbase_install_from_repo: False
 couchbase_repo_pkg: couchbase-release-1.0-2-amd64.deb
 couchbase_repo_pkg_url: 'http://packages.couchbase.com/releases/couchbase-release/{{ couchbase_repo_pkg }}'
 
-couchbase_pkg_file: 'couchbase-server-community_4.0.0-ubuntu14.04_amd64.deb'
-couchbase_direct_package_url: 'http://packages.couchbase.com/releases/4.0.0/{{ couchbase_pkg_file }}'
+couchbase_pkg_version: 4.0.0
+couchbase_pkg_file: 'couchbase-server-community_{{ couchbase_pkg_version }}-ubuntu14.04_amd64.deb'
+couchbase_direct_package_url: 'http://packages.couchbase.com/releases/{{ couchbase_pkg_version }}/{{ couchbase_pkg_file }}'
 
 couchbase_default_host: localhost
 couchbase_console_port: 8091

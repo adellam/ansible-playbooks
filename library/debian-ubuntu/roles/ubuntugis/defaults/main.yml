@@ -1,0 +1,10 @@
+---
+ubuntugis_repo_install: False
+ubuntugis_repo: 'ppa:ubuntugis/ppa'
+ubuntugis_pkg_state: latest
+ubuntugis_packages:
+  - gdal-bin
+  - libgdal-dev
+  - libgdal1-dev
+  - libgdal20
+

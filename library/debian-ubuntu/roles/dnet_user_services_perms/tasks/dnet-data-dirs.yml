@@ -1,0 +1,41 @@
+---
+- name: Create the dnet data dirs
+  file: name={{ item }} state=directory owner={{ dnet_user }} group={{ dnet_group }} mode=0750
+  with_items: '{{ dnet_data_directories }}'
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Create the dnet log dirs
+  file: name={{ item }} state=directory owner={{ tomcat_user }} group={{ dnet_group }} mode=0750
+  with_items: '{{ dnet_log_directories }}'
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Set the read/write permissions on the dnet data dirs
+  acl: name={{ item }} entity={{ dnet_group }} etype=group permissions=rwx state=present
+  with_items: '{{ dnet_data_directories }}'
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Set the default read/write permissions on the dnet data dirs
+  acl: name={{ item }} entity={{ dnet_group }} etype=group permissions=rwx state=present default=yes
+  with_items: '{{ dnet_data_directories }}'
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Recursively set the ACLs to give access and read write permissions on the dnet data directories
+  shell: find {{ item }} -type d -exec setfacl -d -m group:{{ dnet_group }}:rwx,m:rwx {} \; ; find {{ item }} -type d -exec setfacl -m group:{{ dnet_group }}:rwx,m:rwx {} \; ; find {{ item }} -type f -exec setfacl -m group:{{ dnet_group }}:rw,m:rw {} \;
+  with_items: '{{ dnet_data_directories }}'
+  tags: [ 'dnet_acls', 'dnet', 'users' ]
+
+- name: Set the read permissions on the dnet log dirs
+  acl: name={{ item }} entity={{ dnet_group }} etype=group permissions=rx state=present
+  with_items: '{{ dnet_log_directories }}'
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Set the default read permissions on the dnet log dirs
+  acl: name={{ item }} entity={{ dnet_group }} etype=group permissions=rx state=present default=yes
+  with_items: '{{ dnet_log_directories }}'
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Recursively set the ACLs to give access and read permissions on the log directories
+  shell: find {{ item }} -type d -exec setfacl -d -m group:{{ dnet_group }}:r-x {} \; ; find {{ item }} -type d -exec setfacl -m group:{{ dnet_group }}:r-x {} \; ; find {{ item }} -type f -exec setfacl -m group:{{ dnet_group }}:r {} \;
+  with_items: '{{ dnet_log_directories }}'
+  tags: [ 'dnet_acls', 'dnet', 'users' ]
+

@@ -1,0 +1,11 @@
+---
+sis_geotk_dt_plugin_install: False
+sis_geotk_dt_plugin_name: sis-geotk-plugin
+
+sis_geotk_dt_plugin_group_id : org.gcube.data.transfer
+sis_geotk_dt_plugin_artifact_id : '{{ sis_geotk_dt_plugin_name }}'
+sis_geotk_dt_plugin_version : latest
+sis_geotk_dt_plugin_extension: jar
+sis_geotk_dt_plugin_classifier: jar-with-dependencies
+sis_geotk_dt_plugin_file: '{{ sis_geotk_dt_plugin_name }}-{{ sis_geotk_dt_plugin_version }}-jar-with-dependencies.{{ sis_geotk_dt_plugin_extension }}'
+

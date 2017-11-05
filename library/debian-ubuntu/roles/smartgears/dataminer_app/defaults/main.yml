@@ -2,10 +2,49 @@
 dataminer_app_install: False
 dataminer_app_upgrade: False
 
-# dev or prod
+# ZIP file
 dataminer_product: prod
 dataminer_zip_url: 'http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-analysis/DataMinerConfiguration/webapp/{{ dataminer_product }}/wps.zip'
 
-dataminer_52north_webapp_name: wps
+# Install from WAR
+dataminer_war_install: True
+dataminer_wps_version: latest
+dataminer_wps_name: wps
+dataminer_wps_group_id: org.gcube.data-analysis
+dataminer_wps_extension: war
+dataminer_wps_file: '{{ dataminer_wps_name }}-{{ dataminer_wps_version }}.{{ dataminer_wps_extension }}'
+
+# Add these to the tomcat_m_other_java_opts variable
+dataminer_wps_java_opts: '-Djavax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl -Djavax.xml.transform.TransformerFactory=com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl -Djavax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl'
+# Algorithms installer
+dataminer_algorithms_upgrade: False
+dataminer_algorithms_version: latest
+dataminer_algorithms_gcube_repository: gcube-snapshots
+dataminer_algorithms_name: dataminer-algorithms-importer
+dataminer_algorithms_group_id: org.gcube.dataanalysis
+dataminer_algorithms_extension: tar.gz
+dataminer_algorithms_file: '{{ dataminer_algorithms_name }}-{{ dataminer_algorithms_version }}.{{ dataminer_algorithms_extension }}'
+dataminer_algorithms_base_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ dataminer_algorithms_gcube_repository }}'
+# Algorithms updater
+dataminer_wps_algorithms_svn: http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-analysis/DataMinerConfiguration/algorithms/{{ dataminer_infra_reference }}
+dataminer_wps_algorithms_dest: '{{ smartgears_user_home }}/wps_algorithms/algorithms'
+dataminer_algorithms_updater_cron: present
+dataminer_algorithms_updater_minute_frequency: "0"
+dataminer_algorithms_updater_hour_frequency: "*"
 
 dataminer_data_file_from_thredds: 'http://thredds.d4science.org/thredds/fileServer/public/netcdf/gebco_08_OCEANS_CLIMATOLOGY_METEOROLOGY_ATMOSPHERE_.nc'
+
+# dev, prod, preprod
+dataminer_infra_reference: dev
+
+dataminer_properties_files:
+  - algorithms.properties
+  - clusterers.properties
+  - dynamictransducerers.properties
+  - evaluators.properties
+  - generators.properties
+  - modelers.properties
+  - models.properties
+  - nodealgorithms.properties
+  - transducerers.properties
+  - userperspective.properties

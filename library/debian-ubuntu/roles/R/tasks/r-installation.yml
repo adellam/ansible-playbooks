@@ -37,8 +37,13 @@
   when: r_install_cran_repo == 'present'
   tags: [ 'r_software', 'r_profile', 'r_pkg' ]
   
+- name: Configure the JDK environment
+  command: R CMD javareconf
+  ignore_errors: True
+  tags: [ 'r_software', 'r_profile', 'r_pkg', 'r_java' ]
+  
 - name: Install some packages needed by R packages when installed from source
-  apt: pkg={{ item }} state={{ r_packages_state }} update_cache=yes force=yes
+  apt: pkg={{ item }} state={{ r_packages_state }} update_cache=yes force=yes cache_valid_time=3600
   with_items: '{{ r_distribution_required_packages | default([]) }}'
   tags: [ 'r_software', 'r_pkg', 'r_deps' ]
   

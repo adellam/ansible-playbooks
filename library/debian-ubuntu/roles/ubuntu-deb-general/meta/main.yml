@@ -1,9 +1,9 @@
 ---
 dependencies:
-  - role: '../../library/debian-ubuntu/roles/deb-apt-setup'
-  - role: '../../library/debian-ubuntu/roles/deb-set-hostname'
-  - role: '../../library/debian-ubuntu/roles/deb-set-locale'
-  - role: '../../library/debian-ubuntu/roles/timezone'
-  - role: '../../library/debian-ubuntu/roles/linux-kernel-sysctl'
-  - role: '../../library/debian-ubuntu/roles/sshd_config'
-  - role: '../../library/debian-ubuntu/roles/fail2ban'
+  - role: '../../library/roles/deb-apt-setup'
+  - role: '../../library/roles/deb-set-hostname'
+  - role: '../../library/roles/deb-set-locale'
+  - role: '../../library/roles/timezone'
+  - role: '../../library/roles/linux-kernel-sysctl'
+  - role: '../../library/roles/sshd_config'
+  - role: '../../library/roles/fail2ban'

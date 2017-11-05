@@ -1,0 +1,12 @@
+<handlers>	
+       <lifecycle>
+           <profile-management />
+       </lifecycle>
+       <request>
+           <request-validation />
+           <request-accounting /> 
+{% for req in item. gcubehandlers_requests %}
+           <{{ req }} />
+{% endfor %}
+       </request>
+   </handlers>

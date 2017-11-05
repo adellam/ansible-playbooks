@@ -1,0 +1,69 @@
+- name: add portal user #default home is /opt/ghn-portal/, password is "gCore??"
+  action: user name={{ portal_user }}  password=$1$SuG4r$6AGiUoMKjZAHFJgYLDTkW/ shell=/bin/bash createhome=yes home={{ portal_home }}
+
+- name: download and extract {{ portal_bundle }} as specified in '../defaults/main.yml' 
+  unarchive: src={{ portal_url }} dest={{ portal_home }} copy=no #extra_opts='--show-stored-names --strip-components=1'
+
+- name: upload the gcube key specified in '../defaults/main.yml'
+  copy: src={{ gcube_key }} dest="{{ portal_home }}/gCube/keys/" mode=0600
+
+- name: retrieve tomcat path
+  shell: ls -d {{ portal_home }}/tomcat*
+  register: tomcat_path
+
+#### since this role deploys from scratch, there's no way to actually patch the common-scope-maps that's 
+#### deployed from within the resource-management webapp for now, since the very same webapp hasn't been 
+#### deployed yet
+#- name: retrieve resource-management webapp path
+#  shell: ls -d {{ portal_home }}/tomcat*/webapps/resource-management-*/
+#  register: resource_management_path
+#  ignore_errors: True
+
+- name: upload configured infrastructure.properties
+  template: src="infrastructureproperties" dest="{{ tomcat_path.stdout }}/conf/infrastructure.properties" mode=0700
+
+- name: updload portal-ext.properties
+  template: src="portal-ext.properties" dest="{{ tomcat_path.stdout }}/webapps/ROOT/WEB-INF/classes/"
+
+- name: upload .bashrc to {{ portal_user }}
+  template: src=bashrc dest="{{ portal_home }}/.bashrc" mode=0644
+
+- name: tell tomcat to listen to the tomcat_port variable defined in "../defaults/main.yml"
+  shell: sed -i "s/8080/{{ tomcat_port }}/g" "{{ tomcat_path.stdout }}/conf/server.xml"
+
+- name: patch_common_scope enabled, removing bundled common-scope-maps
+  raw: rm -f {{ portal_home }}/{{ item }}/common-scope-maps* 
+  with_items:
+   - gCube/lib/_fws
+   - lib/fws
+#   - "{{ resource_management_path }}"
+  when: patch_common_scope != 0
+  ignore_errors: True
+  tags:
+    - common_scope_maps
+
+- name: upload patched common-scope-maps
+  copy: src={{ common_scope_maps_file }} dest={{ portal_home }}/{{ item }}/ owner={{ portal_user }} group={{ portal_user }} mode=0644
+  with_items:
+   - gCube/lib/_fws
+   - lib/fws
+#   - "{{ resource_management_path }}"
+  when: patch_common_scope != 0
+  tags:
+    - common_scope_maps
+
+- name: upload d4s.authorization
+  template: src=d4s.authorization dest={{ item }} owner={{ portal_user }} group={{ portal_user }} mode=0644
+  with_items:
+   - "{{ portal_home }}/lib/"
+   - "{{ portal_home }}/gCube/lib/"
+   - "{{ tomcat_path.stdout }}/lib/"
+   - "{{ tomcat_path.stdout }}"
+
+- name: restore ownership
+  file: dest={{ portal_home }} owner={{ portal_user }}  group={{ portal_user }} recurse=yes
+
+- name: start the portal
+  become: yes
+  become_user: "{{ portal_user }}"
+  shell: source ~/.bashrc && nohup {{ tomcat_path.stdout }}/bin/startup.sh &

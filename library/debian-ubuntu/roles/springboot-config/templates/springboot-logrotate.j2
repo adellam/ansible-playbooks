@@ -1,0 +1,8 @@
+{{ item.log_dir }}/{{ item.name }}.log {
+  copytruncate
+  daily
+  rotate 10
+  compress
+  missingok
+  create 640 {{ item.user }} adm
+}

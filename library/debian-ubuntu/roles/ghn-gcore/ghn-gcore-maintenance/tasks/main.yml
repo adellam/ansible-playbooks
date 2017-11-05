@@ -1,0 +1,33 @@
+---
+- block:
+    - name: Install a cron job that restarts the registry gCore service
+      cron: name="Restart the {{ item.user }} gCore service"
+            minute="{{ item.minute | default(0) }}"
+            hour="{{ item.hour | default(3) }}"
+            weekday="{{ item.weekday | default('*') }}"
+            day="{{ item.day | default('*') }}"
+            user="{{ item.user }}"
+            job="{{ item.job }}"
+            disabled="{{ item.disabled | default(False) }}"
+      with_items: '{{ gcore_maintenance_cron_users }}'
+
+  when:
+    - gcoreboot_enabled is defined and gcoreboot_enabled
+    - gcore_maintenance_restart_cron
+  tags: [ 'gcoreboot', 'gcore_cron' ]
+
+- block:
+    - name: Remove the cron job that restarts the registry gCore service
+      cron: name="Restart the {{ item.user }} gCore service"
+            minute="{{ item.minute | default(0) }}"
+            hour="{{ item.hour | default(3) }}"
+            weekday="{{ item.weekday | default('*') }}"
+            day="{{ item.day | default('*') }}"
+            user="{{ item.user }}"
+            job="{{ item.job }}"
+            disabled="{{ item.disabled | default(False) }}"
+            state=absent
+      with_items: '{{ gcore_maintenance_cron_users }}'
+
+  when: not gcore_maintenance_restart_cron
+  tags: [ 'gcoreboot', 'gcore_cron' ]

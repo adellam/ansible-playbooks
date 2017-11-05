@@ -1,0 +1,13 @@
+---
+- block:
+    - name: Install the springboot app upstart init file
+      template: src=springboot-upstart.conf.j2 dest=/etc/init/{{ item.name }}.conf owner=root group=root mode=0644
+      with_items: '{{ springboot_apps }}'
+      when: is_trusty
+
+    - name: Install the springboot logrotate configuration
+      template: src=springboot-logrotate.j2 dest=/etc/logrotate.d/{{ item.name }} owner=root group=root mode=0444
+      with_items: '{{ springboot_apps }}'
+
+  when: springboot_config
+  tags: [ 'springboot', 'springboot_config' ]

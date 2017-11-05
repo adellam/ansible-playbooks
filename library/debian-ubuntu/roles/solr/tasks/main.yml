@@ -1,43 +1,57 @@
 ---
 - block:
-
     - name: Create a solr user
-      become: False
       user: name={{ solr_user }} home={{ solr_base_dir }} createhome=yes shell=/bin/bash
-
-    - name: Create the solr service and download directories
-      file: path={{ item }} state=directory
-      with_items: [ '{{ solr_download_dir }}' ]
 
     - name: Download solr
       get_url: url='{{ solr_download_url }}' dest={{ solr_download_dir }}/solr-{{ solr_version }}.tgz validate_certs=no
 
     - name: Unarchive solr release
       unarchive: src={{ solr_download_dir }}/solr-{{ solr_version }}.tgz dest={{ solr_base_dir }} copy=no
+      args:
+        creates: '{{ solr_base_dir }}/bin/solr'
 
     - name: Link to the latest release
-      file: src=solr-{{ solr_version }} dest={{ solr_data_dir }} state=link
+      file: src={{ solr_base_dir }}/solr-{{ solr_version }} dest={{ solr_server_dir }} state=link
       
-    - name: create solr lib dir
-      file: path={{ solr_data_dir }}/server/solr/lib state=directory
+    - name: Create the solr service, download, data and logs directories
+      file: path={{ item }} state=directory owner={{ solr_user }} group={{ solr_user }}
+      with_items:
+        - '{{ solr_download_dir }}'
+        - '{{ solr_data_dir }}'
+        - '{{ solr_pid_dir }}'
+        - '{{ solr_log_dir }}'
+
+    - name: Fix the permissions of the solr server directory
+      file: dest={{ solr_data_dir }} state=directory owner={{ solr_user }} group={{ solr_user }} recurse=yes
+
+    - name: Create the solr lib directory
+      file: dest={{ solr_data_dir }}/lib state=directory
+
+    - name: Install the zookeeper configuration
+      template: src={{ item }}.j2 dest={{ solr_data_dir }}/{{ item }}
+      with_items:
+        - solr.xml
+        - zoo.cfg
+      notify: solr restart
 
     - name: copy extra libraries
-      shell: cd {{ solr_data_dir }}; cp -u {{ item }} {{ solr_data_dir }}/server/solr/lib
+      shell: cd {{ solr_server_dir }}; cp -u {{ item }} {{ solr_data_dir }}/lib
       with_items: '{{ solr_jar_files }}'
 
     - name: install the solr init script
-      become: False
       copy: src=solr  dest=/etc/init.d/solr mode=0755 owner=root group=root
 
     - name: Install the solr default
-      become: False
-      template: src=solr-default.j2 dest=/etc/default/solr mode=0644 owner=root group=root
+      template: src=solr-default.j2 dest=/etc/default/solr.in.sh mode=0644 owner=root group=root
+      notify: solr restart
+      tags: [ 'solr', 'solr_default' ]
 
     - name: Start and enable the solr service
-      become: False
       service: name=solr state=started enabled=yes
+      ignore_errors: True
 
   become: True
-  become_user: '{{ solr_user }}' 
+  become_user: root
   when: solr_install
   tags: solr

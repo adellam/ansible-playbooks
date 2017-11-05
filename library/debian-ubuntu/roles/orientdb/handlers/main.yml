@@ -1,4 +1,4 @@
 ---
 - name: Restart orientdb
-  service: name=orientdb state=restarted sleep=20
+  service: name=orientdb state=restarted sleep=30
   when: orientdb_enabled

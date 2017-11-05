@@ -1,6 +1,5 @@
 ---
 - block:
-
     - name: Remove the installed CKAN connector before upgrading
       file: dest={{ item }} state=absent
       with_items:
@@ -25,7 +24,7 @@
       
     - name: Fix the CKAN connector web.xml
       become: False
-      shell: /usr/local/bin/ckan-connector-fixer
+      shell: /usr/local/bin/ckan-connector-fixer init
       args:
         creates: '{{ smartgears_instance_path }}/webapps/ckan-connector/WEB-INF/.web.xml.configured'
       notify: Restart smartgears 

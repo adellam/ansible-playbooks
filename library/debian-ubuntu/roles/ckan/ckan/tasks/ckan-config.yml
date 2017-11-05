@@ -2,6 +2,8 @@
 - name: Configure the CKAN plugins list into the configuration file
   ini_file: dest={{ ckan_config_file }} section={{ item.section }} option={{ item.option }} value={{ item.value }} state={{ item.state }} backup=yes
   with_items: '{{ ckan_production_ini_plugins_opts }}'
-  notify: Restart CKAN
+  notify:
+    - Restart CKAN
+    - Restart fetch and gather consumers
   tags: [ 'ckan', 'ckan_ini', 'ckan_plugins' ]
 

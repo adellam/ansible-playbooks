@@ -1,0 +1,29 @@
+---
+- name: Install the apache packages
+  apt: pkg={{ item }} state=installed force=yes
+  with_items:
+    - apache2
+    - apache2-mpm-prefork
+    - apache2-utils
+    - unzip
+    - zip
+  tags:
+    - apache
+
+- name: Load the required modules
+  file: src=/etc/apache2/mods-available/{{ item }} dest=/etc/apache2/mods-enabled/{{ item }} state=link
+  with_items:
+    - proxy.load
+    - proxy_http.load
+    - headers.load
+    - rewrite.load
+    - expires.load
+  notify: apache2 reload
+  tags:
+    - apache
+
+- name: Remove the default apache virtualhost
+  file: dest=/etc/apache2/sites-enabled/000-default state=absent
+  notify: apache2 reload
+  tags:
+    - apache

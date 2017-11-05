@@ -31,10 +31,12 @@
     - name: Install the authorization service AuthorizationConfiguration.xml template
       template: src=AuthorizationConfiguration.xml.j2 dest={{ auth_instance_path }}/webapps/authorization-service/{{ authorization_service_config_dest }} mode=0440
       notify: Restart the authorization service
+      tags: [ 'authorization_service', 'authorization_service_conf', 'tomcat' ]
 
     - name: Install the authorization service persistence.xml template
       template: src=persistence.xml.j2 dest={{ auth_instance_path }}/webapps/authorization-service/{{ authorization_service_persistence_dest }} mode=0440
       notify: Restart the authorization service
+      tags: [ 'authorization_service', 'authorization_service_conf', 'tomcat' ]
 
     - name: Install the logback configuration
       template: src=logback.xml.j2 dest={{ auth_instance_path }}/lib/logback.xml mode=0644
@@ -43,4 +45,4 @@
   become: True
   become_user: '{{ auth_user }}'
   when: authorization_service_install
-  tags: ['authorization_service', 'tomcat' ]
+  tags: [ 'authorization_service', 'tomcat' ]

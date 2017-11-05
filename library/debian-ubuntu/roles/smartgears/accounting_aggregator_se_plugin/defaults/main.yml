@@ -1,5 +1,11 @@
 ---
 accounting_aggregator_se_plugin_install: False
-accounting_aggregator_se_plugin_ver: 1.0.0-4.1.0-132538
-accounting_aggregator_se_plugin_name: 'accounting-aggregator-se-plugin-{{ accounting_aggregator_se_plugin_ver }}-jar-with-dependencies.jar'
-accounting_aggregator_se_plugin_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/accounting/accounting-aggregator-se-plugin/{{ accounting_aggregator_se_plugin_ver }}/{{ accounting_aggregator_se_plugin_name }}'
+accounting_aggregator_se_plugin_name: 'accounting-aggregator-se-plugin'
+
+accounting_aggregator_se_plugin_group_id : 'org.gcube.accounting'
+accounting_aggregator_se_plugin_artifact_id : 'accounting-aggregator-se-plugin'
+accounting_aggregator_se_plugin_version : '1.0.0-SNAPSHOT'
+accounting_aggregator_se_plugin_extension: 'jar'
+accounting_aggregator_se_plugin_classifier: 'jar-with-dependencies'
+accounting_aggregator_se_plugin_file: '{{ accounting_aggregator_se_plugin_name }}-{{ accounting_aggregator_se_plugin_version }}-jar-with-dependencies.{{ accounting_aggregator_se_plugin_extension }}'
+

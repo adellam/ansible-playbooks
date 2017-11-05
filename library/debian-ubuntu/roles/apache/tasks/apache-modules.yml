@@ -1,4 +1,15 @@
 ---
+- name: Install the libapache2-mod-rpaf module
+  apt: pkg=libapache2-mod-rpaf state=present
+  when: apache_rpaf_install
+  tags: [ 'apache', 'apache_mods', 'apache_rpaf' ]
+
+- name: Enable the apache rpaf module
+  apache2_module: name=rpaf state=present
+  when: apache_rpaf_install
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_mods', 'apache_rpaf' ]
+
 - name: Load the apache ssl modules
   apache2_module: name={{ item }} state=present
   with_items: '{{ apache_ssl_modules }}'
@@ -17,8 +28,14 @@
 
 - name: Load additional apache modules if any
   apache2_module: name={{ item }} state=present
-  with_items: '{{ apache_additional_modules_list }}'
+  with_items: '{{ apache_additional_modules_list  | default ([]) }}'
   when: apache_additional_modules
+  notify: apache2 reload
+  tags: [ 'apache', 'apache_mods' ]
+
+- name: Disable apache modules if any
+  apache2_module: name={{ item }} state=absent
+  with_items: '{{ apache_modules_to_be_removed | default ([]) }}'
   notify: apache2 reload
   tags: [ 'apache', 'apache_mods' ]
 

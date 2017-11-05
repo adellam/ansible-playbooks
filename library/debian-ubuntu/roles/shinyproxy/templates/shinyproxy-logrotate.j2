@@ -1,0 +1,8 @@
+{{ shinyproxy_install_dir }}/shinyproxy.log {
+  copytruncate
+  daily
+  rotate 10
+  compress
+  missingok
+  create 640 {{ shinyproxy_user }} adm
+}

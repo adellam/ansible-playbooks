@@ -1,0 +1,17 @@
+---
+- name: Create the acme hooks directory if it does not yet exist
+  file: dest={{ letsencrypt_acme_services_scripts_dir }} state=directory owner=root group=root
+  when:
+    - psql_pgpool_service_install
+    - pgpool_letsencrypt_managed
+    - letsencrypt_acme_install
+  tags: [ 'postgresql', 'postgres', 'pgpool', 'letsencrypt' ]
+
+- name: Install a script that fix the letsencrypt certificate for postgresql and then reload the service
+  copy: src=pgpool-letsencrypt-acme.sh dest={{ letsencrypt_acme_services_scripts_dir }}/pgpool owner=root group=root mode=4555
+  when:
+    - psql_pgpool_service_install
+    - pgpool_letsencrypt_managed
+    - letsencrypt_acme_install
+  tags: [ 'postgresql', 'postgres', 'pgpool', 'letsencrypt' ]
+

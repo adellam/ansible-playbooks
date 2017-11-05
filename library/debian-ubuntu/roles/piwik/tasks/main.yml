@@ -4,11 +4,11 @@
   tags: [ 'piwik', 'analytics' ]
 
 - name: Install the piwik debian repo
-  apt_repository: repo='{{ piwik_repo }}' state=present
+  apt_repository: repo='{{ piwik_repo }}' state=present update_cache=yes
   tags: [ 'piwik', 'analytics' ]
 
 - name: Install piwik and some dependencies
-  apt: name={{ item }}
+  apt: name={{ item }} state={{ piwik_pkg_state }} update_cache=yes cache_valid_time=3600
   with_items: '{{ piwik_pkgs }}'
   tags: [ 'piwik', 'analytics' ]
 
@@ -24,6 +24,6 @@
   tags: [ 'piwik', 'analytics' ]
   
 - name: Create a directory for the fcgi cache
-  file: dest=/var/cache/nginx/fcgicache type=directory owner=piwik
+  file: dest=/var/cache/nginx/fcgicache state=directory owner=piwik
   when: piwik_under_nginx
   tags: [ 'piwik', 'analytics' ]

@@ -1,0 +1,25 @@
+---
+jetty_activate_at_boot: True
+jetty_listen_ip: 127.0.0.1
+jetty_user: jetty
+jetty_group: jetty
+jetty_verbose: "Yes"
+jetty_http_port: 8080
+jetty_ajp_port: 8009
+jetty_java_opts: "-Xmx2048m -XX:MaxPermSize=512m -Djava.awt.headless=true -Dorg.mortbay.util.URI.charset=utf-8"
+jetty_enable_jmx: False
+jetty_jmx_port: 8286
+jetty_jmx_authenticate: "false"
+jetty_jmx_ssl: "false"
+jetty_jmx_java_options: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=${jetty_jmx_authenticate} -Dcom.sun.management.jmxremote.port=${jetty_jmx_port} -Dcom.sun.management.jmxremote.ssl=${jetty_jmx_ssl}"
+jetty_cache_dir: /var/cache/jetty
+jetty_tmp_dir: /var/cache/jetty/data
+jetty_jvm_tmp_dir: /var/cache/jetty/tmp
+jetty_shutdown_timeout: 30
+jetty_java_home: ""
+jetty_logfile_days: 14
+jetty_define_lang: False
+jetty_lang: "en_US.UTF-8"
+jetty_open_files: 2048
+jetty_use_apache: False
+

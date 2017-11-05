@@ -1,0 +1,2 @@
+{{ d4science_user }}  ALL=(ALL) NOPASSWD:  {% for cmd in d4science_service_commands %}{{ cmd }}{% if not loop.last %},{% endif %}{% endfor %}
+

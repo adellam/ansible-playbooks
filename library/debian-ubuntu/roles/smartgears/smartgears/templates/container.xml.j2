@@ -1,20 +1,18 @@
 <container mode='{{ smartgears_mode }}'>
 
-  <hostname>{{ smartgears_hostname }}</hostname>
-  {%if setup_nginx %}
-  {% if https_port is defined %}
-  {% if http_redirect_to_https is defined and http_redirect_to_https %}
-  <port>{{ https_port }}</port>
+  {% if hostname is defined %}
+  <hostname>{{ hostname }}</hostname>
   {% else %}
-  <port>{{ http_port }}</port>
+  <hostname>{{ smartgears_hostname }}</hostname>
   {% endif %}
+  {% if setup_nginx %}
+  <port>{{ http_port }}</port>
   {% else %}
   {%if http_port is defined %}
   <port>{{ http_port }}</port>
-  {% endif %}
-  {% endif %}
   {% else %}
   <port>{{ item.http_port }}</port>
+  {% endif %}
   {% endif %}
 
   <site>
@@ -24,8 +22,15 @@
 	<longitude>{{ smartgears_longitude }}</longitude>
   </site>
 
+
+<authorizeChildrenContext>{{ smartgears_authorized_on_all_scopes }}</authorizeChildrenContext>
+
   <property name='SmartGearsDistributionBundle' value='UnBundled' />
+{% if smartgears_distribution_version == 'latest' %}
+  <property name='SmartGearsDistribution' value='{{ smartgears_real_distribution_version }}' />
+{% else %}
   <property name='SmartGearsDistribution' value='{{ smartgears_distribution_version }}' />
+{% endif %}
   <publication-frequency>{{ smartgears_publication_frequency }}</publication-frequency>
   <infrastructure>{{ smartgears_infrastructure_name }}</infrastructure>
 

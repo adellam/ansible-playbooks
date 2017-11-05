@@ -2,5 +2,22 @@
 py_env_install: False
 py_env_pkgs_state: installed
 py_env_site: False
+py_env_trusty_workaround: True
+py_env_get_pip_url: https://bootstrap.pypa.io/get-pip.py
+
 py_env_basic_pkgs:
   - python-pip
+
+py_env_pip_dev_packages:
+  - libpython-dev
+  - libssl-dev
+  - libffi-dev
+
+py_env_pip_fix_ssl_warnings:
+  - pyOpenSSL
+  - cryptography
+  - idna
+  - certifi
+  - ndg-httpsclient
+  - pyasn1
+

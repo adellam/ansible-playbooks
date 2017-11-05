@@ -14,6 +14,7 @@ keepalived_mcast_addr: 224.0.0.0/8
 keepalived_floating_ip1: 127.0.0.1
 keepalived_script1_name: chk_haproxy
 keepalived_inst_priority: 100
+keepalived_vrouter_id: 51
 
 keepalived_nagios_check: False
 keepalived_notify_script: /usr/local/bin/keepalived_notify
@@ -30,7 +31,7 @@ keepalived_instances:
   - name: VI_1
     interface: eth0
     state: MASTER
-    vrouter_id: 51
+    vrouter_id: '{{ keepalived_vrouter_id }}'
     notify: '{{ keepalived_notify_script }}'
     priority: '{{ keepalived_inst_priority }}'
     v_addr:

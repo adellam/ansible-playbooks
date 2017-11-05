@@ -1,0 +1,32 @@
+---
+- block: 
+    - name: Remove the old gcube oauth files
+      file: path={{ item }}  state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/gcube-{{ gcube_oauth_name }}'
+        - '{{ smartgears_instance_path }}/webapps/gcube-{{ gcube_oauth_name }}.{{ gcube_oauth_extension }}'
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: not gcube_oauth_install
+  tags: [ 'smartgears', 'gcube_oauth', 'tomcat' ]
+  
+- block:
+    - name: Get the gcube-oauth war
+      maven_artifact: artifact_id={{ gcube_oauth_name }} version={{ gcube_oauth_version | default(omit) }} group_id={{ gcube_oauth_group_id }} extension={{ gcube_oauth_extension | default('war') }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ gcube_oauth_file }}
+      register: gcube_oauth_download
+
+    - name: Remove the old gcube oauth files
+      file: path={{ smartgears_instance_path }}/webapps/gcube-{{ gcube_oauth_name }}  state=absent
+      when: ( gcube_oauth_download | changed )
+      notify: Restart smartgears
+  
+    - name: Copy the gcube_oauth war into the webapps directory
+      copy: src={{ smartgears_downloads_dir }}/{{ gcube_oauth_file }} dest={{ smartgears_instance_path }}/webapps/gcube-{{ gcube_oauth_name }}.{{ gcube_oauth_extension }} remote_src=yes force=yes
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: gcube_oauth_install 
+  tags: [ 'smartgears', 'gcube_oauth', 'tomcat' ]

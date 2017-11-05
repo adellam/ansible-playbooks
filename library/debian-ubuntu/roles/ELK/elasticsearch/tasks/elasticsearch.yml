@@ -1,24 +1,28 @@
 ---
-- name: Install the elasticsearch repo key
-  apt_key: url={{ elasticsearch_repo_key }} state=present
-  tags: [ 'ELK', 'elasticsearch', 'elk' ]
+- block:
+    - name: Install the elasticsearch repo key
+      apt_key: url={{ elasticsearch_repo_key }} state=present
 
-- name: Install the elasticsearch deb repository
-  apt_repository: repo='{{ elasticsearch_repo }}' state=present update_cache=yes
-  tags: [ 'ELK', 'elasticsearch', 'elk' ]
+    - name: Install the elasticsearch deb repository
+      apt_repository: repo='{{ elasticsearch_repo }}' state=present update_cache=yes
 
-- name: Install the elasticsearch deb packages
-  apt: name='{{ item }}' state=present
-  with_items: '{{ elasticsearch_packages }}'
-  tags: [ 'ELK', 'elasticsearch', 'elk' ]
+    - name: Install the elasticsearch deb packages
+      apt: name='{{ item }}' state={{ elasticsearch_package_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ elasticsearch_packages }}'
   
-- name: Install the elasticsearch startup default
-  template: src=elasticsearch-default.j2 dest=/etc/default/elasticsearch owner=root group=elasticsearch mode=0640
-  notify: Restart elasticsearch
-  tags: [ 'ELK', 'elasticsearch', 'elk' ]
+    - name: Install the elasticsearch startup default
+      template: src=elasticsearch-default.j2 dest=/etc/default/elasticsearch owner=root group=elasticsearch mode=0640
+      notify: Restart elasticsearch
 
-- name: Install the elasticsearch configuration
-  template: src=elasticsearch.yml.j2 dest=/etc/elasticsearch/elasticsearch.yml owner=root group=elasticsearch mode=0640
-  notify: Restart elasticsearch
-  tags: [ 'ELK', 'elasticsearch', 'elk' ]
+    - name: Install the elasticsearch JVM options
+      template: src=jvm.options.j2 dest=/etc/elasticsearch/jvm.options owner=root group=elasticsearch mode=0640
+      notify: Restart elasticsearch
+      tags: [ 'ELK', 'elasticsearch', 'elk', 'elasticsearch_conf' ]
 
+    - name: Install the elasticsearch configuration
+      template: src=elasticsearch.yml.j2 dest=/etc/elasticsearch/elasticsearch.yml owner=root group=elasticsearch mode=0640
+      notify: Restart elasticsearch
+      tags: [ 'ELK', 'elasticsearch', 'elk', 'elasticsearch_conf' ]
+
+
+  tags: [ 'ELK', 'elasticsearch', 'elk' ]

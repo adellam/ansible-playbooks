@@ -1,9 +1,11 @@
 ---
-varnish_version: 4.0
+varnish_version: 4
+varnish_compact_ver: 41
 varnish_repo: True
 varnish_repo_requirements:
   - apt-transport-https
-varnish_repo_url: "https://repo.varnish-cache.org/debian/ {{ ansible_distribution_release }} varnish-{{ varnish_version }}"
+  - debian-archive-keyring
+varnish_repo_url: "deb https://packagecloud.io/varnishcache/varnish{{ varnish_compact_ver }}/ubuntu/ {{ ansible_distribution_release }} main"
 varnish_pkg_name: varnish
 varnish_pkg_state: present
 varnish_enabled: True

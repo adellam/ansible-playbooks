@@ -1,0 +1,42 @@
+---
+- name: Install the sudoers config that permits the tomcat user to restart the service
+  template: src=tomcat-sudoers.j2 dest=/etc/sudoers.d/tomcat-d4science owner=root group=root mode=0440
+  tags: [ 'tomcat', 'd4science', 'sudo' ]
+
+- name: Install the script that allows the tomcat user to start and stop the service without using the full path
+  template: src={{ item.1 }}.j2 dest={{ item.0.user_home }}/{{ item.1 }} owner={{ item.0.user }} group={{ item.0.user }} mode=0755
+  with_nested:
+    - '{{ tomcat_m_instances | default([]) }}'
+    - [ 'startContainer.sh', 'stopContainer.sh' ]
+  when: not item.0.skip_smartgears
+  tags: [ 'tomcat', 'd4science', 'sudo' ]
+
+- name: Install the README file that explains where the options files are placed and how start/stop the service
+  template: src={{ item.1 }}.j2 dest={{ item.0.user_home }}/{{ item.1 }} owner={{ item.0.user }} group={{ item.0.user }} mode=0444
+  with_nested:
+    - '{{ tomcat_m_instances | default([]) }}'
+    - [ 'README' ]
+  when: not item.0.skip_smartgears
+  tags: [ 'tomcat', 'd4science', 'd4s_readme' ]
+
+# - name: Set the read/write permissions on the tomcat default options files
+#   acl: name={{ item.1 }} entity={{ item.0.user }} etype=user permissions=rw state=present
+#   with_nested:
+#     - '{{ tomcat_m_instances }}'
+#     - '{{ d4science_tomcat_options_files }}'
+#   tags: [ 'tomcat', 'd4science', 'acl' ]
+
+- name: Set the read/write permissions on the tomcat default options files
+  acl: name=/etc/default/tomcat-instance-{{ item.http_port }} entity={{ item.user }} etype=user permissions=rw state=present
+  with_items: '{{ tomcat_m_instances | default([]) }}'
+  when: not item.skip_smartgears
+  tags: [ 'tomcat', 'd4science', 'acl' ]
+
+- name: Set the read/write permissions on the tomcat default local options files
+  acl: name=/etc/default/tomcat-instance-{{ item.http_port }}.local entity={{ item.user }} etype=user permissions=rw state=present
+  with_items: '{{ tomcat_m_instances | default([]) }}'
+  when: not item.skip_smartgears
+  tags: [ 'tomcat', 'd4science', 'acl' ]
+  ignore_errors: True
+
+

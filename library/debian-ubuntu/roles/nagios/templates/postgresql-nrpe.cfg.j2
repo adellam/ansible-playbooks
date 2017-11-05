@@ -5,16 +5,21 @@ command[{{ monitoring_group_name }}_check_postgresql_connection]=/usr/bin/sudo -
 
 command[{{ monitoring_group_name }}_check_postgresql_timesync]=/usr/bin/sudo -u postgres /usr/bin/check_postgres_timesync -db template1
 
+command[{{ monitoring_group_name }}_check_postgresql_wal_files]=/usr/bin/sudo -u postgres /usr/bin/check_postgres_wal_files -w {{ nagios_psql_wal_files_w }} -c {{ nagios_psql_wal_files_c }}
+
 command[{{ monitoring_group_name }}_check_postgresql_backends]=/usr/bin/sudo -u postgres /usr/bin/check_postgres_backends -db template1
 
 command[{{ monitoring_group_name }}_check_postgresql_commitratio]=/usr/bin/sudo -u postgres /usr/bin/check_postgres_commitratio -db template1
 
 command[{{ monitoring_group_name }}_check_postgresql_database_size]=/usr/bin/sudo -u postgres /usr/bin/check_postgres_database_size -db template1 -w {{ nagios_psql_db_size_w }} -c {{ nagios_psql_db_size_c }}
 
+{% if psql_db_data is defined %}
 {% for db in psql_db_data %}
 command[{{ monitoring_group_name }}_check_postgresql_{{ db.name }}_query]=/usr/bin/sudo -u postgres /usr/bin/check_postgres_query_time -db {{ db.name }} -w {{ nagios_psql_query_time_w }} -c {{ nagios_psql_query_time_c }}
 
 command[{{ monitoring_group_name }}_check_postgresql_{{ db.name }}_dbstats]=/usr/bin/sudo -u postgres /usr/bin/check_postgres_dbstats -db {{ db.name }}
 
-command[{{ monitoring_group_name }}_check_postgresql_{{ db.name }}_sequence]=/usr/bin/sudo -u postgres /usr/bin/check_postgres_sequence -db {{ db.name }}
+command[{{ monitoring_group_name }}_check_postgresql_{{ db.name }}_sequence]=/usr/bin/sudo -u postgres /usr/bin/check_postgres_sequence -t 520 -db {{ db.name }}
 {% endfor %}
+{% endif %}
+

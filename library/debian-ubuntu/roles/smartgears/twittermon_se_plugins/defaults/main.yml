@@ -1,0 +1,12 @@
+---
+twittermon_se_plugin_install: False
+twittermon_se_plugin_upgrade: False
+twittermon_twmoncron_se_plugin_ver: 0.0.1-SNAPSHOT
+twittermon_twmoncron_se_plugin_name: TwMonCronPlugin-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+twittermon_twmoncron_se_plugin_url: 'http://data.d4science.org/TzZmTmhOakRTOEpXNWJBdXQ0YnRKbFJEcTdZN0RCNkZHbWJQNStIS0N6Yz0'
+twittermon_twmoncrawler_se_plugin_ver: 0.0.1-SNAPSHOT
+twittermon_twmoncrawler_se_plugin_name: TwMonCrawlerPlugin-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+twittermon_twmoncrawler_se_plugin_url: 'http://data.d4science.org/dW5HSG92U3NEYnBXNWJBdXQ0YnRKc25nem9PMUE0aGRHbWJQNStIS0N6Yz0'
+twittermon_php_crawler_url: 'http://data.d4science.org/YTRZRUNoWnhkZTlXNWJBdXQ0YnRKbHFUcHlIOElabEdHbWJQNStIS0N6Yz0'
+twittermon_php_crawler_file: php_twmon_crawler.zip
+

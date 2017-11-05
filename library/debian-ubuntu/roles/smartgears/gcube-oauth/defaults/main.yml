@@ -1,0 +1,8 @@
+---
+gcube_oauth_install: False
+gcube_oauth_version: latest
+gcube_oauth_name: oauth
+gcube_oauth_group_id: org.gcube.portal
+gcube_oauth_extension: war
+gcube_oauth_file: '{{ gcube_oauth_name }}-{{ gcube_oauth_version }}.{{ gcube_oauth_extension }}'
+

@@ -18,7 +18,9 @@ php_fpm_packages:
   - 'php{{ php_version }}-fpm'
 
 #php_global_settings:
-#  - { option='', value='', state='' }
+#  - { option: '', value: '', state: '' }
+#php_cli_global_settings:
+#  - { option: '', value: '', state: '' }
 
 # Main confign file settings
 # It can be 'syslog'

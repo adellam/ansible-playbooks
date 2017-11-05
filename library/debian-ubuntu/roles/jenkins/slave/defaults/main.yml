@@ -1,0 +1,10 @@
+---
+jenkins_slave: False
+# There are some duplicates here
+jenkins_dest: "/var/lib/jenkins"
+jenkins_username: jenkins
+jenkins_group: jenkins
+jenkins_shell: /bin/bash
+jenkins_tmp_retain_days: 5
+# TODO: fetch the public key from the master
+#jenkins_master_pubkey:

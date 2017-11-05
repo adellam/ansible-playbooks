@@ -1,0 +1,20 @@
+{{ d4science_manual_tomcat_log_dir }}/catalina.out {
+  copytruncate
+  daily
+  rotate {{ d4science_manual_tomcat_rotate_copies }}
+  compress
+  missingok
+  create 640 {{ d4science_user }} {{ d4science_user }}
+}
+
+{% if d4science_manual_tomcat_rotate_access_log %}
+{{ d4science_manual_tomcat_log_dir }}/localhost_access.log {
+  copytruncate
+  daily
+  rotate {{ d4science_manual_tomcat_rotate_copies }}
+  compress
+  missingok
+  create 640 {{ d4science_user }} {{ d4science_user }}
+}
+{% endif %}
+

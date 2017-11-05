@@ -3,6 +3,20 @@
     - name: Create the snippets directory
       file: dest={{ nginx_snippets_dir }} state=directory
 
+    - name: Create the pki directory
+      file: dest={{ pki_dir }}/nginx state=directory
+
+    - name: Create the client body tmp directory, if needed
+      file: dest={{ nginx_client_body_temp_dir }}/nginx state=directory owner=www-data group=www-data mode=0700
+      when: nginx_client_body_temp_dir is defined
+
+    - name: Create a dhparams file 2048 bits long
+      shell: openssl dhparam -out {{ pki_dir }}/nginx/dhparams.pem 2048
+      args:
+        creates: '{{ pki_dir }}/nginx/dhparams.pem'
+      when: nginx_ssl_level == 'intermediate'
+      notify: Reload nginx
+
     - name: remove nginx default virtualhost
       file: dest=/etc/nginx/sites-enabled/default state=absent
       notify: Reload nginx

@@ -9,5 +9,7 @@ openjdk_ppa: 'ppa:openjdk-r/ppa'
 jdk_java_home: '/usr/lib/jvm/java-{{ openjdk_default }}-openjdk-amd64'
 
 openjdk_pkgs:
-  - jre-headless
-  - jdk-headless
+  - jre-headless 
+  - jdk-headless 
+#  - jre
+#  - jdk

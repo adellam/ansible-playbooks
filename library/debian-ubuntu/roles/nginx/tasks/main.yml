@@ -5,6 +5,7 @@
   when: nginx_use_common_virthost
 - include: nginx-letsencrypt.yml
   when: letsencrypt_acme_install is defined and letsencrypt_acme_install
+- include: basic-auth.yml
 - include: pam-ldap.yml
 
 - name: Ensure that the webserver is running and enabled at boot time

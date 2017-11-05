@@ -1,0 +1,18 @@
+---
+- block:
+    - name: Remove the old meteodataimporter
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ item }}
+      with_items:
+        - '{{ meteodataimporter_se_plugin_name }}'
+      when: meteodataimporter_se_plugin_upgrade
+
+    - name: Get the meteodataimporter smart executor plugin
+      get_url: url={{ meteodataimporter_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ meteodataimporter_se_plugin_name }}
+      when: meteodataimporter_se_plugin_install
+      notify: Restart smartgears
+      tags: [ 'smartgears', 'meteodataimporter_se', 'tomcat' ]
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: meteodataimporter_se_plugin_install
+  tags: [ 'smartgears', 'meteodataimporter_se', 'tomcat' ]

@@ -1,0 +1,13 @@
+---
+accounting_insert_rstudio_se_plugin_install: False
+accounting_insert_rstudio_se_plugin_name: accounting-insert-rstudio-se-plugin
+
+accounting_insert_rstudio_se_plugin_version: '1.0.0-4.4.0-142716'
+accounting_insert_rstudio_se_plugin_group_id: 'org.gcube.accounting'
+accounting_insert_rstudio_se_plugin_artifact_id: accounting-insert-rstudio-se-plugin
+accounting_insert_rstudio_se_plugin_extension: jar
+accounting_insert_rstudio_se_plugin_classifier: jar-with-dependencies
+accounting_insert_rstudio_se_plugin_file: '{{ accounting_insert_rstudio_se_plugin_name }}-{{ accounting_insert_rstudio_se_plugin_version }}-{{ accounting_insert_rstudio_se_plugin_classifier }}.{{ accounting_insert_rstudio_se_plugin_extension }}'
+
+accounting_rstudio_quota_dest_dir: /srv/d4science
+accounting_rstudio_quota_dest_file: '{{ accounting_rstudio_quota_dest_dir }}/home_disk_space'

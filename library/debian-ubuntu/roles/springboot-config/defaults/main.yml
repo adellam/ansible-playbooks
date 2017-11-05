@@ -1,0 +1,6 @@
+---
+springboot_config: False
+springboot_apps:
+  - { name: 'foo', log_dir: '/var/log/foo', install_dir: '/usr/lib/foo', state: 'present', user: 'foo', java_opts: '' }
+
+

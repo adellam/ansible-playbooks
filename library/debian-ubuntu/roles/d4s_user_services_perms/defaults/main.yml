@@ -1,0 +1,57 @@
+---
+d4science_user: gcube
+d4science_common_group: d4s_data
+d4science_user_create_home: True
+d4science_user_home: '/home/{{ d4science_user }}'
+d4science_user_shell: /bin/bash
+d4s_service_node: False
+smartgears_node: False
+d4s_tomcat_node: False
+d4s_additional_users: False
+gcore_node: False
+gcore_multiple_users: False
+
+d4science_sudoers_commands:
+  - /etc/init.d/tomcat-instance-*
+
+d4science_tomcat_options_files:
+  - '/etc/default/tomcat-instance-{{ item.0.http_port }}'
+  - '/etc/default/tomcat-instance-{{ item.0.http_port }}.local'
+
+d4science_service_commands:
+  - /etc/init.d/*
+
+d4science_user_service_scripts:
+  - startservice
+  - stopservice
+
+d4science_service_start_command:
+
+d4science_service_stop_command:
+
+
+# Define the following if you want some directories readable and writable by the d4s group but outside the d4s app data dirs
+#d4s_users_data_directories:
+#  - { name: '/data/1', perms: 0755, create: True, file: False, owner: '{{ d4science_user }}', groups: ['gcube', 'gcube1' ], aclperms: 'rwx' }
+#  - { name: '/data/2', create: False, perms: 0755, file: False, owner: '{{ d4science_user }}', groups: ['gcube', 'gcube1' ], aclperms: 'rwx' }
+#  - { name: '/data/bah', create: False, perms: 0644, file: True, aclperms: 'rw' }
+
+# Set it to True if you want to run the script that sets the ACLs on every
+# subdirectory and file of the d4s_users_data_directories.
+# WARNING: it could take a long time to finish
+d4s_force_acls: False
+
+limits_nofile_value: 16000
+security_limits:
+  - { domain: '{{ d4science_user }}', l_item: 'nofile', type: 'soft', value: '{{ limits_nofile_value }}' }
+  - { domain: '{{ d4science_user }}', l_item: 'nofile', type: 'hard', value: '{{ limits_nofile_value }}' }
+
+d4science_manual_tomcat_inst_dir: '{{ d4science_user_home }}/tomcat'
+d4science_manual_tomcat_log_dir: '{{ d4science_manual_tomcat_inst_dir }}/logs'
+d4science_manual_tomcat_rotate_copies: 15
+d4science_manual_tomcat_rotate_access_log: False
+d4science_manual_tomcat_access_log: localhost_access.log
+
+d4science_tomcat_start_command:
+
+d4science_tomcat_stop_command:

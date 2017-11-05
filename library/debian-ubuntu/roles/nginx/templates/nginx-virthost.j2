@@ -1,5 +1,5 @@
 server {
-    listen {{ item.http_port }};
+    listen {{ item.http_port | default (80) }};
     server_name {{ item.server_name }} {% if item.serveraliases is defined %}{{ item.serveraliases }}{% endif %};
 {% if letsencrypt_acme_install %}
     include /etc/nginx/snippets/letsencrypt-proxy.conf;
@@ -17,7 +17,7 @@ server {
     server_tokens {{ item.server_tokens | default('off') }};
 {% if item.ssl_enabled and item.ssl_only %}
     location / {
-        return 301 https://{{ ansible_fqdn }}$request_uri;
+        return 301 https://{{ item.server_name }}$request_uri;
     }
 {% else %}
     # This is the default for nginx on Ubuntu 14.04
@@ -27,7 +27,6 @@ server {
     location = /50x.html {
         root   /usr/share/nginx/html;
     }
-    {% endif %}
     location = /favicon.ico {
         log_not_found off;
         access_log off;
@@ -54,7 +53,14 @@ server {
     {% else %}
     client_body_timeout {{ nginx_client_body_timeout }};
     {% endif %}
-    server_tokens {{ item.server_tokens | default('off') }};
+
+    {% if item.additional_options is defined %}
+    {% for add_opt in item.additional_options %}
+
+    {{ add_opt }};
+
+    {% endfor %}
+    {% endif %}
 
     {% if item.websockets is defined and item.websockets %}
     proxy_set_header Upgrade $http_upgrade;
@@ -65,26 +71,37 @@ server {
     include /etc/nginx/snippets/nginx-proxy-params.conf;
     {% if item.proxy_additional_options is defined %}
     {% for popt in item.proxy_additional_options %}
-    {{ popt }}
+    {{ popt }};
     {% endfor %}
     {% endif %}
-    {% if item.proxies is defined %}
-    {% for proxy in item.proxies %}
-	location {{ proxy.location }} {
-		proxy_pass {{ proxy.target }};
+    {% if item.locations is defined %}
+    {% for location in item.locations %}
+	location {{ location.location }} {
+        {% if location.target is defined %}
+		proxy_pass {{ location.target }};
+        {% endif %}
+        {% if location.extra_conf is defined %}
+        {{ location.extra_conf }}
+        {% endif %}
+        {% if location.other_opts is defined %}
+        {% for opt in location.other_opts %}
+        {{ opt }};
+        {% endfor %}
+        {% endif %}
 	}
     {% endfor %}
     {% endif %}
     {% endif %}
     {% if item.extra_parameters is defined %}
     {{ item.extra_parameters }}
+    {% endif %}
 {% endif %}
 
 }
 
-{% if item.ssl_enabled and item.ssl_only %}
+{% if item.ssl_enabled %}
 server {
-    listen {{ https_port }} ssl;
+    listen {{ https_port | default(443) }} {{ nginx_ssl_type }};
     server_name {{ item.server_name }} {% if item.serveraliases is defined %}{{ item.serveraliases }}{% endif %};
     {% if item.access_log is defined %}
     access_log {{ item.access_log }};
@@ -102,7 +119,6 @@ server {
     location = /50x.html {
         root   /usr/share/nginx/html;
     }
-    {% endif %}
     location = /favicon.ico {
         log_not_found off;
         access_log off;
@@ -145,16 +161,24 @@ server {
     {{ popt }}
     {% endfor %}
     {% endif %}
-    {% if item.proxies is defined %}
-    {% for proxy in item.proxies %}
-	location {{ proxy.location }} {
-		proxy_pass {{ proxy.target }};
+    {% if item.locations is defined %}
+    {% for location in item.locations %}
+	location {{ location.location }} {
+        {% if location.target is defined %}
+		proxy_pass {{ location.target }};
+        {% endif %}
+        {% if location.other_opts is defined %}
+        {% for opt in location.other_opts %}
+        {{ opt }};
+        {% endfor %}
+        {% endif %}
 	}
     {% endfor %}
     {% endif %}
     {% endif %}
     {% if item.extra_parameters is defined %}
     {{ item.extra_parameters }}
+    {% endif %}
 }
 
 {% endif %}

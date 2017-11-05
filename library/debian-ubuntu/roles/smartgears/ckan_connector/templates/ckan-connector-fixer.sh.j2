@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ $# -ne 1 ] ; then
+    logger 'ckan-connector-fixer: at least one argument must be passed'
+    echo "at leas one argument must be passed, init or update"
+    exit 1
+fi
+
+ARG=$1
 CK_WEB_DIR={{ smartgears_instance_path }}/webapps/ckan-connector/WEB-INF
 CK_WEB_XML=$CK_WEB_DIR/.web.xml.tpl
 CK_WEB_XML_TMP=$CK_WEB_DIR/.web.xml.tmp
@@ -13,19 +20,42 @@ CK_INI=/etc/ckan/default/production.ini
 API_KEY=
 CKAN_KEY=
 SQL_FILE=$( mktemp /tmp/XXXXXX.sql )
+CKAN_CREATE_USER={{ ckan_init_db_and_solr }}
+
+trap "logger 'ckan-connector-fixer: trap intercepted, exiting.' ; cleanup" SIGHUP SIGINT SIGTERM
+
+function cleanup() {
+    rm -f $SQL_FILE
+    rm -f $CK_WEB_XML_TMP
+}
+
+
+if [ -f $CK_WEB_DIR/.web.xml.configured ] ; then
+    if [ "$ARG" != "update" ] ; then
+        logger 'ckan-connector-fixer: service already configured, doing nothing.'
+        echo "service already configured. Use 'update' as argument to force the execution"
+        exit 0
+    fi
+fi
 
 {% raw %}
 
 # Set the CKAN python virtualenv
 . /usr/lib/ckan/default/bin/activate
 cd /usr/lib/ckan/default/src/ckan
+
+if [ "$CKAN_CREATE_USER" == "True" ] ; then
 # Create the admin user
-paster sysadmin add $CK_ADMIN -c $CK_INI << EOF
+    paster sysadmin add $CK_ADMIN -c $CK_INI << EOF
 y
+
 $CK_ADMIN_PWD
 $CK_ADMIN_PWD
 
+
 EOF
+
+fi
 
 # Get the admin key
 echo "update \"user\" set state = 'active' where name = '${CK_ADMIN}';" > $SQL_FILE
@@ -59,10 +89,9 @@ mv $CK_WEB_XML_TMP $CK_WEB_XML_DEST
 chown {{ smartgears_user }}:{{ smartgears_user }} $CK_WEB_XML_DEST
 chmod 440 $CK_WEB_XML_DEST
 
-rm -f $SQL_FILE
 touch $CK_WEB_DIR/.web.xml.configured
 
-
+trap cleanup EXIT
 exit 0
 
 

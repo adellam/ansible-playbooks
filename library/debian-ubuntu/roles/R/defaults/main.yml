@@ -14,7 +14,7 @@
 r_install_cran_repo: absent
 #r_cran_mirror_site: http://cran.rstudio.com
 r_cran_set_default_mirror: True
-r_cran_mirror_site: http://cran.mirror.garr.it/mirrors/CRAN/
+r_cran_mirror_site: https://cran.mirror.garr.it/mirrors/CRAN/
 r_base_specific_version: False
 r_base_pkg_version: 2.14.1
 r_packages_main_state: present
@@ -26,6 +26,7 @@ r_packages_updater: False
 r_package_updater_via_subversion: True
 r_package_updater_subversion_repo: http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-analysis/RConfiguration/RPackagesManagement/
 r_packages_svn_base_dir: /srv/r_updater
+r_packages_svn_files_prefix: ''
 # They need to be flat text files
 # 1 package per line
 #r_debian_packages_list_url

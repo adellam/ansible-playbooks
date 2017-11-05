@@ -1,0 +1,8 @@
+---
+resource_registry_handlers_install: False
+resource_registry_handlers_upgrade: False
+resource_registry_handlers_version: latest
+resource_registry_handlers_name: resource-registry-handlers
+resource_registry_handlers_extension: jar
+resource_registry_handlers_file: '{{ resource_registry_handlers_name }}-{{ resource_registry_handlers_version }}.{{ resource_registry_handlers_extension }}'
+resource_registry_handlers_group_id: org.gcube.smartgears.handlers

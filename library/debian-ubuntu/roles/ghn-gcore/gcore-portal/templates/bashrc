@@ -1,0 +1,16 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+# User specific aliases and functions
+export CLASSPATH=""
+export CATALINA_HOME="{{ tomcat_path.stdout }}"
+export JAVA_HOME="/usr/lib/jvm/jre-1.7.0"
+export JRE_HOME="/usr/lib/jvm/jre-1.7.0"
+#export CATALINA_OPTS="-DGLOBUS_LOCATION=$GLOBUS_LOCATION -Xmx2048m -Xms2048m -XX:MaxPermSize=256m -Djava.protocol.handler.pkgs=com.sun.net.ssl.internal.www.protocol -Dlog4j.ignoreTCL=true -Dlog4j.configuration=file://$CATALINA_HOME/portal-log4j.properties"
+export CATALINA_OPTS="-Dexternal-properties=portal-developer.properties -Xmx1000m -Xms1000m -XX:PermSize=512m -XX:MaxPermSize=512m -Djava.protocol.handler.pkgs=com.sun.net.ssl.internal.www.protocol -Dlog4j.ignoreTCL=true -Dlog4j.configuration=file://$CATALINA_HOME/portal-log4j.properties -Dlogback.configurationFile=file://$CATALINA_HOME/portal-logback.xml"
+export CATALINA_PID="{{ portal_home }}/pid.txt"
+

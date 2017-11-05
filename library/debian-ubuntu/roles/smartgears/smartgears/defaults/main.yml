@@ -1,7 +1,6 @@
 ---
 gcube_repository: 'gcube-staging'
-gcube_repository_stagin_test: 'gcube-staging-test'
-
+smartgears_gcube_repository: '{{ gcube_repository }}'
 # Set it to true from the command line when you want to upgrade a
 # distribution version
 smartgears_upgrade: False
@@ -14,37 +13,68 @@ smartgears_install_generic_virthost: True
 smartgears_data_fs: /home
 smartgears_user: '{{ d4science_user }}'
 smartgears_user_home: '{{ d4science_user_home }}'
+smartgears_downloads_dir: '{{ d4science_user_home }}/downloads'
 smartgears_instance_path: '{{ smartgears_user_home }}/tomcat'
 smartgears_install_path: '{{ smartgears_user_home }}/SmartGears'
-smartgears_distribution_version: 2.0.0-4.2.0-132475
-smartgears_file: 'smartgears-distribution-{{ smartgears_distribution_version }}.tar.gz'
-smartgears_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/distribution/smartgears-distribution/{{ smartgears_distribution_version }}/{{ smartgears_file }}'
+smartgears_distribution_version: 2.1.3-4.7.0-154641
+smartgears_global_base_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}'
+smartgears_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ smartgears_gcube_repository }}'
+
+smartgears_name: smartgears-distribution
+smartgears_group_id: org.gcube.distribution
+smartgears_extension: tar.gz
+smartgears_file: '{{ smartgears_name }}-{{ smartgears_distribution_version }}.{{ smartgears_extension }}'
+
 smartgears_mode: online
 smartgears_application_mode: online
 # Production infra
 smartgears_infrastructure_name: "d4science.research-infrastructures.eu"
+# Production VOs
+smartgears_production_vo:
+  - '/{{ smartgears_infrastructure_name }}'
+  - '/{{ smartgears_infrastructure_name }}/FARM'
+  - '/{{ smartgears_infrastructure_name }}/SoBigData'
+  - '/{{ smartgears_infrastructure_name }}/SmartArea'
+  - '/{{ smartgears_infrastructure_name }}/gCubeApps'
+  - '/{{ smartgears_infrastructure_name }}/D4Research'
+  - '/{{ smartgears_infrastructure_name }}/Edison'
+  - '/{{ smartgears_infrastructure_name }}/OpenAIRE'
+
+# Set to 'true' or 'false'. Pay attention to the case
+smartgears_authorized_on_all_scopes: 'false'
+smartgears_scopes:
+  - '/{{ smartgears_infrastructure_name }}'
 smartgears_hostname: '{{ ansible_fqdn }}'
 smartgears_country: it
 smartgears_location: pisa
 smartgears_latitude: 41.9000
 smartgears_longitude: 12.5000
-smartgears_publication_frequency: 180
+smartgears_publication_frequency: 300
 smartgears_http_port: 9000
 smartgears_service_name: 'tomcat-instance-{{ smartgears_http_port }}'
 
+smartgears_log_use_timesize_appender: True
 smartgears_loglevel: WARN
+smartgears_dataanalysis_loglevel: DEBUG
+smartgears_log_max_history: 30
+smartgears_log_max_file_size: 10MB
+smartgears_log_total_file_cap: 2GB
+smartgears_log_dir: '{{ smartgears_user_home }}/tomcat/logs'
+smartgears_tomcat_tmp_dir: '{{ smartgears_user_home }}/tomcat/tmp'
+smartgears_logback_template: True
 
-smartgears_tomcat_contexts: [ 'whn-manager' ]
-
-smartgears_scopes:
-  - '/{{ smartgears_infrastructure_name }}'
+smartgears_tomcat_contexts: [ '' ]
+smartgears_tomcat_listen_address: '127.0.0.1'
 
 # The iptables rules use this
 http_port: '{{ smartgears_http_port }}'
 
+# Used by nginx
+smartgears_web_document_root: '/usr/share/nginx/html/'
+
 tomcat_m_webapps_unpack: True
 tomcat_m_instances:
-  - {  http_enabled: True, http_port: '{{ smartgears_http_port }}', http_address: '0.0.0.0', ajp_enabled: False, ajp_port: '8109', ajp_address: '127.0.0.1', restart_timeout: '{{ tomcat_m_restart_timeout }}', shutdown_port: '-1', java_home: '{{ jdk_java_home }}', user: '{{ smartgears_user }}', user_home: '{{ smartgears_user_home }}', user_shell: '{{ tomcat_m_default_user_shell }}', instance_path: '{{ smartgears_instance_path }}', max_threads: '{{ tomcat_m_max_threads }}', autodeploy: '{{ tomcat_m_webapps_autodeploy }}', unpack: '{{ tomcat_m_webapps_unpack }}', default_conf: True, java_opts: '{{ tomcat_m_java_opts }}', java_gc_opts: '{{ tomcat_m_java_gc_opts }}', other_java_opts: '{{ tomcat_m_other_java_opts }}', jmx_enabled: '{{ tomcat_m_jmx_enabled }}', jmx_disable_additional_ports: '{{ tomcat_m_jmx_disable_additional_ports }}', jmx_port: '{{ tomcat_m_jmx_port }}', jmx_use_ssl: '{{ tomcat_m_jmx_use_ssl }}', jmx_auth_enabled: '{{ tomcat_m_jmx_auth_enabled }}', jmx_auth_dir: '{{ tomcat_m_instances_base_path }}/{{ smartgears_http_port }}/conf', jmx_monitorpass: '{{ tomcat_m_jmx_monitorpass | default(omit) }}', jmx_controlpass: '{{ tomcat_m_jmx_controlpass | default(omit) }}', remote_debugging: '{{ tomcat_m_enable_remote_debugging }}', remote_debugging_port: '{{ smartgears_debugging_port }}' , access_log_enabled: True, log_rotation_freq: daily, log_retain: 30, allowed_hosts: [ '0.0.0.0/0' ], app_contexts: '{{ smartgears_tomcat_contexts }}', skip_smartgears: False, servername: '{{ ansible_fqdn }}' }
+  - {  http_enabled: True, http_port: '{{ smartgears_http_port }}', http_address: '{{ smartgears_tomcat_listen_address }}', ajp_enabled: False, ajp_port: '8109', ajp_address: '127.0.0.1', restart_timeout: '{{ tomcat_m_restart_timeout }}', shutdown_port: '-1', java_home: '{{ jdk_java_home }}', user: '{{ smartgears_user }}', user_home: '{{ smartgears_user_home }}', user_shell: '{{ tomcat_m_default_user_shell }}', instance_path: '{{ smartgears_instance_path }}', max_threads: '{{ tomcat_m_max_threads }}', autodeploy: '{{ tomcat_m_webapps_autodeploy }}', unpack: '{{ tomcat_m_webapps_unpack }}', default_conf: True, java_opts: '{{ tomcat_m_java_opts }}', java_gc_opts: '{{ tomcat_m_java_gc_opts }}', other_java_opts: '{{ tomcat_m_other_java_opts }}', jmx_enabled: '{{ tomcat_m_jmx_enabled }}', jmx_disable_additional_ports: '{{ tomcat_m_jmx_disable_additional_ports }}', jmx_port: '{{ tomcat_m_jmx_port }}', jmx_use_ssl: '{{ tomcat_m_jmx_use_ssl }}', jmx_auth_enabled: '{{ tomcat_m_jmx_auth_enabled }}', jmx_auth_dir: '{{ tomcat_m_instances_base_path }}/{{ smartgears_http_port }}/conf', jmx_monitorpass: '{{ tomcat_m_jmx_monitorpass | default(omit) }}', jmx_controlpass: '{{ tomcat_m_jmx_controlpass | default(omit) }}', catalina_tmp_directory: '{{ smartgears_tomcat_tmp_dir }}', remote_debugging: '{{ tomcat_m_enable_remote_debugging }}', remote_debugging_port: '{{ smartgears_debugging_port }}', access_log_enabled: True, log_rotation_freq: daily, log_retain: 30, allowed_hosts: [ '0.0.0.0/0' ], app_contexts: '{{ smartgears_tomcat_contexts }}', web_document_root: '{{ smartgears_web_document_root }}' , skip_smartgears: False, smartgears_id: 1, servername: '{{ ansible_fqdn }}' }
 
 # To enable debugging:
 # - Set
@@ -56,3 +86,10 @@ smartgears_debugging_port: '{{ tomcat_m_remote_debugging_port }}'
 #   tcp_rules: True
 #   tcp:
 #     - { port: '{{ smartgears_debugging_port }}', allowed_hosts: [ '{{ network.isti }}', '{{ network.nmis }}', '{{ network.eduroam }}' ] }
+
+# This is only used to setup the nginx reverse proxy and the service configuration.
+# The data-trasfer war file is always installed
+data_transfer_service_install: False 
+data_trasfer_service_name: data-transfer-service
+data_transfer_set_local_persistence: False
+

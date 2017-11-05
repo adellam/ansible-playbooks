@@ -1,0 +1,9 @@
+---
+catalogue_ws_install: False
+catalogue_ws_version: latest
+catalogue_ws_name: catalogue-ws
+
+catalogue_ws_group_id: org.gcube.data-catalogue
+catalogue_ws_extension: war
+catalogue_ws_file: '{{ catalogue_ws_name }}-{{ catalogue_ws_version }}.{{ catalogue_ws_extension }}'
+

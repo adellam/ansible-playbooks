@@ -1,0 +1,34 @@
+---
+shinyproxy_install: False
+shinyproxy_version: 1.0.0
+shinyproxy_file_name: 'shinyproxy-{{ shinyproxy_version }}.jar'
+shinyproxy_url: 'https://www.shinyproxy.io/downloads/{{ shinyproxy_file_name }}'
+shinyproxy_app_name: shinyproxy.jar
+shinyproxy_user: shinyproxy
+shinyproxy_install_dir: /opt/shinyproxy
+shinyproxy_http_port: 8080
+# For logrotate. In days
+shinyproxy_log_retention: 10
+shinyproxy_default_apps: True
+shinyproxy_docker_url: 'http://localhost:2375'
+shinyproxy_docker_port_range_start: 20000
+shinyproxy_container_wait_time: 60000
+shinyproxy_hide_navbar: 'false'
+
+shinyproxy_app_title: 'Open Analytics Shiny Proxy'
+shinyproxy_logo_url: 'http://www.openanalytics.eu/sites/www.openanalytics.eu/themes/oa/logo.png'
+shinyproxy_authentication: ldap
+shinyproxy_ldap_enabled: True
+shinyproxy_basic_auth: 'false'
+shinyproxy_admin_group: ''
+shinyproxy_ldap_server: 'ldap://ldap.forumsys.com:389/dc=example,dc=com'
+shinyproxy_ldap_admin: cn=read-only-admin,dc=example,dc=com
+shinyproxy_ldap_admin_pwd: password
+shinyproxy_ldap_user_dn_enabled: False
+shinyproxy_ldap_user_dn_pattern: 'uid={0}'
+shinyproxy_ldap_user_search_base_enabled: True
+shinyproxy_ldap_user_search_base: ''
+shinyproxy_ldap_user_search_filter_enabled: True
+shinyproxy_ldap_user_search_filter: '(uid={0})'
+shinyproxy_ldap_group_search_base: ''
+shinyproxy_ldap_group_search_filter: '(uniqueMember={0})'

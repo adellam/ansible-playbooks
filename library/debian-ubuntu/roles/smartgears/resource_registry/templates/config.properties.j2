@@ -3,10 +3,16 @@ REMOTE_PROTOCOL={{ orientdb_remote_protocol }}
 HTTP_PROTOCOL={{ orientdb_http_protocol }}
 HTTP_PORT={{ orientdb_http_port }}
 DB={{ orientdb_db_name }}
-USERNAME={{ orientdb_root_username }}
-PASSWORD={{ orientdb_root_pwd }}
-DEFAULT_CREATED_WRITER_USER_PASSWORD={{ orientdb_writer_password }}
-DEFAULT_CREATED_READER_USER_PASSWORD={{ orientdb_reader_password }}
+
+ROOT_USERNAME={{ orientdb_root_username }}
+ROOT_PASSWORD={{ orientdb_root_pwd }}
+
+
 DEFAULT_ADMIN_USERNAME={{ orientdb_default_admin_user }}
+CHANGED_ADMIN_USERNAME={{ orientdb_admin_user }}
+
 DEFAULT_ADMIN_PASSWORD={{ orientdb_default_admin_password }}
 CHANGED_ADMIN_PASSWORD={{ orientdb_admin_password }}
+
+DEFAULT_CREATED_WRITER_USER_PASSWORD={{ orientdb_writer_password }}
+DEFAULT_CREATED_READER_USER_PASSWORD={{ orientdb_reader_password }}

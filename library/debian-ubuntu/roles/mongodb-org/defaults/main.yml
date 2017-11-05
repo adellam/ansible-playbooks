@@ -1,0 +1,29 @@
+---
+mongodb_install_from_external_repo: True
+mongodb_install_packages: True
+mongodb_install_conf: True
+# Set to 'latest' if you want to get the latest available package
+mongodb_pkg_state: installed
+mongodb_start_server: 'no'
+mongodb_tcp_port: 27017
+mongodb_http_interface: False
+mongodb_http_port: 28017
+mongodb_user: mongodb
+mongodb_group: mongodb
+mongodb_logdir: /var/log/mongodb
+mongodb_log_file: mongod.log
+mongodb_logpath: '{{ mongodb_logdir }}/{{ mongodb_log_file }}'
+mongodb_dbpath: /var/lib/mongodb
+mongodb_log_retain_days: 7
+mongodb_directoryperdb: False
+mongodb_conf_file: /etc/mongod.conf
+mongodb_daemon: /usr/bin/mongod
+# --setParameter newCollectionsUsePowerOf2Sizes=false is useful if there are disk space constraints.
+mongod_additional_options: ""
+mongodb_allowed_hosts:
+  - 127.0.0.1/8
+  - '{{ ansible_default_ipv4.address }}/32'
+
+mongodb_cluster_enabled: False
+mongodb_replicaset: storagedev
+mongodb_replica_keyfile: '{{ mongodb_dbpath }}/replica_keyfile'

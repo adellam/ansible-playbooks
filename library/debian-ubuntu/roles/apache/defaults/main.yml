@@ -1,18 +1,23 @@
 ---
 apache_service_enabled: True
 apache_user: www-data
+apache_pkg_state: latest
 apache_group: '{{ apache_user }}'
+apache_from_ppa: False
+apache_ppa_repo: 'ppa:ondrej/apache2'
 
 # Possible choices: event, prefork (the old ones), worker (the threaded version), itm
 apache_mpm_mode: worker
 
 apache_packages:
   - apache2
-  - 'apache2-mpm-{{ apache_mpm_mode }}'
   - apache2-utils
   - libapache2-mod-xsendfile
   - unzip
   - zip
+
+apache_modules_packages:
+  - 'apache2-mpm-{{ apache_mpm_mode }}'
 
 # Only one can be present at the same time. It needs to be listed as the last one
 apache_worker_modules:
@@ -20,6 +25,9 @@ apache_worker_modules:
   - { name: 'mpm_event', state: 'absent' }
   - { name: 'mpm_prefork', state: 'absent' }
   - { name: 'mpm_{{ apache_mpm_mode }}', state: 'present' }
+
+# apache RPAF is needed to obtain the real client addresses when behind a reverse proxy
+apache_rpaf_install: False
 
 apache_default_modules:
   - headers

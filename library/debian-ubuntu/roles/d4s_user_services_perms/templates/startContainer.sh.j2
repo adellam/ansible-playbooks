@@ -1,0 +1,9 @@
+#!/bin/bash
+
+{% if tomcat_m_instances is defined %}
+sudo /etc/init.d/tomcat-instance-{{ item.0.http_port }} start
+{% else %}
+sudo {{ d4science_tomcat_start_command }}
+{% endif %}
+
+exit $?

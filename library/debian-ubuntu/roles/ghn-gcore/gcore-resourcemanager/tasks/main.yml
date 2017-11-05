@@ -1,0 +1,31 @@
+- name: download {{ resource_manager_gar }}
+  get_url: url={{ resource_manager_url }} dest=/tmp force=yes
+
+- name: deploy {{ resource_manager_gar  }}
+  shell: export GLOBUS_LOCATION={{ globus_location }} ANT_HOME={{ ant_location }} && {{ globus_location }}/bin/gcore-deploy-service /tmp/{{ resource_manager_gar }}
+
+- name: add GLOBUS_OPTIONS to the gcore startup script
+  lineinfile: dest="{{ globus_location }}/gcore-start.sh" insertbefore="^nohup" state=present line='export GLOBUS_OPTIONS="-Xms512M -Xmx1024M"'
+
+- name: copy updated GHNConfig.xml
+  template: src=GHNConfig.xml dest={{ globus_location }}/config/
+
+#- name: copy updated resource-manager jndi-config.xml
+#  template: src=jndi-config.xml dest={{ globus_location }}/etc/{{ resource_manager_artifact }}/
+
+- name: set logicalhost parameter on {{ globus_location }}/etc/globus_wsrf_core/server-config.wsdd
+  replace: dest="{{ globus_location }}/etc/globus_wsrf_core/server-config.wsdd" regexp='localhost' replace="{{ resource_manager_hostname }}"
+
+- name: deploy {{ resourcebroker_serialization_artifact }}
+  get_url: url={{ resourcebroker_serialization_url }} dest="{{ globus_location }}/lib/" force=yes
+
+- name: deploy {{ resourcebroker_stubs_artifact }}
+  get_url: url={{ resourcebroker_stubs_url }} dest="{{ globus_location }}/lib/" force=yes
+
+- name: restore ownership
+  file: dest={{ globus_location }} owner={{ ghn_user }}  group={{ ghn_user }} recurse=yes
+
+- name: start gCore
+  become: yes
+  become_user: "{{ ghn_user }}"
+  shell: "{{ globus_location }}/gcore-start.sh"

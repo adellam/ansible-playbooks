@@ -1,0 +1,57 @@
+#YML node file
+SVN_REPO = https://svn.d4science.research-infrastructures.eu/gcube/trunk/data-analysis/RConfiguration/RPackagesManagement/
+
+svn.repository = https://svn.d4science.research-infrastructures.eu/gcube
+svn.algo.main.repo = /trunk/data-analysis/DataMinerConfiguration/algorithms
+
+#STAGE
+{% if prod_instance %}
+STAGE_GHOST={{ dm_pool_prod_ghost_instance }}
+svn.stage.algorithms-list = /trunk/data-analysis/DataMinerConfiguration/algorithms/prod/algorithms
+svn.stage.software.repo = /trunk/data-analysis/DataMinerConfiguration/algorithms/prod/software
+svn.stage.algo.ghost.repo = /home/gcube/wps_algorithms/algorithms/prod/software
+{% elif proto_instance %}
+STAGE_GHOST={{ dm_pool_proto_ghost_instance }}
+svn.stage.algorithms-list = /trunk/data-analysis/DataMinerConfiguration/algorithms/proto/algorithms
+svn.stage.software.repo = /trunk/data-analysis/DataMinerConfiguration/algorithms/proto/software
+svn.stage.algo.ghost.repo = /home/gcube/wps_algorithms/algorithms/proto/software
+{% elif preprod_instance %}
+STAGE_GHOST={{ dm_pool_preprod_ghost_instance }}
+svn.stage.algorithms-list = /trunk/data-analysis/DataMinerConfiguration/algorithms/preprod/algorithms
+svn.stage.software.repo = /trunk/data-analysis/DataMinerConfiguration/algorithms/preprod/software
+svn.stage.algo.ghost.repo = /home/gcube/wps_algorithms/algorithms/preprod/software
+{% else %}
+STAGE_GHOST={{ dm_pool_dev_ghost_instance }}
+svn.stage.algorithms-list = /trunk/data-analysis/DataMinerConfiguration/algorithms/dev/algorithms
+svn.stage.software.repo = /trunk/data-analysis/DataMinerConfiguration/algorithms/dev/software
+svn.stage.algo.ghost.repo = /home/gcube/wps_algorithms/algorithms/dev/software
+{% endif %}
+svn.stage.deps-linux-compiled = /trunk/data-analysis/RConfiguration/RPackagesManagement/r_deb_pkgs.txt
+svn.stage.deps-pre-installed = /trunk/data-analysis/RConfiguration/RPackagesManagement/r_deb_pkgs.txt
+svn.stage.deps-r-blackbox = /trunk/data-analysis/RConfiguration/RPackagesManagement/r_deb_pkgs.txt, /trunk/data-analysis/RConfiguration/RPackagesManagement/r_cran_pkgs.txt, /trunk/data-analysis/RConfiguration/RPackagesManagement/r_github_pkgs.txt
+svn.stage.deps-r = /trunk/data-analysis/RConfiguration/RPackagesManagement/r_deb_pkgs.txt, /trunk/data-analysis/RConfiguration/RPackagesManagement/r_cran_pkgs.txt, /trunk/data-analysis/RConfiguration/RPackagesManagement/r_github_pkgs.txt
+svn.stage.deps-java =
+svn.stage.deps-knime-workflow = 
+svn.stage.deps-octave = 
+svn.stage.deps-python = 
+svn.stage.deps-windows-compiled = 
+
+#PROD
+{% if prod_instance %}
+PROD_GHOST={{ dm_pool_prod_ghost_instance }}
+{% else %}
+PROD_GHOST=
+{% endif %}
+svn.prod.algorithms-list = /trunk/data-analysis/DataMinerConfiguration/algorithms/prod/algorithms
+svn.prod.software.repo = /trunk/data-analysis/DataMinerConfiguration/algorithms/prod/software
+svn.prod.algo.ghost.repo = /home/gcube/wps_algorithms/algorithms/prod/software
+
+svn.prod.deps-linux-compiled = /trunk/data-analysis/RConfiguration/RPackagesManagement/r_deb_pkgs.txt
+svn.prod.deps-pre-installed = /trunk/data-analysis/RConfiguration/RPackagesManagement/r_deb_pkgs.txt
+svn.prod.deps-r-blackbox = /trunk/data-analysis/RConfiguration/RPackagesManagement/r_deb_pkgs.txt, /trunk/data-analysis/RConfiguration/RPackagesManagement/r_cran_pkgs.txt, /trunk/data-analysis/RConfiguration/RPackagesManagement/r_github_pkgs.txt
+svn.prod.deps-r = /trunk/data-analysis/RConfiguration/RPackagesManagement/r_deb_pkgs.txt, /trunk/data-analysis/RConfiguration/RPackagesManagement/r_cran_pkgs.txt, /trunk/data-analysis/RConfiguration/RPackagesManagement/r_github_pkgs.txt 
+svn.prod.deps-java =
+svn.prod.deps-knime-workflow = 
+svn.prod.deps-octave = 
+svn.prod.deps-python = 
+svn.prod.deps-windows-compiled =

@@ -1,0 +1,30 @@
+---
+- block:
+    - name: Create a common group
+      group: name={{ d4science_common_group }} state=present
+
+    - name: Add the gcube users to the common group
+      user: name={{ item.name }} append=yes groups={{ d4science_common_group }}
+      with_items: '{{ ssh_users_list }}'
+
+    - name: Create the d4s data dirs
+      file: name={{ item.name }} state=directory owner={{ item.owner }} group={{ item.group }} mode={{ item.perms }}
+      with_items: '{{ d4s_users_data_directories | default([]) }}'
+      when: item.create and not item.file
+
+    - name: Set the default read/write/access permissions on the users d4s data dirs
+      acl: path={{ item.name }} entity={{ d4science_common_group }} etype=group permissions={{ item.aclperms | default ('rwX') }} state=present default=yes recursive=yes
+      with_items: '{{ d4s_users_data_directories | default([])  }}'
+      when:
+        - not item.file
+        - item.set_acls is defined and item.set_acls
+
+    - name: Set the read/write/access permissions on the users d4s data dirs
+      acl: path={{ item.name }} entity={{ d4science_common_group }} etype=group permissions={{ item.aclperms | default ('rwX') }} state=present recursive=yes
+      with_items: '{{ d4s_users_data_directories | default([])  }}'
+      when: item.set_acls is defined and item.set_acls
+
+    - name: Install a script that recursively sets the ACLs on all the directory tree that must be writeable and readable
+      template: src=set-acl-rules.sh.j2 dest=/usr/local/bin/set-acl-rules owner=root group=root mode=0755
+
+  tags: [ 'd4s', 'users', 'd4s_u_acl' ]

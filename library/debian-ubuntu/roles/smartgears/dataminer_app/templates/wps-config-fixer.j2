@@ -1,10 +1,14 @@
 #!/bin/bash
 
 #
-WPS_CONFIG_FILE='{{ smartgears_instance_path }}/webapps/{{ dataminer_52north_webapp_name }}/config/wps_config.xml'
+WPS_CONFIG_FILE='{{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }}/config/wps_config.xml'
 
 # Fix the hostname
-sed -Ei 's/hostname=\".*\"\ hostport/hostname="{{ ansible_fqdn }}" hostport/' $WPS_CONFIG_FILE
+{% if hostname is defined %}
+sed -Ei 's/hostname=\".*\"\ hostport/hostname="{{ hostname }}" hostport/' $WPS_CONFIG_FILE
+{% else %}
+sed -Ei 's/hostname=\".*\"\ hostport/hostname="{{ smartgears_hostname }}" hostport/' $WPS_CONFIG_FILE
+{% endif %}
 
 # Fix the port
 {%if setup_nginx %}

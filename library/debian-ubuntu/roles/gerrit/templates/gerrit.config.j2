@@ -1,0 +1,27 @@
+[gerrit]
+	basePath = git
+	canonicalWebUrl = {{ gerrit_http_proxy_protocol }}://{{ gerrit_servername }}/
+[database]
+	type = {{ gerrit_db_type }}
+	database = {{ gerrit_db_name }}
+    hostname = {{ gerrit_db_hostname }}
+    username = {{ gerrit_db_user }}
+[index]
+	type = LUCENE
+[auth]
+	type = OPENID
+[receive]
+	enableSignedPush = false
+[sendemail]
+	smtpServer = {{ gerrit_smtp_server }}
+[container]
+	user = {{ gerrit_user }}
+	javaHome = {{ jdk_java_home }}/jre
+[sshd]
+	listenAddress = *:{{ gerrit_ssh_port }}
+[httpd]
+	listenUrl = proxy-{{ gerrit_http_proxy_protocol }}://127.0.0.1:{{ gerrit_http_port }}{{ gerrit_app_context }}/
+[cache]
+	directory = cache
+[plugins]
+    plugins.allowRemoteAdmin = true

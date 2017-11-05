@@ -1,0 +1,17 @@
+---
+repo: "gcube-staging"
+portal_version: "4.1.0-4.2.0-133176"
+portal_bundle: "gcube-portal-bundle-{{ portal_version }}.tar.gz"
+portal_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/distribution/gcube-portal-bundle/{{ portal_version }}/{{ portal_bundle }}"
+
+portal_user: "gCore"
+portal_home: "/opt/{{ portal_user }}"
+      
+gcube_key: 'd4s.gcubekey'
+tomcat_port: "8080" 
+    
+common_scope_maps_file: "common-scope-maps-1.0.4-4.2.0-128425-patched.jar"
+patch_common_scope: 0
+    
+start_scopes: ''
+infrastructure: 'd4s'

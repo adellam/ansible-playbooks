@@ -1,6 +1,6 @@
 ---
 haproxy_latest_release: True
-haproxy_version: 1.6
+haproxy_version: 1.7
 haproxy_repo_key: 'http://haproxy.debian.net/bernat.debian.org.gpg'
 haproxy_debian_latest_repo: "deb http://haproxy.debian.net {{ ansible_lsb.codename }}-backports-{{ haproxy_version }} main"
 haproxy_ubuntu_latest_repo: "ppa:vbernat/haproxy-{{ haproxy_version }}"

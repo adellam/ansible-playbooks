@@ -18,6 +18,7 @@ R_PKGS_FROM_SVN={{ r_package_updater_via_subversion }}
 R_PKGS_SVN_DIR=RPackagesManagement
 R_PKGS_SVN_URL={{ r_package_updater_subversion_repo }}
 R_PKGS_SVN_BASE_DIR={{ r_packages_svn_base_dir }}
+R_PKGS_FILES_PREFIX={{ r_packages_svn_files_prefix }}
 # - debian packages list format:
 # one package per line
 DEB_PKGS_SKIP=0
@@ -124,9 +125,9 @@ function get_data_files_from_svn() {
         logger "update_r_packages: first SVN checkout."
         svn co $R_PKGS_SVN_URL >/dev/null 2>&1
     fi
-    PKGS_LIST=$R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR/r_deb_pkgs.txt
-    R_PKGS_LIST=$R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR/r_cran_pkgs.txt
-    R_PKGS_GITHUB=$R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR/r_github_pkgs.txt
+    PKGS_LIST=$R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR/${R_PKGS_FILES_PREFIX}r_deb_pkgs.txt
+    R_PKGS_LIST=$R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR/${R_PKGS_FILES_PREFIX}r_cran_pkgs.txt
+    R_PKGS_GITHUB=$R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR/${R_PKGS_FILES_PREFIX}r_github_pkgs.txt
 }
 
 function debian_pkgs() {
@@ -138,7 +139,11 @@ function debian_pkgs() {
         else
             logger "update_r_packages: APT cache not updated"
         fi
-        xargs -a <(awk '/^\s*[^#]/' "$PKGS_LIST") -r -- apt-get install -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" >/var/log/update_r_debs.log 2>&1
+        >/var/log/update_r_debs.log
+        while read deb_pkg ; do
+            apt-get install ${deb_pkg} -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" >>/var/log/update_r_debs.log 2>&1
+        done < $PKGS_LIST
+        apt-get autoremove -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" >> /var/log/update_r_debs.log 2>&1
     else
         logger "update_r_packages: skipping the debian packages installation"
     fi
@@ -153,7 +158,7 @@ function r_cran_pkgs() {
             is_mirror=$( echo $l | grep ':' )
             is_mirror_ret=$?
             if [ $is_mirror_ret -eq 0 ] ; then
-                mirror=$( echo $l | cut -d : -f 2 )
+                mirror=$( echo $l | cut -d : -f 2- )
             else
                 mirror=$R_CRAN_MIRROR
             fi
@@ -173,7 +178,6 @@ function r_github_pkgs() {
         logger "update_r_packages: Installing R packages from Github"
         for l in $( cat $R_PKGS_GITHUB ) ; do
             pkg=$( echo $l | cut -d "/" -f 2 )
-            user=$( echo $l | cut -d "/" -f 1 )
             if [ "$ACTION" == "upgrade" ] ; then
                 Rscript --slave --no-save --no-restore-history -e "require(devtools); require(methods); install_github('$l');"
             else

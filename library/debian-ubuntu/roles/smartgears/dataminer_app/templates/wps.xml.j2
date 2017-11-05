@@ -1,0 +1,6 @@
+<Context path="/{{ dataminer_wps_name }}" reloadable="true">
+  <!-- http://tomcat.apache.org/tomcat-7.0-doc/config/context.html -->
+  <Loader className="org.apache.catalina.loader.VirtualWebappLoader" searchVirtualFirst="true"
+          virtualClasspath="{{ smartgears_user_home }}/wps_algorithms/algorithms/*.jar"/>
+  <JarScanner scanAllDirectories="true"/>
+</Context>

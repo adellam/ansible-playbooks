@@ -1,0 +1,46 @@
+---
+geonetwork_install: False
+geonetwork_upgrade: False
+
+# Tested with versions up to 3.2.2
+geonetwork_major_version: 2
+geonetwork_point_version: 6
+geonetwork_minor_version: 0
+geonetwork_app_name: GeoNetwork
+geonetwork_version: '{{ geonetwork_major_version }}.{{ geonetwork_point_version }}.{{ geonetwork_minor_version }}'
+geonetwork_download_url: 'https://downloads.sourceforge.net/project/geonetwork/GeoNetwork_opensource/v{{ geonetwork_version }}/geonetwork.war?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fgeonetwork%2Ffiles%2FGeoNetwork_opensource%2Fv{{ geonetwork_version  }}%2F&ts=1485267039&use_mirror=netcologne'
+
+geonetwork_download_directory: /srv/geonetwork
+geonetwork_data_directory: /srv/geonetwork_data
+
+geonetwork_config_skipinfo: 'n'
+geonetwork_config_postgresql: True
+
+geonetwork_config_files:
+  - config-service-xml-api.xml
+
+# Only postgres and the embedded DB are supported
+# Values: postgres-postgis (3.2+ only), postgres (3.0 only), h2
+# geonetwork_db_type: postgres-postgis
+geonetwork_db_name: geonetwork_db
+geonetwork_db_user: geonetwork_u
+#geonetwork_db_pwd: use_a_vault_file
+geonetwork_db_hostname: 127.0.0.1
+geonetwork_db_port: 5432
+geonetwork_db_maxactive: 30
+geonetwork_db_maxidle: 10
+geonetwork_db_initialpool: 20
+
+geonetwork_sys_site_name: 'My GeoNetwork catalogue'
+geonetwork_sys_org_name: 'My organization'
+geonetwork_sys_server_host: '127.0.0.1'
+geonetwork_sys_server_protocol: 'http'
+geonetwork_sys_server_port: '{{ item.http_port }}'
+
+geonetwork_sys_feedback_email_address: 'root@localhost'
+geonetwork_sys_feedback_email_host: '127.0.0.1'
+geonetwork_sys_feedback_email_port: 25
+geonetwork_sys_feedback_email_user: ''
+geonetwork_sys_feedback_email_password: ''
+geonetwork_sys_threadedindexing_maxthreads: 2
+geonetwork_metadata_resourceIdentifierPrefix: 'http://{{ geonetwork_sys_server_host }}:{{ geonetwork_sys_server_port }}/{{ geonetwork_app_name | lower }}'

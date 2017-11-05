@@ -33,9 +33,11 @@
   tags: [ 'pg_backup', 'postgresql', 'postgres' ]
 
 - name: Initialize the CKAN databases
-  shell: ckan db init ; ckan datastore set-permissions | psql --set ON_ERROR_STOP=1 -h {{ psql_db_host }} -U {{ ckan_db_user }} -w {{ ckan_datastore_db_name }} 
-  when: ( ckan_install | changed )
+  shell: ckan db init ; ckan datastore set-permissions | psql --set ON_ERROR_STOP=1 -h {{ psql_db_host }} -U {{ ckan_db_user }} -w {{ ckan_datastore_db_name }} ; touch {{ ckan_libdir }}/.ckan_db_initialized
+  args:
+    creates: '{{ ckan_libdir }}/.ckan_db_initialized'
   ignore_errors: True
+  when: ckan_init_db_and_solr
   tags: ckan
 
 - name: Create the pip cache directory with the right permissions

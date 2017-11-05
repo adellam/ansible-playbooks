@@ -1,0 +1,26 @@
+- name: download {{ notifier_gar }}
+  get_url: url={{ notifier_url }} dest=/tmp force=yes
+
+- name: deploy {{ notifier_gar }}
+  shell: export GLOBUS_LOCATION={{ globus_location }} ANT_HOME={{ ant_location }} && {{ globus_location }}/bin/gcore-deploy-service /tmp/{{ notifier_gar }}
+
+- name: add GLOBUS_OPTIONS to the gcore startup script
+  lineinfile: dest="{{ globus_location }}/gcore-start.sh" insertbefore="^nohup" state=present line='export GLOBUS_OPTIONS="-Xms512M -Xmx1024M"'
+
+- name: copy updated GHNConfig.xml
+  template: src=GHNConfig.xml dest={{ globus_location }}/config/
+
+## despite what the documentation says, seems there's no need to specify starting scopes for the notifier to work correctly
+#- name: copy updated notifier-service jndi-config.xml
+#  template: src=jndi-config.xml dest={{ globus_location }}/etc/{{ notifier_artifact }}/
+
+- name: set logicalhost parameter on {{ globus_location }}/etc/globus_wsrf_core/server-config.wsdd
+  replace: dest="{{ globus_location }}/etc/globus_wsrf_core/server-config.wsdd" regexp='localhost' replace="{{ notifier_hostname }}"
+
+- name: restore ownership
+  file: dest={{ globus_location }} owner={{ ghn_user }}  group={{ ghn_user }} recurse=yes
+
+- name: start gCore
+  become: yes
+  become_user: "{{ ghn_user }}"
+  shell: "{{ globus_location }}/gcore-start.sh"

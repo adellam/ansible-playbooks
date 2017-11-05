@@ -1,0 +1,23 @@
+---
+- name: Create the data transfer webapp directory
+  become: True
+  become_user: '{{ smartgears_user }}'
+  file: path={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }} state=directory
+  when: data_transfer_service_install
+  tags: [ 'smartgears', 'smartgears_data_trasfer', 'tomcat' ]
+
+- name: Unarchive the data transfer webapp directory
+  become: True
+  become_user: '{{ smartgears_user }}'
+  unarchive: src={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}.war dest={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }} creates={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/gcube-app.xml remote_src=yes
+  when: data_transfer_service_install
+  tags: [ 'smartgears', 'smartgears_data_trasfer', 'tomcat' ]
+
+- name: Install the gcube-app file used by the data-transfer-service
+  become: True
+  become_user: '{{ smartgears_user }}'
+  template: src=data-transfer-gcube-app.xml.j2 dest={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/gcube-app.xml
+  when: data_transfer_service_install
+  notify: Restart smartgears 
+  tags: [ 'smartgears', 'smartgears_data_trasfer', 'tomcat' ]
+

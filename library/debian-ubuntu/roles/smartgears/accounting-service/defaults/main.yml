@@ -1,0 +1,7 @@
+---
+accounting_service_install: False
+accounting_service_version: 1.0.0-4.5.0-148495
+accounting_service_name: accounting-service
+accounting_service_extension: war
+accounting_service_file: '{{ accounting_service_name }}-{{ accounting_service_version }}.{{ accounting_service_extension }}'
+accounting_service_group_id: org.gcube.data.publishing

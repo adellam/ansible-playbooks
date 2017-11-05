@@ -1,0 +1,69 @@
+shiny:
+  proxy:
+    title: {{ shinyproxy_app_title }}
+    logo-url: {{ shinyproxy_logo_url }}
+    landing-page: /
+    heartbeat-rate: 10000
+    heartbeat-timeout: 60000
+    container-wait-time: {{ shinyproxy_container_wait_time }}
+    port: {{ shinyproxy_http_port }}
+    hide-navbar: {{ shinyproxy_hide_navbar }}
+    authentication: {{ shinyproxy_authentication }}
+    admin-groups: {{ shinyproxy_admin_group }}
+{% if shinyproxy_ldap_enabled %}
+    # LDAP configuration
+    ldap:
+      url: {{ shinyproxy_ldap_server }}
+{% if shinyproxy_ldap_user_dn_enabled %}
+      user-dn-pattern: {{ shinyproxy_ldap_user_dn_pattern }}
+{% endif %}
+{% if shinyproxy_ldap_user_search_base_enabled %}
+      user-search-base: {{ shinyproxy_ldap_user_search_base }}
+{% endif %}
+{% if shinyproxy_ldap_user_search_filter_enabled %}
+      user-search-filter: {{ shinyproxy_ldap_user_search_filter }}
+{% endif %}
+      group-search-base: {{ shinyproxy_ldap_group_search_base }}
+      group-search-filter: {{ shinyproxy_ldap_group_search_filter }}
+      manager-dn: {{ shinyproxy_ldap_admin }}
+      manager-password: {{ shinyproxy_ldap_admin_pwd }}
+{% endif %}
+# Docker configuration
+    docker:
+      cert-path: /home/none
+      url: {{ shinyproxy_docker_url }}
+      port-range-start: {{ shinyproxy_docker_port_range_start }}
+  apps:
+{% if shinyproxy_default_apps %}
+  - name: 01_hello
+    display-name: Hello Application
+    description: Application which demonstrates the basics of a Shiny app
+    docker-cmd: ["R", "-e shinyproxy::run_01_hello()"]
+    docker-image: openanalytics/shinyproxy-demo
+  - name: 06_tabsets
+    docker-cmd: ["R", "-e shinyproxy::run_06_tabsets()"]
+    docker-image: openanalytics/shinyproxy-demo
+{% endif %}
+{% if shinyproxy_apps is defined %}
+{% for app in shinyproxy_apps %}
+  - name: {{ app.name }}
+    display-name: {{ app.display_name }}
+    description: {{ app.description }}
+    docker-cmd: ["R", "-e {{ app.cmd }}"]
+    docker-image: {{ app.docker_image }}
+    docker-memory: {{ app.docker_memory | default('2g') }}
+    {% if app.groups is defined %}
+    groups: {{ app.groups }}
+    {% endif %}
+
+{% endfor %}
+{% endif %}
+
+security:
+  basic:
+    enabled: {{ shinyproxy_basic_auth }}
+    
+logging:
+  file:
+    shinyproxy.log
+

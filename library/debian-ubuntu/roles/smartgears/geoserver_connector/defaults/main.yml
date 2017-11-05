@@ -1,0 +1,8 @@
+---
+gcube_geoserver_connector_install: False
+gcube_geoserver_connector_upgrade: False
+gcube_geoserver_connector_ver: latest
+gcube_geoserver_connector_name: gcube-geoserver-connector
+gcube_geoserver_connector_group_id: org.gcube.data.access.geoserver
+gcube_geoserver_connector_extension: jar
+gcube_geoserver_connector_file: '{{ gcube_geoserver_connector_name }}-{{ gcube_geoserver_connector_ver }}.{{ gcube_geoserver_connector_extension }}'

@@ -1,0 +1,5 @@
+---
+chronograf_deb_file: chronograf_0.10.0_amd64.deb
+chronograf_deb_url: 'https://s3.amazonaws.com/get.influxdb.org/chronograf/{{ chronograf_deb_file }}'
+
+chronograf_enabled: True

@@ -1,0 +1,80 @@
+---
+- block:
+    - name: Install the pgpool package
+      apt: name={{ item }} state={{ psql_pgpool_pkg_state }}
+      with_items: '{{ pgpool_pkgs }}'
+
+    - name: Configure pcp
+      #template: src=pcp.conf.j2 dest=/etc/pgpool2/pcp.conf owner=root group=postgres mode=0640
+      shell: pwd=`pg_md5 {{ pcp_pwd }}` ; echo "{{ pgpool_pcp_user }}:${pwd}" > /etc/pgpool2/pcp.conf ; chmod 640 /etc/pgpool2/pcp.conf; chown root:postgres /etc/pgpool2/pcp.conf 
+  
+    - name: Install the pgpool configuration file
+      template: src=pgpool.conf.j2 dest=/etc/pgpool2/pgpool.conf owner=root group=postgres mode=0640
+      notify: Restart pgpool2
+
+    - name: Give access to the remote postgresql clients
+      lineinfile: name=/etc/pgpool2/pool_hba.conf regexp="^host {{ item.0.name }} {{ item.0.user }} {{ item.1 }}.*$" line="host {{ item.0.name }} {{ item.0.user }} {{ item.1 }} md5"
+      with_subelements: 
+        - '{{ psql_db_data | default([]) }}'
+        - allowed_hosts
+      when:
+        - psql_db_data is defined
+        - item.1 is defined
+      notify: Reload pgpool2
+  
+    - name: Create the pki directory to store the pgpool key
+      file: dest=/etc/pki/pgpool2 state=directory owner=postgres group=postgres mode=0750
+      when: pgpool_enable_ssl
+
+    - name: Create a pgpool accessible ssl key file if it does not exist
+      copy: src=/var/lib/acme/live/{{ ansible_fqdn }}/privkey dest=/etc/pki/pgpool2/pgpool2.key owner=postgres group=postgres mode=0400 remote_src=True
+      when: pgpool_enable_ssl
+
+    - name: Install the pool_passwd configuration file
+      shell: cd /etc/pgpool2 ; pg_md5 -m -u {{ item.user }} {{ item.pwd }} ; chown root:postgres /etc/pgpool2/pool_passwd ; chmod 660 /etc/pgpool2/pool_passwd
+      with_items: '{{ psql_db_data | default([]) }}'
+  
+    - name: Install the sudoers config that permits pgpool change the network configuration during a failover
+      template: src=pgpool-wd-sudoers.j2 dest=/etc/sudoers.d/pgpool-wd owner=root group=root mode=0440
+
+    - name: Install the ip script that manage the network configuration during a failover
+      copy: src={{ item }} dest=/sbin/{{ item }} owner=root group=root mode=0755
+      with_items:
+        - ip_script
+
+    - name: Install the arping scripts that manage the network configuration during a failover
+      copy: src={{ item }} dest=/usr/local/bin/{{ item }} owner=root group=root mode=0755
+      with_items:
+        - arping_script
+
+    - name: Start and enable pgpool2
+      service: name=pgpool2 state=started enabled=yes
+
+  when: pgpool_enabled 
+  tags: [ 'postgresql', 'postgres', 'pgpool', 'pcp_conf', 'pgpool_conf' ]
+
+
+- block:
+    - name: Stop and disable pgpool2
+      service: name=pgpool2 state=stopped enabled=no
+
+    - name: Install the pgpool packages
+      apt: name={{ item }} state=absent
+      with_items: '{{ pgpool_pkgs }}'
+
+    - name: Remove the pgpool failover sudoers file
+      file: dest=/etc/sudoers.d/pgpool-wd state=absent
+
+    - name: Remove the pgpool configuration directory
+      file: dest=/etc/pgpool2 state=absent
+
+    - name: Remove the scripts that manage the network configuration during a failover
+      file: dest={{ item }} state=absent
+      with_items:
+        - /sbin/ip_script
+        - /usr/local/bin/arping_script
+
+  when: not pgpool_enabled
+  tags: [ 'postgresql', 'postgres', 'pgpool' ]
+
+

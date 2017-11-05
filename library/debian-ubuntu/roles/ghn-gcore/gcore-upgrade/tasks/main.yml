@@ -1,0 +1,15 @@
+---
+- name: Download the Gcore upgrade script
+  become: True
+  become_user: '{{ item }}'
+  get_url: url={{ gcore_upgrade_script_url }} dest=/home/{{ item }} validate_certs=no
+  with_items: '{{ gcube_users }}'
+  tags: gcore_upgrade
+
+- name: Run the Gcore upgrade script
+  become: True
+  become_user: '{{ item }}'
+  shell: . /home/{{ item }}/.bashrc ; cd /home/{{ item }} ; chmod 555  ./{{ gcore_upgrade_script }} ;  ./{{ gcore_upgrade_script }} {{ http_port }} {{ restart_on_upgrade }} force
+  with_items: '{{ gcube_users }}'
+  tags: gcore_upgrade
+

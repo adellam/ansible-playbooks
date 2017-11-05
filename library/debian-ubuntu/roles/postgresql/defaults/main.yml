@@ -1,0 +1,224 @@
+---
+pg_use_postgresql_org_repo: True
+
+psql_postgresql_install: False
+psql_pkg_state: installed
+postgresql_enabled: True
+psql_pgpool_install: False
+psql_pgpool_service_install: False
+psql_pgpool_pkg_state: installed
+# 9.3 is the default version for Ubuntu trusty
+# It is highly recommended to use the postgresql.org repositories
+#
+# See the features matrix here: http://www.postgresql.org/about/featurematrix/
+#
+psql_version: 9.6
+psql_db_host: localhost
+psql_db_port: 5432
+psql_db_size_w: 150000000
+psql_db_size_c: 170000000
+psql_listen_on_ext_int: False
+psql_use_alternate_data_dir: False
+psql_data_dir: '/var/lib/postgresql/{{ psql_version }}'
+psql_conf_dir: '/etc/postgresql/{{ psql_version }}/main'
+psql_log_dir: /var/log/postgresql
+psql_conf_parameters:
+  - { name: 'max_connections', value: '100', set: 'False' }
+  - { name: 'shared_buffers', value: '24MB', set: 'False' }
+  - { name: 'temp_buffers', value: '8MB', set: 'False' }
+  - { name: 'work_mem', value: '1MB', set: 'False' }
+  - { name: 'maintenance_work_mem', value: '16MB', set: 'False' }
+  - { name: 'max_stack_depth', value: '2MB', set: 'False' }
+  - { name: 'max_files_per_process', value: '1000', set: 'False' }
+
+# logging configuration. Important: the parameters that need a restart must be listed in psql_conf_parameters
+psql_log_configuration:
+  - { name: 'log_destination', value: 'stderr', set: 'True' }
+  - { name: 'logging_collector', value: 'off', set: 'False' }
+  - { name: 'log_directory', value: "'{{ psql_log_dir }}'", set: 'True' }
+  - { name: 'log_rotation_age', value: '1d', set: 'True' }
+  - { name: 'log_rotation_size', value: '10MB', set: 'True' }
+  - { name: 'client_min_messages', value: 'notice', set: 'True' }
+  - { name: 'log_min_messages', value: 'warning', set: 'True' }
+  - { name: 'log_min_error_statement', value: 'error', set: 'True' }
+  - { name: 'log_min_duration_statement', value: '-1', set: 'True' }
+  - { name: 'log_checkpoints', value: 'off', set: 'True' }
+  - { name: 'log_connections', value: 'on', set: 'True' }
+  - { name: 'log_disconnections', value: 'off', set: 'True' }
+  - { name: 'log_duration', value: 'off', set: 'True' }
+  - { name: 'log_error_verbosity', value: 'default', set: 'True' }
+  - { name: 'log_hostname', value: 'on', set: 'True' }
+  
+# Treat vacuum separately. Important: the parameters that need a restart must be listed in psql_conf_parameters
+psql_autovacuum_configuration:
+  - { name: 'track_counts', value: 'on', set: 'True' }
+  - { name: 'autovacuum', value: 'on', set: 'True' }
+  - { name: 'log_autovacuum_min_duration', value: '-1', set: 'True' }
+  - { name: 'autovacuum_vacuum_threshold', value: '50', set: 'True' }
+  - { name: 'autovacuum_analyze_threshold', value: '50', set: 'True' }
+  - { name: 'autovacuum_vacuum_scale_factor', value: '0.2', set: 'True' }
+  - { name: 'autovacuum_vacuum_cost_limit', value: '1000', set: 'True' }
+
+# SSL as a special case
+psql_enable_ssl: False
+psql_force_ssl_client_connection: False
+postgresql_letsencrypt_managed: True
+psql_conf_ssl_parameters:
+  - { name: 'ssl', value: 'true' }
+  - { name: 'ssl_cert_file', value: '/var/lib/acme/live/{{ ansible_fqdn }}/cert' }
+  - { name: 'ssl_key_file', value: '/etc/pki/postgresql/postgresql.key' }
+  - { name: 'ssl_ca_file', value: '/var/lib/acme/live/{{ ansible_fqdn }}/chain' }
+
+psql_set_shared_memory: False
+psql_sysctl_file: 30-postgresql-shm.conf
+psql_sysctl_kernel_sharedmem_parameters:
+  - { name: 'kernel.shmmax', value: '33554432' }
+  - { name: 'kernel.shmall', value: '2097152' }
+
+postgresql_pkgs:
+  - 'postgresql-{{ psql_version }}'
+  - 'postgresql-contrib-{{ psql_version }}'  
+  - 'postgresql-client-{{ psql_version }}'
+  - pgtop
+
+psql_ansible_needed_pkgs:
+  - python-psycopg2
+
+psql_db_name: db_name
+psql_db_user: db_user
+psql_db_pwd: "We cannot save the password into the repository. Use another variable and change pgpass.j2 accordingly. Encrypt the file that contains the variable with ansible-vault"
+
+# Those need to be installed on the postgresql server.
+postgresql_pgpool_pkgs:
+  - 'postgresql-{{ psql_version }}-pgpool2'
+
+#psql_db_data:
+  # Example of line needed to create a db, create the user that owns the db, manage the db accesses (used by iptables too). All the fields are mandatory.
+  #- { name: '{{ psql_db_name }}', encoding: 'UTF8', user: '{{ psql_db_user }}', pwd: '{{ psql_db_pwd }}', roles: 'NOCREATEDB,NOSUPERUSER', extensions: [ 'postgis', 'pgpool_regclass', 'pgpool_recovery' ], allowed_hosts: [ 'xxx.xxx.xxx.xxx/32', 'yyy.yyy.yyy.yyy/32' ], managedb: True }
+  # Example of line needed to manage the db accesses (used by iptables too), without creating the db and the user. Useful, for example, to give someone access to the postgresql db
+  #- { name: '{{ psql_db_name }}', user: '{{ psql_db_user }}', allowed_hosts: [ 'xxx.xxx.xxx.xxx/32', 'yyy.yyy.yyy.yyy/32' ], managedb: False }
+  # Example of line needed to remove a db, create the user that owns the db, manage the db accesses (used by iptables too). All the fields are mandatory.
+  #- { name: '{{ psql_db_name }}', encoding: 'UTF8', user: '{{ psql_db_user }}', pwd: '{{ psql_db_pwd }}', managedb: True, roles: 'NOCREATEDB,NOSUPERUSER', extensions: [ 'postgis', 'pgpool_regclass', 'pgpool_recovery' ], allowed_hosts: [ 'xxx.xxx.xxx.xxx/32', 'yyy.yyy.yyy.yyy/32' ], state=absent }
+
+
+# pgpool-II
+pgpool_pkgs:
+  - pgpool2
+  - iputils-arping
+
+pgpool_enabled: True
+pgpool_listen_addresses: 'localhost'
+pgpool_port: 5433
+pgpool_listen_backlog_multiplier: 2
+pgpool_pcp_user: admin
+# Define pcp_pwd in a vault file
+pgpool_pcp_listen_addresses: '*'
+pgpool_pcp_port: 9898
+#pgpool_backends:
+#  - { id: 0, hostname: 'backend0', backend_port: '{{ psql_db_port }}', backend_weight: 1, backend_data_directory: '{{ psql_data_dir }}', backend_flag: 'ALLOW_TO_FAILOVER' }
+pgpool_enable_pool_hba: 'on'
+pgpool_pool_passwd: 'pool_passwd'
+pgpool_num_init_children: 32
+pgpool_max_pool: 4
+pgpool_child_life_time: 300
+pgpool_child_max_connections: 0
+pgpool_connection_life_time: 0
+pgpool_client_idle_limit: 0
+pgpool_log_destination: syslog
+pgpool_log_connections: 'on'
+pgpool_log_hostname: 'on'
+pgpool_log_statement: 'off'
+pgpool_log_per_node_statement: 'off'
+pgpool_debug_level: 0
+pgpool_replication_mode: 'on'
+pgpool_replicate_select: 'off'
+pgpool_insert_lock: 'on'
+pgpool_lobj_lock_table: ''
+pgpool_replication_stop_on_mismatch: 'on'
+pgpool_failover_if_affected_tuples_mismatch: 'off'
+pgpool_recovery_timeout: 30
+pgpool_client_idle_limit_in_recovery: -1
+pgpool_load_balance_mode: 'on'
+pgpool_ignore_leading_white_space: 'on'
+pgpool_recovery_user: postgres
+# pgpool_recovery_user_pwd: use a vault file for this one
+pgpool_recovery_stage1_script: pgpool_recovery_stage_1
+pgpool_recovery_stage2_script: pgpool_recovery_stage_2
+pgpool_remote_start_script: pgpool_remote_start
+pgpool_white_function_list: ''
+pgpool_black_function_list: 'nextval,setval'
+pgpool_allow_sql_comments: 'on'
+pgpool_fail_over_on_backend_error: 'on'
+pgpool_relcache_expire: 3600
+pgpool_memory_cache_enabled: 'off'
+pgpool_memqcache_method: memcached
+pgpool_memqcache_memcached_host: localhost
+pgpool_memqcache_memcached_port: 11211
+pgpool_memqcache_expire: 0
+pgpool_memqcache_auto_cache_invalidation: 'on'
+pgpool_serialize_accept: 'off'
+# HA and watchdog
+pgpool_use_watchdog: 'off'
+pgpool_wd_trusted_servers: 'localhost,localhost'
+pgpool_wd_port: 9000
+pgpool_wd_priority: 1
+# Warning: setting pgpool_wd_heartbeat_mode to False enables
+# the 'query mode' that is untested and not working without manual intervention
+pgpool_wd_heartbeat_mode: True
+pgpool_wd_heartbeat_port: 9694
+pgpool_wd_heartbeat_keepalive_int: 3
+pgpool_wd_heartbeat_deadtime: 30
+pgpool_wd_heartbeat_dest0: 'localhost'
+pgpool_wd_heartbeat_dest0_port: '{{ pgpool_wd_heartbeat_port }}'
+#pgpool_wd_authkey: 'set it inside a vault file'
+
+# SSL as a special case
+pgpool_enable_ssl: False
+pgpool_letsencrypt_managed: True
+pgpool_ssl_key: /etc/pki/pgpool2/pgpool2.key
+pgpool_ssl_cert: '/var/lib/acme/live/{{ ansible_fqdn }}/cert'
+pgpool_ssl_ca: '/var/lib/acme/live/{{ ansible_fqdn }}/chain'
+pgpool_ssl_ca_dir: /etc/ssl/certs
+pgpool_virtual_ip: 127.0.0.1
+pgpool_virtual_netmask: 24
+
+# WAL files archiving is mandatory for pgpool recovery
+psql_wal_files_archiving_enabled: '{{ psql_pgpool_install }}'
+psql_restart_after_wal_enabling: True
+psql_wal_archiving_log_dir: '{{ psql_data_dir }}/archive_log'
+psql_base_backup_dir: '{{ pg_backup_base_dir }}/base_backup'
+psql_wal_files_conf:
+  - { name: 'wal_level', value: 'archive', set: '{{ psql_wal_files_archiving_enabled }}' }
+  - { name: 'wal_sync_method', value: 'fdatasync', set: '{{ psql_wal_files_archiving_enabled }}' }
+  - { name: 'full_page_writes', value: 'on', set: '{{ psql_wal_files_archiving_enabled }}' }
+  - { name: 'wal_log_hints', value: 'on', set: '{{ psql_wal_files_archiving_enabled }}' }
+  - { name: 'archive_mode', value: 'on', set: '{{ psql_wal_files_archiving_enabled }}' }
+  - { name: 'archive_command', value: "'test ! -f {{ psql_wal_archiving_log_dir }}/%f && cp %p {{ psql_wal_archiving_log_dir }}/%f'", set: '{{ psql_wal_files_archiving_enabled }}' }
+  - { name: 'archive_timeout', value: '120', set: '{{ psql_wal_files_archiving_enabled }}' }
+  - { name: 'max_wal_senders', value: '5', set: '{{ psql_wal_files_archiving_enabled }}' }
+  - { name: 'wal_sender_timeout', value: '60s', set: '{{ psql_wal_files_archiving_enabled }}' }
+  - { name: 'max_replication_slots', value: '5', set: '{{ psql_wal_files_archiving_enabled }}' }
+
+  
+# postgis
+postgres_install_gis_extensions: False
+postgres_gis_version: 2.3
+postgres_gis_pkgs:
+  - 'postgresql-{{ psql_version }}-postgis-{{ postgres_gis_version }}'
+
+# Local backup  
+pg_backup_enabled: True
+pg_backup_bin: /usr/local/sbin/postgresql-backup
+pg_backup_pgdump_bin: /usr/bin/pg_dump
+pg_backup_retain_copies: 1
+pg_backup_build_db_list: "no"
+# Dynamically created from psql_db_data if pg_backup_db_list is not set
+#pg_backup_db_list: '{{ psql_db_name}}'
+pg_backup_base_dir: /var/lib/pgsql
+pg_backup_destdir: '{{ pg_backup_base_dir }}/backups'
+pg_backup_logdir: /var/log/postgresql
+pg_backup_logfile: '{{ pg_backup_logdir }}/postgresql-backup.log'
+pg_backup_use_auth: "yes"
+pg_backup_pass_file: /root/.pgpass
+pg_backup_use_nagios: "yes"
+

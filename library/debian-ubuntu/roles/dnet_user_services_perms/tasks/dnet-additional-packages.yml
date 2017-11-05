@@ -1,0 +1,11 @@
+---
+- name: Install additional packages, if needed
+  apt: pkg={{ item }} state=installed
+  with_items: '{{ dnet_additional_packages | default ([]) }}'
+  tags: ['dnet', 'pkgs']
+
+- name: Install additional python modules, if needed
+  pip: name={{ item }} state=present
+  with_items: '{{ dnet_additional_python_modules | default ([]) }}'
+  tags: ['dnet', 'pkgs']
+

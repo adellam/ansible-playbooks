@@ -41,7 +41,7 @@ stop() {
 	fi
 	echo "Stopping OrientDB server daemon..."
 	cd "$ORIENTDB_DIR/bin"
-	su $ORIENTDB_USER -c "cd \"$ORIENTDB_DIR/bin\"; /usr/bin/nohup ./shutdown.sh >> {{ orientdb_log_dir }}/orientdb.log 2>&1 &"
+	su $ORIENTDB_USER -c "cd \"$ORIENTDB_DIR/bin\"; /usr/bin/nohup ./shutdown.sh >> {{ orientdb_log_dir }}/orientdb.log 2>&1"
 }
 
 status() {

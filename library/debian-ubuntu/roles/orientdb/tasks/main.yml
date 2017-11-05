@@ -3,8 +3,11 @@
     - name: Create the orientdb user
       user: name={{ orientdb_user }} home={{ orientdb_base_dir }} createhome=yes shell=/bin/bash
       
+    - name: Get the orientdb distribution
+      get_url: url={{ orientdb_binary_distribution_url }} dest={{ orientdb_base_dir }}/{{ orientdb_tar_file }}
+
     - name: Unpack the orientdb distribution
-      unarchive: src={{ orientdb_binary_distribution_url }} dest={{ orientdb_base_dir }} copy=no
+      unarchive: src={{ orientdb_base_dir }}/{{ orientdb_tar_file }} dest={{ orientdb_base_dir }} copy=no
       args:
         creates: '{{ orientdb_home_prefix }}/{{ orientdb_user }}/{{ orientdb_dir }}-{{ orientdb_version }}'
 
@@ -15,6 +18,7 @@
 
     - name: Install the orientdb startup script
       template: src=orientdb.init.j2 dest=/etc/init.d/orientdb owner=root group=root mode=0755
+      tags: [ 'orientdb', 'orientdb_init' ]
 
     - name: Create a orientdb log directory out of the distribution directory
       file: dest={{ orientdb_log_dir }} state=directory owner={{ orientdb_user }} group={{ orientdb_user }} mode=0755
@@ -58,6 +62,15 @@
       template: src={{ item }}.j2 dest={{ orientdb_install_dir }}/config/{{ item }} owner={{ orientdb_user }} group={{ orientdb_user }} mode=0640
       with_items: '{{ orientdb_configuration_files }}'
       notify: Restart orientdb
+      tags: [ 'orientdb', 'orientdb_config' ]
+
+    - name: Install the nagios nrpe configuration
+      template: src=orientdb-nrpe.cfg.j2 dest={{ nrpe_include_dir }}/orientdb-nrpe.cfg owner=root group=root mode=0444
+      notify: Reload NRPE server
+      when:
+        - nrpe_include_dir is defined
+        - nagios_enabled is defined and nagios_enabled
+      tags: [ 'orientdb', 'orientdb_nagios' ]
 
     - name: Ensure that the service is enabled and running
       service: name=orientdb state=started enabled=yes
@@ -65,6 +78,18 @@
 
   tags: orientdb
   when: orientdb_install
+
+- block:
+    - name: Create the acme hooks directory if it does not yet exist
+      file: dest={{ letsencrypt_acme_services_scripts_dir }} state=directory owner=root group=root
+
+    - name: Install a letsencrypt hook to update the orientdb certificate
+      template: src=orientdb-letsencrypt-acme.sh.j2 dest={{ letsencrypt_acme_services_scripts_dir }}/orientdb owner=root group=root mode=4555
+
+  tags: [ 'orientdb', 'letsencrypt', 'orientdb_letsencrypt' ]
+  when:
+    - orientdb_install
+    - orientdb_letsencrypt_ssl_enabled
 
 
 - block:

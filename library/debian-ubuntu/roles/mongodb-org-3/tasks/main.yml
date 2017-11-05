@@ -1,0 +1,4 @@
+---
+- include: mongodb.yml
+- include: ganglia-plugin.yml
+  when: ganglia_enabled

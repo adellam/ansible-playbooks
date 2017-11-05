@@ -1,15 +1,29 @@
 ---
-- name: Remove the old accounting aggregator plugin 
-  shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/accounting-aggregator-se-plugin-*-jar-with-dependencies.jar
-  when:  accounting_aggregator_se_plugin_upgrade
-  tags: [ 'smartgears', 'accounting_aggregator_se', 'tomcat' ]
+- block:
+    - name: Remove the old accounting aggregator plugin 
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/accounting-aggregator-se-plugin-*-jar-with-dependencies.jar
+      notify: Restart smartgears
 
-
-- name: Get the accounting aggregator plugin and install it inside the smart executor
   become: True
   become_user: '{{ smartgears_user }}'
-  get_url: url={{ accounting_aggregator_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
+  when: not accounting_aggregator_se_plugin_install
+  tags: [ 'smartgears', 'accounting_aggregator_se', 'tomcat' ]
+
+- block:
+    - name: Get the accounting aggregator plugin and install it inside the smart executor
+      maven_artifact: artifact_id={{ accounting_aggregator_se_plugin_name }} version={{ accounting_aggregator_se_plugin_version | default(omit) }} group_id={{ accounting_aggregator_se_plugin_group_id }} extension={{ accounting_aggregator_se_plugin_extension | default('war') }} repository_url={{ smartgears_global_base_url }} classifier={{ accounting_aggregator_se_plugin_classifier }} dest={{ smartgears_downloads_dir }}/{{ accounting_aggregator_se_plugin_file }}
+      register: accounting_aggregator_download
+
+    - name: Remove the old accounting aggregator plugin 
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/accounting-aggregator-se-plugin-*-jar-with-dependencies.jar
+      when: (accounting_aggregator_download | changed)
+
+    - name: Copy the accounting aggregator plugin to its final destination
+      copy: src={{ smartgears_downloads_dir }}/{{ accounting_aggregator_se_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ accounting_aggregator_se_plugin_file }} remote_src=yes force=yes
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ smartgears_user }}'
   when: accounting_aggregator_se_plugin_install
-  notify: Restart smartgears
   tags: [ 'smartgears', 'accounting_aggregator_se', 'tomcat' ]
 

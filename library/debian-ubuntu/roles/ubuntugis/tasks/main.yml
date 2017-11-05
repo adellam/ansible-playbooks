@@ -1,0 +1,19 @@
+---
+- block:
+    - name: Add the ubuntugis repository
+      apt_repository: repo='{{ ubuntugis_repo }}' update_cache=yes
+
+    - name: Install packages from the ubuntugis repository
+      apt: pkg={{ item }} state={{ ubuntugis_pkg_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ ubuntugis_packages }}'
+
+  tags: ubuntugis
+  when: ubuntugis_repo_install
+
+- block:
+    - name: Remove the ubuntugis repository
+      apt_repository: repo='{{ ubuntugis_repo }}' update_cache=yes state=absent
+
+  tags: ubuntugis
+  when: not ubuntugis_repo_install
+

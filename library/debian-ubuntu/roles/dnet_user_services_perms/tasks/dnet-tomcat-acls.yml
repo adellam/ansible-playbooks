@@ -1,0 +1,67 @@
+---
+#
+# Acls for the single tomcat instance
+#
+# Note: the default is a default only. We need two commands to add acl effectively on the root dir and set the default
+- name: Set the read/write permissions on the tomcat webapps and common/classes directories. single tomcat instance
+  acl: name={{ item }} entity={{ dnet_group }} etype=group permissions=rwx state=present
+  with_items:
+    - [ '{{ tomcat_webapps_dir }}', '{{ tomcat_common_classes_dir }}', '{{ tomcat_common_dir }}' ]
+  when: tomcat_m_instances is not defined 
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Set the default read/write permissions on the tomcat webapps and common/classes directories. single tomcat instance
+  acl: name={{ item }} entity={{ dnet_group }} etype=group permissions=rwx state=present default=yes
+  with_items:
+    - [ '{{ tomcat_webapps_dir }}', '{{ tomcat_common_classes_dir }}', '{{ tomcat_common_dir }}' ]
+  when: tomcat_m_instances is not defined 
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+# Note: the default is a default only. We need two commands to add acl effectively on the root dir and set the default
+- name: Set the read permissions on the tomcat log directory. single tomcat instance
+  acl: name={{ item }} entity={{ dnet_group }} etype=group permissions=rx state=present
+  with_items:
+    - [ '{{ tomcat_logdir }}' ]
+  when: tomcat_m_instances is not defined 
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Set the default read permissions on the tomcat log directory. single tomcat instance
+  acl: name={{ item }} entity={{ dnet_group }} etype=group permissions=rx state=present default=yes
+  with_items:
+    - [ '{{ tomcat_logdir }}' ]
+  when: tomcat_m_instances is not defined 
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+#
+# Same steps, but when we are using multiple tomcat instances
+#
+# Note: the default is a default only. We need two commands to add acl effectively on the root dir and set the default
+- name: Set the read/write permissions on the tomcat webapps and common/classes directories. multiple tomcat instances
+  acl: name={{ item.0.instance_path }}/{{ item.1 }} entity={{ dnet_group }} etype=group permissions=rwx state=present
+  with_nested:
+    - '{{ tomcat_m_instances }}'
+    - [ 'webapps', 'common', 'common/classes' ]
+  when: tomcat_m_instances is defined 
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Set the default read/write permissions on the tomcat webapps and common/classes directories. multiple tomcat instances
+  acl: name={{ item.0.instance_path }}/{{ item.1 }} entity={{ dnet_group }} etype=group permissions=rwx state=present default=yes
+  with_nested:
+    - '{{ tomcat_m_instances }}'
+    - [ 'webapps', 'common', 'common/classes' ]
+  when: tomcat_m_instances is defined 
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+# Note: the default is a default only. We need two commands to add acl effectively on the root dir and set the default
+- name: Set the read permissions on the tomcat log directory. multiple tomcat instances
+  acl: name={{ tomcat_m_instances_logdir_base }}/{{ item.http_port }} entity={{ dnet_group }} etype=group permissions=rx state=present
+  with_items: '{{ tomcat_m_instances }}'
+  when: tomcat_m_instances is defined 
+  tags: [ 'tomcat', 'dnet', 'users' ]
+
+- name: Set the default read permissions on the tomcat log directory. multiple tomcat instances
+  acl: name={{ tomcat_m_instances_logdir_base }}/{{ item.http_port }} entity={{ dnet_group }} etype=group permissions=rx state=present default=yes
+  with_items: '{{ tomcat_m_instances }}'
+  when: tomcat_m_instances is defined
+  tags: [ 'tomcat', 'dnet', 'users' ]
+

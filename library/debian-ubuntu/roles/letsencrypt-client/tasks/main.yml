@@ -1,0 +1,50 @@
+---
+- name: Install the letsencrypt package dependencies
+  apt: name={{ item }} state=present
+  with_items: '{{ letsencrypt_prerequisites }}'
+  when: letsencrypt_install
+  tags: letsencrypt
+
+- name: Get the letsencrypt client
+  git: repo={{ letsencrypt_git_repo }} dest={{ letsencrypt_dest_dir }}/letsencrypt update={{ letsencrypt_update_repo }}
+  with_items: '{{ letsencrypt_prerequisites }}'
+  when: letsencrypt_install
+  tags: letsencrypt
+
+- name: letsencrypt initializaztion
+  command: '{{ letsencrypt_auto }}'
+  args:
+    creates: '{{ letsencrypt_install_path }}/bin/letsencrypt'
+  when: letsencrypt_install
+  tags: letsencrypt
+
+- name: Create the letsencrypt config directory
+  file: dest={{ letsencrypt_config_dir }} state=directory owner=root group=root mode=0755
+  when: letsencrypt_install
+  tags: letsencrypt
+
+- name: Create the letsencrypt services scripts directory
+  file: dest={{ letsencrypt_services_scripts_dir }} state=directory owner=root group=root mode=0755
+  when: letsencrypt_install
+  tags: letsencrypt
+
+- name: Install the letsencrypt cli.ini file
+  template: src=cli.ini.j2 dest={{ letsencrypt_config_dir }}/cli.ini owner=root group=root mode=0640
+  when: letsencrypt_install
+  tags: letsencrypt
+  
+- name: Install a default file that shell scripts can include
+  template: src=letsencrypt-default.j2 dest=/etc/default/letsencrypt owner=root group=root mode=0644
+  when: letsencrypt_install
+  tags: letsencrypt
+  
+- name: Install the command that asks for the certificates and their renewal
+  template: src=letsencrypt-cert-request.sh.j2 dest=/usr/local/sbin/letsencrypt-cert-request owner=root group=root mode=0550
+  when: letsencrypt_install
+  tags: letsencrypt
+
+- name: Install a daily cron job to renew the certificates when needed
+  cron: name="Letsencrypt certificate renewal" special_time=daily job="/usr/local/sbin/letsencrypt-cert-request > {{ letsencrypt_logdir }}/letsencrypt-cert-cron.log 2>&1"
+  when: letsencrypt_install
+  tags: letsencrypt
+  

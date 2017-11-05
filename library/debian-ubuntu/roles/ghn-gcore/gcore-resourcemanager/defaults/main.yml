@@ -1,0 +1,23 @@
+---
+repo: "gcube-staging"
+resource_manager_version: "2.2.0-4.1.0-132314"
+resource_manager_artifact: "resource-manager-service-{{ resource_manager_version }}"
+resource_manager_gar: "{{ resource_manager_artifact }}.gar"
+resource_manager_url:  "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/resourcemanagement/resource-manager-service/{{ resource_manager_version }}/{{ resource_manager_gar}}"
+
+resourcebroker_serialization_version: "1.2.0-4.1.0-126929"
+resourcebroker_serialization_artifact: "resourcebroker-serialization-{{ resourcebroker_serialization_version }}"
+resourcebroker_serialization_jar: "{{ resourcebroker_serialization_artifact }}.jar"
+resourcebroker_serialization_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/resourcemanagement/resourcebroker-serialization/{{ resourcebroker_serialization_version}}/{{ resourcebroker_serialization_jar }}"
+
+resourcebroker_stubs_version: "1.2.0-4.1.0-126927"
+resourcebroker_stubs_artifact: "rbstubs-{{ resourcebroker_stubs_version }}"
+resourcebroker_stubs_jar: "{{ resourcebroker_stubs_artifact }}.jar"
+resourcebroker_stubs_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/resourcemanagement/rbstubs/{{ resourcebroker_stubs_version }}/{{ resourcebroker_stubs_jar }}"
+
+resource_manager_hostname: "d4s.res.eng.it"
+resource_manager_port: "8499"
+resource_manager_endpoint: "{{ resource_manager_hostname }}:{{ resource_manager_port }}"
+
+start_scopes: ''
+infrastructure: 'd4s'

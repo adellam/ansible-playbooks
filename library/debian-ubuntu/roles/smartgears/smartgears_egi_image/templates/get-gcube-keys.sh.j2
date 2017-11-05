@@ -24,11 +24,17 @@ if [ "$INFRA_NAME" == "gcube" ] ; then
     wget {{ gcube_dkey_1 }} --no-check-certificate -o $LOG_FILE.gcube -O gcube.gcubekey
     wget {{ gcube_dkey_2 }} --no-check-certificate -o $LOG_FILE.devsec -O devsec.gcubekey
     wget {{ gcube_dkey_3 }} --no-check-certificate -o $LOG_FILE.devNext -O devNext.gcubekey
+    wget {{ gcube_prekey_1 }} --no-check-certificate -o $LOG_FILE.preprod -O preprod.gcubekey
 elif [ "$INFRA_NAME" == "d4science.research-infrastructures.eu" ] ; then
     echo "Downloading the keys for the $INFRA_NAME infra" >> $LOG_FILE
     wget {{ gcube_pkey_1 }} --no-check-certificate -o $LOG_FILE.d4science -O d4science.research-infrastructures.eu.gcubekey
     wget {{ gcube_pkey_2 }} --no-check-certificate -o $LOG_FILE.FARM -O FARM.gcubekey
     wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.gCubeApps -O gCubeApps.gcubekey
+    wget {{ gcube_pkey_4 }} --no-check-certificate -o $LOG_FILE.D4Research -O D4Research.gcubekey
+    wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.SoBigData -O SoBigData.gcubekey
+    wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.OpenAIRE -O OpenAIRE.gcubekey
+    wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.Edison -O Edison.gcubekey
+    wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.SmartArea -O SmartArea.gcubekey
     chmod 400 $SM_LIB_DIR/*.gcubekey
 else
     echo "The Infra name is unknown, no keys downloaded" >> $LOG_FILE

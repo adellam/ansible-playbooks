@@ -3,16 +3,17 @@ server {
     client_max_body_size {{ nginx_client_max_body_size | default('100M') }};
 {% if egi_image is defined and egi_image %}
     # No servername into the EGI images
-{% else %}
+{% elif hostname is defined %}
+    server_name _;
+{% else %}    
     server_name {{ item.servername }} {% if smartgears_nginx_serveraliases is defined %}{% for vh in smartgears_nginx_serveraliases %} {{ vh }}{% endfor %}{% endif %};
 {% endif %}
 {% if letsencrypt_acme_install %}
     include /etc/nginx/snippets/letsencrypt-proxy.conf;
 {% endif %}
-{% if not http_redirect_to_https %}
     access_log /var/log/nginx/{{ item.servername }}_access.log;
     error_log /var/log/nginx/{{ item.servername }}_error.log;
-    root /usr/share/nginx/html/;
+    root {{ item.web_document_root | default('/usr/share/nginx/html/') }};
 
     {% if haproxy_ips is defined %}
     # We are behind haproxy
@@ -43,6 +44,10 @@ server {
     # don't send the nginx version number in error pages and Server header
     server_tokens off;
 
+    {% if nginx_client_body_temp_dir is defined %}
+    client_body_temp_path {{ nginx_client_body_temp_dir }} 1 2;
+    {% endif %}
+
     # Proxy stuff
     include /etc/nginx/snippets/nginx-proxy-params.conf;
     {% if nginx_websockets_support %}
@@ -55,22 +60,46 @@ server {
         rewrite ^/auth-sign-in http://{{ item.servername }}/r-connector/gcube/service/disconnect;
     }
     {% endif %}
+    location /whn-manager {
+        proxy_pass http://127.0.0.1:{{ item.http_port }}/whn-manager;
+    }
+{% if not http_redirect_to_https %}
     {% for instance in tomcat_m_instances %}
     {% for context in instance.app_contexts %}
+    {% if context != "whn-manager" %}
+    {% if context != '' %}
     location /{{ context }} {
         {% if smartgears_nginx_cors_enabled %}
         include /etc/nginx/snippets/nginx-cors.conf;
+        {% if nginx_cors_extended_rules %}
+        proxy_pass http://127.0.0.1:{{ item.http_port }};
+        {% else %}
+        proxy_pass http://127.0.0.1:{{ item.http_port }}/{{ context }};
         {% endif %}
-        proxy_pass http://localhost:{{ item.http_port }}/{{ context }};
+        {% else %}
+        proxy_pass http://127.0.0.1:{{ item.http_port }}/{{ context }};
+        {% endif %}
     }
+    {% endif %}
+    {% endif %}
     {% endfor %}
     {% endfor %}
     {% if smart_executor_install is defined and smart_executor_install %}
     location {{ smart_executor_context }} {
+        proxy_pass http://127.0.0.1:{{ smartgears_http_port }}{{ smart_executor_context }};
+    }
+    {% endif %}
+    {% if data_transfer_service_install %}
+    location /data-transfer-service {
+        proxy_pass http://127.0.0.1:{{ smartgears_http_port }}/data-transfer-service;
+    }
+    {% endif %}
+    {% if remote_opencpu_server is defined and remote_opencpu_server %}
+    location {{ opencpu_context | default('/ocpu') }} {
         {% if smartgears_nginx_cors_enabled %}
         include /etc/nginx/snippets/nginx-cors.conf;
         {% endif %}
-        proxy_pass http://localhost:{{ item.http_port }}{{ smart_executor_context }};
+        proxy_pass http://{{ remote_opencpu_host }}:{{ opencpu_proxy_port | default('8004') }}{{ opencpu_context | default('/ocpu') }};
     }
     {% endif %}
     {% if rstudio_install_server is defined and rstudio_install_server %}
@@ -78,14 +107,20 @@ server {
         {% if smartgears_nginx_cors_enabled %}
         include /etc/nginx/snippets/nginx-cors.conf;
         {% endif %}
-        proxy_pass http://localhost:8787/;
+        proxy_pass http://127.0.0.1:8787/;
     }
     {% endif %}
+
+    {% if smartgears_nginx_expose_tomcat_logs %}
+    location /gcube-logs/ {
+        alias {{ smartgears_instance_path }}/logs/;
+        autoindex on;
+        autoindex_localtime on;
+        }
+    {% endif %}
+
     {% else %}
     location / {
-        {% if smartgears_nginx_cors_enabled %}
-        include /etc/nginx/snippets/nginx-cors.conf;
-        {% endif %}
         return 301 https://{{ item.servername }}$request_uri;
     }
     {% endif %}
@@ -98,6 +133,8 @@ server {
     client_max_body_size {{ nginx_client_max_body_size | default('100M') }};
 {% if egi_image is defined and egi_image %}
     # No servername into the EGI images
+{% elif hostname is defined %}
+    server_name _;
 {% else %}
     server_name {{ item.servername }} {% if smartgears_nginx_serveraliases is defined %}{% for vh in smartgears_nginx_serveraliases %} {{ vh }}{% endfor %}{% endif %};
 {% endif %}
@@ -105,8 +142,7 @@ server {
     access_log /var/log/nginx/{{ item.servername }}_access_ssl.log;
     error_log /var/log/nginx/{{ item.servername }}_error_ssl.log;
 
-    # This is the default for nginx on Ubuntu 14.04
-    root /usr/share/nginx/html/;
+    root {{ item.web_document_root | default('/usr/share/nginx/html/') }};
 
     {% if haproxy_ips is defined %}
     # We are behind haproxy
@@ -139,6 +175,10 @@ server {
     # don't send the nginx version number in error pages and Server header
     server_tokens off;
 
+    {% if nginx_client_body_temp_dir is defined %}
+    client_body_temp_path {{ nginx_client_body_temp_dir }} 1 2;
+    {% endif %}
+
     # Proxy stuff
     include /etc/nginx/snippets/nginx-proxy-params.conf;
     {% if nginx_websockets_support %}
@@ -150,22 +190,45 @@ server {
         rewrite ^/auth-sign-in http://{{ item.servername }}/r-connector/gcube/service/disconnect;
     }
     {% endif %}
+    location /whn-manager {
+        proxy_pass http://127.0.0.1:{{ item.http_port }}/whn-manager;
+    }
     {% for instance in tomcat_m_instances %}
     {% for context in instance.app_contexts %}
+    {% if context != "whn-manager" %}
+    {% if context != '' %}
     location /{{ context }} {
         {% if smartgears_nginx_cors_enabled %}
         include /etc/nginx/snippets/nginx-cors.conf;
+        {% if nginx_cors_extended_rules %}
+        proxy_pass http://127.0.0.1:{{ item.http_port }};
+        {% else %}
+        proxy_pass http://127.0.0.1:{{ item.http_port }}/{{ context }};
         {% endif %}
-        proxy_pass http://localhost:{{ item.http_port }}/{{ context }};
+        {% else %}
+        proxy_pass http://127.0.0.1:{{ item.http_port }}/{{ context }};
+        {% endif %}
     }
+    {% endif %}
+    {% endif %}
     {% endfor %}
     {% endfor %}
     {% if smart_executor_install is defined and smart_executor_install %}
     location {{ smart_executor_context }} {
+        proxy_pass http://127.0.0.1:{{ smartgears_http_port }}{{ smart_executor_context }};
+    }
+    {% endif %}
+    {% if data_transfer_service_install %}
+    location /data-transfer-service {
+        proxy_pass http://127.0.0.1:{{ smartgears_http_port }}/data-transfer-service;
+    }
+    {% endif %}
+    {% if remote_opencpu_server is defined and remote_opencpu_server %}
+    location {{ opencpu_context | default('/ocpu') }} {
         {% if smartgears_nginx_cors_enabled %}
         include /etc/nginx/snippets/nginx-cors.conf;
         {% endif %}
-        proxy_pass http://localhost:{{ item.http_port }}{{ smart_executor_context }};
+        proxy_pass http://{{ remote_opencpu_host }}:{{ opencpu_proxy_port | default('8004') }}{{ opencpu_context | default('/ocpu') }};
     }
     {% endif %}
     {% if rstudio_install_server is defined and rstudio_install_server %}
@@ -173,9 +236,16 @@ server {
         {% if smartgears_nginx_cors_enabled %}
         include /etc/nginx/snippets/nginx-cors.conf;
         {% endif %}
-        proxy_pass http://localhost:8787/;
+        proxy_pass http://127.0.0.1:8787/;
     }
     {% endif %}
 
+    {% if smartgears_nginx_expose_tomcat_logs %}
+    location /gcube-logs/ {
+        alias {{ smartgears_instance_path }}/logs/;
+        autoindex on;
+        autoindex_localtime on;
+        }
+    {% endif %}
 }
 {% endif %}

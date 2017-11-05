@@ -1,15 +1,29 @@
 ---
-- name: Remove the old social indexer plugin 
-  shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/social-data-indexer-se-plugin-*-jar-with-dependencies.jar
-  when:  social_data_indexer_se_plugin_upgrade
-  tags: [ 'smartgears', 'social_data_indexer_se', 'tomcat' ]
+- block:
+    - name: Remove the old social indexer plugin
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ social_data_indexer_se_plugin_name }}-*-jar-with-dependencies.jar
+      notify: Restart smartgears
 
-
-- name: Get the social indexer plugin and install it inside the smart executor
   become: True
   become_user: '{{ smartgears_user }}'
-  get_url: url={{ social_data_indexer_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
+  when: not social_data_indexer_se_plugin_install
+  tags: [ 'smartgears', 'social_data_indexer_se', 'tomcat' ]
+
+- block:
+    - name: Get the social indexer plugin and install it inside the smart executor
+      maven_artifact: artifact_id={{ social_data_indexer_se_plugin_name }} version={{ social_data_indexer_se_plugin_version | default('latest') }} group_id={{ social_data_indexer_se_plugin_group_id }} extension={{ social_data_indexer_se_plugin_extension | default('war') }} repository_url={{ smartgears_global_base_url }} classifier={{ social_data_indexer_se_plugin_classifier }} dest={{ smartgears_downloads_dir }}/{{ social_data_indexer_se_plugin_file }}
+      register: social_indexer_download
+
+    - name: Remove the old social indexer plugin
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ social_data_indexer_se_plugin_name }}-*-jar-with-dependencies.jar
+      when: (social_indexer_download | changed)
+
+    - name: Copy the accounting aggregator plugin to its final destination
+      copy: src={{ smartgears_downloads_dir }}/{{ social_data_indexer_se_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ social_data_indexer_se_plugin_file }} remote_src=yes force=yes
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ smartgears_user }}'
   when: social_data_indexer_se_plugin_install
-  notify: Restart smartgears
   tags: [ 'smartgears', 'social_data_indexer_se', 'tomcat' ]
 

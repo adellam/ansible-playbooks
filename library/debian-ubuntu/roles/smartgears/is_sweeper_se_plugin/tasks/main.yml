@@ -1,15 +1,29 @@
 ---
-- name: Remove the old is-sweeper plugin
-  shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/is-sweeper-se-plugin-*-jar-with-dependencies.jar
-  when: is_sweeper_se_plugin_upgrade
-  tags: [ 'smartgears', 'is_sweeper_se', 'tomcat' ]
+- block:
+    - name: Remove the old is-sweeper plugin
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ is_sweeper_se_plugin_name }}-*-{{ is_sweeper_se_plugin_classifier }}.{{ is_sweeper_se_plugin_extension }}
+      notify: Restart smartgears
 
-
-- name: Get the is-sweeper se plugin and install it inside the smart executor
   become: True
   become_user: '{{ smartgears_user }}'
-  get_url: url={{ is_sweeper_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib
+  when: not is_sweeper_se_plugin_install
+  tags: [ 'smartgears', 'is_sweeper_se', 'tomcat' ]
+
+- block:
+    - name: Download the is-sweeper plugin
+      maven_artifact: artifact_id={{ is_sweeper_se_plugin_name }} version={{ is_sweeper_se_plugin_version | default('latest') }} group_id={{ is_sweeper_se_plugin_group_id }} extension={{ is_sweeper_se_plugin_extension }} repository_url={{ smartgears_global_base_url }} classifier={{ is_sweeper_se_plugin_classifier }} dest={{ smartgears_downloads_dir }}/{{ is_sweeper_se_plugin_file }}
+      register: is_sweeper_plugin_download
+
+    - name: Remove the old is-sweeper plugin
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ is_sweeper_se_plugin_name }}-*-{{ is_sweeper_se_plugin_classifier }}.{{ is_sweeper_se_plugin_extension }}
+      when: ( is_sweeper_plugin_download )
+
+    - name: Install the is-sweeper plugin inside the smart executor lib directory
+      copy: src={{ smartgears_downloads_dir }}/{{ is_sweeper_se_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ is_sweeper_se_plugin_file }} remote_src=yes force=yes
+      notify: Restart smartgears
+ 
+  become: True
+  become_user: '{{ smartgears_user }}'
   when: is_sweeper_se_plugin_install
-  notify: Restart smartgears
   tags: [ 'smartgears', 'is_sweeper_se', 'tomcat' ]
 

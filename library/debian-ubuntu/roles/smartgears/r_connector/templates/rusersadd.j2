@@ -10,8 +10,18 @@ ALLOW_LOCAL_USERS=1
 RPROFILE_FILE='{{ r_connector_rprofile_path }}/{{ r_connector_rprofile_filename }}'
 
 if [ -d $HDIR ] ; then
-    logger "$LOG_PREFIX user $HDIR directory exists"
-    exit 0
+    if id -u $USER >/dev/null 2>&1
+    then
+        logger "$LOG_PREFIX user $HDIR directory exists. Touching the userconfig.csv file to ensure that it exists with the correct permissions"
+        sudo /usr/bin/touch ${HDIR}/{{ r_connector_userconfig }}
+        sudo /bin/chown ${USER}:{{ smartgears_user }} $HDIR/{{ r_connector_userconfig }}
+        sudo /usr/bin/setfacl -m u:${USER}:rw,g:{{ smartgears_user }}:rw $HDIR/{{ r_connector_userconfig }}
+        sudo /bin/ln -s $RPROFILE_FILE $HDIR/{{ r_connector_rprofile_filename }}
+        exit 0
+    else
+        logger "$LOG_PREFIX user $HDIR directory exists but the user not. Aborting."
+        exit 1
+    fi
 else 
     if id -u $USER >/dev/null 2>&1
     then
@@ -21,9 +31,9 @@ else
         sudo /bin/chmod g-wr,o-rwx $HDIR
         sudo /usr/bin/touch $HDIR/{{ r_connector_userconfig }}
         sudo /bin/chmod 660 $HDIR/{{ r_connector_userconfig }}
-        #sudo /bin/chgrp -R {{ smartgears_user }} $HDIR
+        sudo /bin/chown $USER:{{ smartgears_user }} $HDIR/{{ r_connector_userconfig }}
+        sudo /usr/bin/setfacl -m u:${USER}:rw,g:{{ smartgears_user }}:rw $HDIR/{{ r_connector_userconfig }}
         sudo /bin/chgrp {{ smartgears_user }} $HDIR
-        sudo /bin/chown {{ smartgears_user }}:{{ smartgears_user }} $HDIR/{{ r_connector_userconfig }}
         sudo /bin/ln -s $RPROFILE_FILE $HDIR/{{ r_connector_rprofile_filename }}
         exit 0
     else
@@ -37,6 +47,7 @@ else
             sudo /bin/chmod g+ws $HDIR
             sudo /usr/bin/touch $HDIR/{{ r_connector_userconfig }}
             sudo /bin/chmod 660 $HDIR/{{ r_connector_userconfig }}
+            sudo /usr/bin/setfacl -m g:{{ smartgears_user }}:rw $HDIR/{{ r_connector_userconfig }}
             sudo /bin/chgrp -R {{ smartgears_user }} $HDIR
             sudo /bin/ln -s $RPROFILE_FILE $HDIR/{{ r_connector_rprofile_filename }}
             exit 0

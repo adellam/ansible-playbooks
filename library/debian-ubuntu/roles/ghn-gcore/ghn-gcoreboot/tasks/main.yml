@@ -1,0 +1,40 @@
+---
+- block:
+    - name: Install the gcore boot script
+      template: src=gcore.j2 dest=/etc/init.d/{{ item }} owner=root group=root mode=0755
+      with_items: 'gcore'
+
+    - name: Install the start script inside the users home directory
+      copy: src={{ gcoreboot_startcontainer }} dest=/home/{{ item }}/{{ gcoreboot_startcontainer }} owner={{ item }} group={{ item }} mode=0755
+      with_items: '{{ gcore_users }}'
+
+    - name: Install the stop script inside the users home directory
+      copy: src={{ gcoreboot_stopcontainer }} dest=/home/{{ item }}/{{ gcoreboot_stopcontainer }} owner={{ item }} group={{ item }} mode=0755
+      with_items: '{{ gcore_users }}'
+
+    - name: Enable the gcore boot script
+      file: src=/etc/init.d/{{ item.path }} dest=/etc/{{ item.dest }} state=link
+      with_items:
+        - { path: 'gcore', dest: 'rc2.d/S95gcore' }
+        - { path: 'gcore', dest: 'rc3.d/S95gcore' }
+        - { path: 'gcore', dest: 'rc0.d/K25gcore' }
+        - { path: 'gcore', dest: 'rc1.d/K25gcore' }
+
+  when: gcoreboot_install
+  tags: [ 'gcoreboot' ]
+
+- block:
+    - name: Remove the gcore boot script
+      file: dest=/etc/init.d/{{ item }} state=absent
+      with_items: 'gcore'
+
+    - name: disable the gcore boot script
+      file: dest=/etc/{{ item.dest }} state=absent
+      with_items:
+        - { path: 'gcore', dest: 'rc2.d/S95gcore' }
+        - { path: 'gcore', dest: 'rc3.d/S95gcore' }
+        - { path: 'gcore', dest: 'rc0.d/K25gcore' }
+        - { path: 'gcore', dest: 'rc1.d/K25gcore' }
+
+  when: not gcoreboot_install
+  tags: [ 'gcoreboot' ]

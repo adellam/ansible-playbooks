@@ -1,0 +1,17 @@
+<application mode="{{ smartgears_application_mode }}">
+        <name>{{ data_trasfer_service_name }}</name>
+        <group>DataTransfer</group>
+        <version>{{ smartgears_distribution_version }}</version>
+        <description> "Data Transfer Service" </description>
+{% if data_transfer_set_local_persistence %}
+{% if smartgears_persistence_location is defined %}
+        <persistence location="{{ smartgears_persistence_location }}"/>
+{% else %}
+        <local-persistence location='target' />
+{% endif %}
+{% else %}
+        <local-persistence location='target' />
+{% endif %}
+
+</application>
+

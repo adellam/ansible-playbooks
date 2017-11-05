@@ -1,9 +1,12 @@
 ---
 smart_executor_install: False
 remove_smart_executor_install: False
+smart_executor_context: /smart-executor
 
-smart_executor_version: 1.4.0-4.1.0-132084
+smart_executor_version: 1.7.0-4.7.0-154718
 smart_executor_name: smart-executor
-smart_executor_file: '{{ smart_executor_name }}-{{ smart_executor_version }}.war'
-smart_executor_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/vremanagement/smart-executor/{{ smart_executor_version }}/{{ smart_executor_file }}'
+smart_executor_extension: war
+smart_executor_group_id: org.gcube.vremanagement
+smart_executor_file: '{{ smart_executor_name }}-{{ smart_executor_version }}.{{ smart_executor_extension }}'
+smart_executor_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}'
 

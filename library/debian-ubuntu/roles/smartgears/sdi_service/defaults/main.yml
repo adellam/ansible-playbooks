@@ -1,0 +1,10 @@
+---
+sdi_service_install: False
+sdi_service_upgrade: False
+sdi_service_version: latest
+sdi_service_name: sdi-service
+
+sdi_group_id: org.gcube.spatial.data
+sdi_extension: war
+sdi_service_file: '{{ sdi_service_name }}-{{ sdi_service_version }}.{{ sdi_extension }}'
+

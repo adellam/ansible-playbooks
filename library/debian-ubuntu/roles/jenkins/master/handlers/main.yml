@@ -1,0 +1,28 @@
+---
+- name: Update apt cache
+  apt: update_cache=yes
+
+- name: Reload nginx
+  service: name=nginx state=reloaded
+
+- name: Set permissions on the javadoc dir
+  raw: chown -R {{ jenkins.username }}:{{ jenkins.group }} {{ jenkins.dnet_javadoc_dir }}/
+
+- name: Set permissions on the webroot public dir
+  raw: chown -R {{ jenkins.username }}:{{ jenkins.group }} {{ nginx.web_root }}/public/
+
+- name: Start sonar
+  service: name=sonar state=started
+
+- name: Stop sonar
+  service: name=sonar state=stopped
+
+- name: Restart sonar
+  service: name=sonar state=restarted
+
+- name: Restart jenkins
+  service: name=jenkins state=restarted
+
+- name: Reload nginx
+  service: name=nginx state=reloaded
+

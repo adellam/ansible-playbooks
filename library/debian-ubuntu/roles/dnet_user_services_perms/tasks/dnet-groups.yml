@@ -1,0 +1,30 @@
+---
+- name: Create the dnet user, if it is not used to run the tomcat instances
+  user: name={{ dnet_user }} home={{ dnet_data_directory }} createhome=no shell=/bin/false
+  when: dnet_user != dnet_tomcat_user
+  tags: [ 'dnet', 'users' ]
+
+- name: Add the dnet groups, if it does not exist already
+  group: name={{ item }} state=present
+  with_items:
+    - '{{ dnet_group }}'
+    - '{{ dnet_sudoers_group }}'
+  tags: [ 'dnet', 'users' ]
+  
+- name: Add all the users to the dnet group
+  user: name={{ item.login }} groups={{ dnet_group }}, append=yes
+  with_items: '{{ users_system_users | default([]) }}'
+  tags: [ 'dnet', 'users' ]
+
+- name: Add selected users to the dnet sudoers group
+  user: name={{ item.login }} groups={{ dnet_sudoers_group }}, append=yes
+  with_items: '{{ users_system_users | default([]) }}'
+  when: item.dnet_sudoers_user
+  tags: [ 'dnet', 'users' ]
+
+- name: Remove selected users to the dnet sudoers group
+  user: name={{ item.login }} groups={{ dnet_group }}
+  with_items: '{{ users_system_users | default([]) }}'
+  when: not item.dnet_sudoers_user
+  tags: [ 'dnet', 'users' ]
+

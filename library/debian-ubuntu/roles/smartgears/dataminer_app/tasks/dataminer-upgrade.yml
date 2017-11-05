@@ -4,7 +4,7 @@
       service: name=tomcat-instance-{{ smartgears_http_port }} state=stopped
 
     - name: If it is an upgrade, brutally remove the wps installation
-      file: dest={{ smartgears_instance_path }}/webapps/{{ dataminer_52north_webapp_name }} state=absent
+      file: dest={{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }} state=absent
 
   when: dataminer_app_upgrade
   tags: [ 'tomcat', 'dataminer', 'dataminer_upgrade', 'wps' ]

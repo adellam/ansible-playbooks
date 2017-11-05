@@ -1,14 +1,13 @@
 ---
 py_virtenv_pkgs_state: installed
-py_virtenv_site: False
+#py_virtenv_site: False
 py_virtenv_pkgs:
   - python-pip
   - python-virtualenv
 
-py_virtenv_pip_pkgs:
-  -
+#py_virtenv_pip_pkgs:
 
 # py_virtenv_pip_requirements: "/tmp/foo/requirements.txt"
 #
 # py_virtenv_env_base_dir: "/tmp/foo"
-py_virtenv_env_base_dir:
+#py_virtenv_env_base_dir:

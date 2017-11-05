@@ -3,14 +3,23 @@
     - name: Install the gdebi tool
       apt: pkg=gdebi-core state=latest update_cache=yes cache_valid_time=1800
 
+    - name: Install the apparmor utilities
+      apt: pkg=apparmor-utils state=present update_cache=yes cache_valid_time=1800
+
     - name: Download the rstudio server deb package
-      get_url: url={{ rstudio_download_url }} dest=/srv/{{ rstudio_file }}
+#      get_url: url={{ rstudio_download_url }} dest=/srv/{{ rstudio_file }}
+      shell: cd /srv ; wget {{ rstudio_download_url }}
+      args:
+        creates: /srv/{{ rstudio_file }}
       register: rstudio_download
-      ignore_errors: True
 
     - name: Install the rstudio server package
       command: gdebi -n -q /srv/{{ rstudio_file }}
       when: ( rstudio_download | changed )
+
+    - name: Change the apparmor behaviour to complain, otherwise it cannot read the nslcd socket
+      shell: RETVAL='' ; if [ -x /usr/sbin/apparmor_status ] ; then APPARMOR_STATE=$( /usr/sbin/apparmor_status ) ; RETVAL=$? ; if [ $RETVAL -eq 0 ] ; then aa-complain /usr/lib/rstudio-server/bin/rserver ; fi ; fi
+      when: rstudio_enabled
 
     - name: Ensure that rstudio server is enabled and running
       service: name=rstudio-server state=started enabled=yes
@@ -19,6 +28,21 @@
     - name: Ensure that rstudio server is disabled and stopped
       service: name=rstudio-server state=stopped enabled=no
       when: not rstudio_enabled
+
+    - name: Install bc, needed by the script that kills abusive jobs
+      apt: pkg=bc state=present update_cache=yes cache_valid_time=3600
+      when: rstudio_install_kill_script
+      tags: [ 'rstudio', 'rstudio_server', 'rstudio_kill_rogues' ]
+
+    - name: Install a script that kills the abusive job processes
+      copy: src=kill-rogue-jobs dest=/usr/local/bin/kill-rogue-jobs owner=root group=root mode=0755
+      when: rstudio_install_kill_script
+      tags: [ 'rstudio', 'rstudio_server', 'rstudio_kill_rogues' ]
+
+    - name: Install a cron job that kills the abusive jobs
+      cron: name="Kill rogue jobs" job="/usr/local/bin/kill-rogue-jobs" user=root minute="{{ rstudio_kill_script_frequency }}"
+      when: rstudio_install_kill_script
+      tags: [ 'rstudio', 'rstudio_server', 'rstudio_kill_rogues' ]
 
   when: rstudio_install_server
   tags: [ 'rstudio', 'rstudio_server' ]
@@ -33,6 +57,12 @@
       with_items:
         - gdebi
         - rstudio-server
+
+    - name: Remove the script that kills the abusive job processes
+      file: dest=/usr/local/bin/kill-rogue-jobs state=absent
+
+    - name: Remove the cron job that kills the abusive jobs
+      cron: name="Kill rogue jobs" job="/usr/local/bin/kill-rogue-jobs" user=root minute="{{ rstudio_kill_script_frequency }}" state=absent
 
   when: not rstudio_install_server
   tags: [ 'rstudio', 'rstudio_server' ]

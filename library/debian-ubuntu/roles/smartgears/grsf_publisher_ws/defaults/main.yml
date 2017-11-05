@@ -1,0 +1,7 @@
+---
+grsf_publisher_ws_install: False
+grsf_publisher_ws_ver: latest
+grsf_publisher_ws_group_id: org.gcube.data-catalogue
+grsf_publisher_ws_name: grsf-publisher-ws
+grsf_publisher_ws_extension: war
+grsf_publisher_ws_file: '{{ grsf_publisher_ws_name }}-{{ grsf_publisher_ws_ver }}.{{ grsf_publisher_ws_extension }}'

@@ -1,8 +1,10 @@
 ---
 gcube_repository: gcube-staging
 tabular_data_install: False
-tabular_data_version: 1.7.5-4.2.0-134952
+tabular_data_upgrade: False
+tabular_data_version: 1.8.1-4.6.1-149110
 tabular_data_name: tabular-data-manager
-tabular_data_file: '{{ tabular_data_name }}-{{ tabular_data_version }}.war'
-tabular_data_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/data/analysis/tabulardata/{{tabular_data_name}}/{{ tabular_data_version }}/{{ tabular_data_file }}'
 
+tabular_group_id: org.gcube.data.analysis.tabulardata
+tabular_extension: war
+tabular_data_file: '{{ tabular_data_name }}-{{ tabular_data_version }}.{{ tabular_extension }}'

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#echo "`date` mysql DUMP temporarly excluded (by Tom)"
+#exit 1
+
 RETVAL=0
 
 MY_BACKUP_USE_NAGIOS="False"
@@ -41,9 +44,14 @@ if [ ! -f $LOCKFILE ] ; then
     if [ "${MY_BACKUP_USE_NAGIOS}" == "True" ] ; then
         > $NAGIOS_LOG
     fi
-    for db in $( mysql -Bse "show databases;" | grep -v $EXCLUDE_LIST ) ; do
-        mysqldump -f --flush-privileges --opt $db > $MY_BACKUP_DIR/history/${db}.sql.${SAVE_TIME} 2> $MY_BACKUP_LOG_DIR/$db.log
-        DUMP_RESULT=$?
+    for db in $( mysql -Bse "show databases;" | egrep -v $EXCLUDE_LIST ) ; do
+        if [ "$db" == "information_schema" ]; then
+            mysqldump --single-transaction -f --flush-privileges --opt $db > $MY_BACKUP_DIR/history/${db}.sql.${SAVE_TIME} 2> $MY_BACKUP_LOG_DIR/$db.log
+            DUMP_RESULT=$?
+        else
+            mysqldump -f --flush-privileges --opt $db > $MY_BACKUP_DIR/history/${db}.sql.${SAVE_TIME} 2> $MY_BACKUP_LOG_DIR/$db.log
+            DUMP_RESULT=$?
+        fi
         chmod 600 $MY_BACKUP_DIR/history/${db}.sql.${SAVE_TIME}
         if [ "${MY_BACKUP_USE_NAGIOS}" == "True" ] ; then
             if [ $DUMP_RESULT -ne 0 ] ; then

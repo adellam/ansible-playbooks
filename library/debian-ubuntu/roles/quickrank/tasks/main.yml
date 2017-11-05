@@ -34,7 +34,7 @@
       when: ( quickrank_src | changed )
 
     - name: Install the quickrank binaries
-      become: False
+      become_user: "{{ d4science_ansible_become_user | default('root') }}"
       shell: cd /home/{{ d4science_user }}/quickrank/bin ; install -m 755 quicklearn /usr/local/bin
       when: ( quickrank_src | changed )
 

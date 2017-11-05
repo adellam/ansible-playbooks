@@ -1,0 +1,14 @@
+---
+- block:
+    - name: Remove the old is-exporter plugin
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/is-exporter-se-plugin-*-jar-with-dependencies.jar
+      when: is_exporter_se_plugin_upgrade
+    
+    - name: Install the is-exporter plugin inside the smart executor lib directory
+      maven_artifact: artifact_id={{ is_exporter_se_plugin_name }} version={{ is_exporter_se_plugin_version | default(omit) }} group_id={{ is_exporter_se_plugin_group_id }} extension={{ is_exporter_se_plugin_extension | default('war') }} repository_url={{ smartgears_global_base_url }} classifier={{ is_exporter_se_plugin_classifier }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ is_exporter_se_plugin_file }}
+      notify: Restart smartgears
+ 
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: is_exporter_se_plugin_install
+  tags: [ 'smartgears', 'is_exporter_se', 'tomcat' ]

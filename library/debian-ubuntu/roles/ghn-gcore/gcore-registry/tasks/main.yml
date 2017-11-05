@@ -1,0 +1,29 @@
+- name: download {{ registry_gar }}
+  get_url: url={{ registry_url }} dest=/tmp force=yes
+
+- name: deploy {{ registry_gar }}
+  shell: export GLOBUS_LOCATION={{ globus_location }} && export ANT_HOME={{ ant_location }} && export PATH=$PATH:$GLOBUS_LOCATION/bin && {{ globus_location }}/bin/gcore-deploy-service /tmp/{{ registry_gar }}
+
+- name: add GLOBUS_OPTIONS to the gcore startup script
+  lineinfile: dest="{{ globus_location }}/gcore-start.sh" insertbefore="^nohup" state=present line='export GLOBUS_OPTIONS="-Xms512M -Xmx1024M"'
+
+- name: copy updated GHNConfig.xml
+  template: src=GHNConfig.xml dest={{ globus_location }}/config/
+
+- name: updated is-registry-service jndi-config.xml, add start scopes when needed
+  lineinfile: dest="{{ globus_location }}/etc/{{ registry_artifact }}/jndi-config.xml" insertafter='.*?<service name="gcube/informationsystem/registry">' state=present line="                <environment name=\"startScopes\" value=\"/{{ infrastructure }}/{{ start_scopes }}\" type=\"java.lang.String\" override=\"false\" />"
+  when: start_scopes != ""
+
+- name: set logicalhost parameter on {{ globus_location }}/etc/globus_wsrf_core/server-config.wsdd
+  replace: dest="{{ globus_location }}/etc/globus_wsrf_core/server-config.wsdd" regexp='localhost' replace="{{ registry_hostname }}"
+
+- name: add is-registry Servicemap entry
+  lineinfile: dest="{{ globus_location }}/config/{{ servicemap_xmlfile }}" insertbefore="^</ServiceMap>" state=present line='        <Service name ="ISRegistry" endpoint="http://{{ registry_published_host }}/wsrf/services/gcube/informationsystem/registry/ResourceRegistration" />'
+
+- name: restore ownership
+  file: dest={{ globus_location }} owner={{ ghn_user }}  group={{ ghn_user }} recurse=yes
+
+- name: start gCore
+  become: yes
+  become_user: "{{ ghn_user }}"
+  shell: "{{ globus_location }}/gcore-start.sh"

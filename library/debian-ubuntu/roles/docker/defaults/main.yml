@@ -13,3 +13,7 @@ docker_packages:
 
 docker_run_as_docker_user: True
 docker_user_home: /home/docker
+docker_defaults_file: /etc/default/docker
+docker_enable_tcp_socket: False
+docker_tcp_socket_port: 2375
+docker_tcp_socket_host: 127.0.0.1

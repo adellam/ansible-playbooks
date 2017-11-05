@@ -1,0 +1,25 @@
+---
+# Reference: http://italiangrid.github.io/voms/documentation/voms-clients-guide
+voms_egi_install: True
+voms_egi_repo_key:
+  - "http://repository.egi.eu/sw/production/umd/UMD-DEB-PGP-KEY"
+  - "https://dist.eugridpma.info/distribution/igtf/current/GPG-KEY-EUGridPMA-RPM-3"
+voms_egi_trustanchors_repo: "deb [arch=amd64] http://repository.egi.eu/sw/production/cas/1/current egi-igtf core"
+voms_base_client_repo: "deb [arch=amd64] http://repository.egi.eu/sw/production/umd/3/debian/ squeeze main"
+voms_updates_client_repo: "deb [arch=amd64] http://repository.egi.eu/sw/production/umd/3/debian/ squeeze-updates main"
+voms_config_base_directory: /etc/vomses
+voms_trustanchors_base_directory: /etc/grid-security/vomsdir
+
+voms_fetch_crl_pkgs:
+  - fetch-crl
+  - ca-policy-egi-core
+
+voms_client_pkgs:
+  - voms-clients3
+
+voms_data:
+  - { name: 'example.org', subject: '/C=ORG/O=EXAMPLE/CN=example.org' }
+
+voms_trusted_anchors_data:
+  - { name: 'example.org', host_subject: '/C=ORG/O=EXAMPLE/OU=Host/L=FOO/CN=example.org', subject: '/C=ORG/O=EXAMPLE/CN=example.org' }
+  

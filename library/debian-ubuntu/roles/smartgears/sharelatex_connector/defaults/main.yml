@@ -1,0 +1,8 @@
+---
+sharelatex_connector_install: False
+sharelatex_connector_version: latest
+sharelatex_connector_name: sharelatex-connector
+sharelatex_connector_group_id: org.gcube.data.access
+sharelatex_connector_extension: war
+sharelatex_connector_file: '{{ sharelatex_connector_name }}-{{ sharelatex_connector_version }}.{{ sharelatex_connector_extension }}'
+

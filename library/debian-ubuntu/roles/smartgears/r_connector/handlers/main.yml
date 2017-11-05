@@ -1,0 +1,11 @@
+---
+- name: Restart the NSLCD service
+  service: name=nslcd state=restarted
+  notify: Restart rstudio server
+
+- name: Restart the NSCD service
+  service: name=nscd state=restarted
+  notify: Restart rstudio server
+
+- name: Restart rstudio server
+  service: name=rstudio-server state=restarted

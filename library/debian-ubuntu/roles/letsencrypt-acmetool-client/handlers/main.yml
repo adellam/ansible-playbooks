@@ -4,4 +4,5 @@
   become_user: '{{ letsencrypt_acme_user }}'
   command: '/usr/local/bin/acme-cert-request > {{ letsencrypt_acme_log_dir }}/acme-cron.log 2>&1'
   when: letsencrypt_acme_install
+  ignore_errors: True
 

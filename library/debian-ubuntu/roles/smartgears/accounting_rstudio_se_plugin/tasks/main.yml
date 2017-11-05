@@ -1,0 +1,39 @@
+---
+- block:
+    - name: Remove the old accounting insert storage plugin 
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ accounting_insert_rstudio_se_plugin_maven_artifact_id }}-*-jar-with-dependencies.jar
+      notify: Restart smartgears
+
+    - name: Disable the cron job that calculates the home used space
+      cron: name="Calculate the home used space" special_time=hourly user=root job="/usr/local/bin/calculate_home_space >/dev/null 2>&1" state=absent
+    
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: not accounting_insert_rstudio_se_plugin_install 
+  tags: [ 'smartgears', 'accounting_insert_rstudio_se', 'tomcat' ]
+
+- block:
+    - name: Get the accounting insert storage plugin and install it inside the smart executor
+      maven_artifact: artifact_id={{ accounting_insert_rstudio_se_plugin_name }} version={{ accounting_insert_rstudio_se_plugin_version | default(omit) }} group_id={{ accounting_insert_rstudio_se_plugin_group_id }} extension={{ accounting_insert_rstudio_se_plugin_extension | default('war') }} repository_url={{ smartgears_global_base_url }} classifier={{ accounting_insert_rstudio_se_plugin_classifier }} dest={{ smartgears_downloads_dir }}/{{ accounting_insert_rstudio_se_plugin_file }}
+      register: accounting_insert_rstudio_download
+    
+    - name: Remove the old accounting insert storage plugin 
+      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ accounting_insert_rstudio_se_plugin_maven_artifact_id }}-*-jar-with-dependencies.jar
+      when: (accounting_insert_rstudio_download | changed)
+
+    - name: Copy the accounting aggregator plugin to its final destination
+      copy: src={{ smartgears_downloads_dir }}/{{ accounting_insert_rstudio_se_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ accounting_insert_rstudio_se_plugin_file }} remote_src=yes
+      notify: Restart smartgears
+
+    - name: Install the script that calculates the occupied space for each user
+      become_user: root
+      template: src=calculate_home_space.j2 dest=/usr/local/bin/calculate_home_space mode=0755 owner=root group=root
+
+    - name: Install a cron job that calculates the home used space
+      cron: name="Calculate the home used space" special_time=hourly user=root job="/usr/local/bin/calculate_home_space >/dev/null 2>&1"
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: accounting_insert_rstudio_se_plugin_install 
+  tags: [ 'smartgears', 'accounting_insert_rstudio_se', 'tomcat' ]
+

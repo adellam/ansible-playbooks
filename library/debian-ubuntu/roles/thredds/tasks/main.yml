@@ -1,0 +1,45 @@
+---
+- block:
+    - name: Remove the Thredds webapp directory
+      file: path={{ item.instance_path }}/webapps/{{ thredds_app_name | lower }} state=absent
+      with_items: '{{ tomcat_m_instances }}'
+      notify: tomcat instances restart
+
+  when: not thredds_install or thredds_upgrade
+  tags: [ 'thredds', 'tomcat' ]
+
+- block:
+    - name: Create the Thredds webapp directory
+      file: path={{ item.instance_path }}/webapps/{{ thredds_app_name | lower }} state=directory owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+
+    - name: Create the Thredds data directory
+      file: path={{ thredds_data_content_dir }} state=directory owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+
+    - name: Install the Thredds configuration files
+      template: src={{ item }}.j2 dest={{ thredds_data_content_dir }}/thredds/{{ item }} mode=444
+      with_items:
+        - threddsConfig.xml
+        - catalog.xml
+      notify: tomcat instances restart
+      tags: [ 'thredds', 'tomcat', 'thredds_conf' ]
+
+    - name: Get the thredds war file
+      maven_artifact: artifact_id={{ thredds_name }} version={{ thredds_version | default(omit) }} group_id={{ thredds_group_id }} extension={{ thredds_extension | default('war') }} repository_url={{ thredds_repository_url }} dest={{ thredds_download_directory }}/{{ thredds_file }}
+
+    - name: Add the netcdf nschloe ppa
+      apt_repository: repo='ppa:nschloe/netcdf-backports' update_cache=yes
+
+    - name: Install the NetCDF
+      apt: name={{ item }} state=latest update_cache=yes cache_valid_time=3600
+      with_items: 'netcdf-bin'
+  
+    - name: Unarchive the thredds war
+      unarchive: copy=no src={{ thredds_download_directory }}/{{ thredds_file }} dest={{ item.instance_path }}/webapps/{{ thredds_app_name | lower }} creates={{ item.instance_path }}/webapps/{{ thredds_app_name | lower }}/WEB-INF/lib owner={{ item.user }} group={{ item.user }}
+      with_items: '{{ tomcat_m_instances }}'
+      notify: tomcat instances restart
+
+  when: thredds_install 
+  tags: [ 'thredds', 'tomcat' ]
+

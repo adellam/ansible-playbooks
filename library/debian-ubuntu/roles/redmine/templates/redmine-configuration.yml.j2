@@ -1,0 +1,43 @@
+# specific configuration options for production environment
+# that overrides the default ones
+# production:
+#   email_delivery:
+#     delivery_method: :async_smtp
+#     async_smtp_settings:
+#       address: 127.0.0.1
+#       domain: 'research-infrastructures.eu'
+#       port: 25
+#       enable_starttls_auto: false
+
+production:
+  email_delivery:
+    delivery_method: :async_sendmail
+
+# Key used to encrypt sensitive data in the database (SCM and LDAP passwords).
+# If you don't want to enable data encryption, just leave it blank.
+# WARNING: losing/changing this key will make encrypted data unreadable.
+#
+# If you want to encrypt existing passwords in your database:
+# * set the cipher key here in your configuration file
+# * encrypt data using 'rake db:encrypt RAILS_ENV=production'
+#
+# If you have encrypted data and want to change this key, you have to:
+# * decrypt data using 'rake db:decrypt RAILS_ENV=production' first
+# * change the cipher key here in your configuration file
+# * encrypt data using 'rake db:encrypt RAILS_ENV=production'
+#  database_cipher_key:
+
+# Your secret key for verifying cookie session data integrity. If you
+# change this key, all old sessions will become invalid! Make sure the
+# secret is at least 30 characters and all random, no regular words or
+# you'll be exposed to dictionary attacks.
+#
+# If you have a load-balancing Redmine cluster, you have to use the
+# same secret token on each machine.
+{% if redmine_secret_token is defined %}
+secret_token: '{{ redmine_secret_token }}'
+{% endif %}
+
+# specific configuration options for development environment
+# that overrides the default ones
+development:

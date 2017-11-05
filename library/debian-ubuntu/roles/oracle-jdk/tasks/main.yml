@@ -55,7 +55,7 @@
 
 - block:
     - name: Change the default keyring. Insert the INFN CA certificate
-      shell: keytool -list -keystore {{ jdk_java_home }}/jre/lib/security/cacerts  -storepass changeit -noprompt | grep infn-ca-2015 ; RETVAL=$? ; if [ $RETVAL -ne 0 ] ; then keytool -trustcacerts -keystore {{ jdk_java_home }}/jre/lib/security/cacerts -storepass changeit -noprompt -importcert -alias infn-ca-2015-2030 -file /usr/local/share/ca-certificates/infn-ca-2015.crt ; fi
+      java_cert: cert_path=/usr/local/share/ca-certificates/infn-ca-2015.crt keystore_path={{ jdk_java_home }}/jre/lib/security/cacerts keystore_pass=changeit cert_alias=infn-ca-2015-2030 state=present
 
   when: jdk_default >= 8
   tags: [ 'oracle_jdk', 'jdk', 'jdk_cacert' ]

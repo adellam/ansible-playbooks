@@ -4,3 +4,7 @@
   when: hostname is defined
   tags: bootstrap
 
+- name: Add the hostname to /etc/hosts
+  shell: grep -v {{ ansible_default_ipv4.address }} /etc/hosts > /etc/hosts.tmp ; echo "{{ ansible_default_ipv4.address }} {{ hostname }} {{ ansible_hostname }}" >> /etc/hosts.tmp ; /bin/mv /etc/hosts.tmp /etc/hosts
+  when: hostname is defined
+  tags: bootstrap

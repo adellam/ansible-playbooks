@@ -1,0 +1,16 @@
+---
+- name: Create the d4science user
+  user: name={{ d4science_user }} home={{ d4science_user_home }} createhome={{ d4science_user_create_home }} shell={{ d4science_user_shell }}
+  when: gcore_users is not defined
+  tags: [ 'gcore', 'd4science', 'users', 'd4s' ]
+
+- name: Create a common group if needed to use it as primary group for the additional users
+  user: name={{ gcube_users_main_group }} state=present
+  when: gcube_users_main_group is defined
+  tags: [ 'gcore', 'd4science', 'users', 'd4s' ]
+
+- name: Create the d4science users
+  user: name={{ item }} group={{ gcube_users_main_group | default(omit) }} home=/home/{{ item }} createhome={{ d4science_user_create_home }} shell={{ d4science_user_shell }}
+  with_items: '{{ gcore_users | default([]) }}'
+  tags: [ 'gcore', 'd4science', 'users', 'd4s' ]
+

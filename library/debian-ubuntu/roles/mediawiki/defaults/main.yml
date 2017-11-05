@@ -3,6 +3,8 @@
 # This playbook depends on the php-fpm, mysql role and nginx or apache2
 #
 mw_install_from_package: False
+# We have some cases when we only want to install the dependencies and prepare the environment
+mw_install_from_tar: True
 mw_version: 1.25
 mw_minor_minor: 1
 mw_download_url: http://releases.wikimedia.org/mediawiki/{{ mw_version }}/mediawiki-{{ mw_version }}.{{ mw_minor_minor }}.tar.gz
@@ -18,6 +20,8 @@ mw_php_prereq:
   - php-pear
   - php5-ldap
   - imagemagick
+  - spawn-fcgi
+  - fcgiwrap
 
 # This choice is not recommended. The package has a poor list of dependencies. We do not want to deal with those
 mw_package:

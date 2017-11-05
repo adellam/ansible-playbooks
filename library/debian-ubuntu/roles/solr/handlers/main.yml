@@ -1,4 +1,4 @@
 ---
-- name: tomcat solr restart
-  service: name=tomcat-instance-'{{ solr_http_port }}' state=restarted sleep=20
+- name: solr restart
+  service: name=solr state=restarted
 

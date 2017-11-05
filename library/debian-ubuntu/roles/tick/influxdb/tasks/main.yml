@@ -1,0 +1,19 @@
+---
+- name: Install the influxdb repo key
+  apt_key: url={{ influxdb_repo_key }} state=present
+  tags: [ 'influxdata', 'influxdb', 'tick' ]
+
+- name: Install the influxdb deb repository
+  apt_repository: repo='{{ influxdb_repo }}' state=present update_cache=yes
+  tags: [ 'influxdata', 'influxdb', 'tick' ]
+
+- name: Install the influxdb deb packages
+  apt: name='{{ item }}' state=present
+  with_items: '{{ influxdb_packages }}'
+  tags: [ 'influxdata', 'influxdb', 'tick' ]
+  
+- name: Ensure that influxdb is enabled and running
+  service: name=influxdb state=started enabled=yes
+  when: influxdb_enabled
+  tags: [ 'influxdata', 'influxdb', 'tick' ]
+  

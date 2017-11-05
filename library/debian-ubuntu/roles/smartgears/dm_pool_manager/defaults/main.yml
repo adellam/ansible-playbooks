@@ -1,0 +1,25 @@
+---
+dm_pool_manager_install: False
+dm_pool_manager_upgrade: False
+dm_pool_manager_version: 2.1.0-4.7.0-155107
+dm_pool_manager_name: dataminer-pool-manager
+
+dm_pool_manager_group_id: org.gcube.dataAnalysis
+dm_pool_manager_extension: war
+dm_pool_manager_file: '{{ dm_pool_manager_name }}-{{ dm_pool_manager_version }}.{{ dm_pool_manager_extension }}'
+
+dm_pool_prod_ghost_instance: 'dataminer-proto-ghost.d4science.org'
+dm_pool_proto_ghost_instance: 'dataminer-proto-ghost.d4science.org'
+dm_pool_preprod_ghost_instance: 'dataminer-ghost-t.pre.d4science.org'
+dm_pool_dev_ghost_instance: 'dataminer-ghost-d.dev.d4science.org'
+dm_pool_manager_pkgs:
+  - subversion
+
+dm_pool_svn_url: http://svn.d4science.research-infrastructures.eu/gcube/trunk/data-analysis
+svn_user: svn.d4science
+svn_pass: "{{ vault_svn_pass }}"
+prod_instance: False
+proto_instance: False
+preprod_instance: False
+dev_instance: False
+

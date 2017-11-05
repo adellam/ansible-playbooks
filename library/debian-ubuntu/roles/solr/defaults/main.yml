@@ -1,13 +1,13 @@
 ---
 # solr
 solr_install: False
+solr_version: 7.1.0
 solr_http_port: 8983
-
-solr_version: 5.5.3
 solr_service: -solr
 solr_config_name: hindex
 solr_shards: 1
 solr_instance: '{{ solr_service }}'
+solr_log_dir: /var/log/solr
 solr_log_level: INFO
 solr_http_port_1: '{{ solr_http_port }}'
 solr_zoo_port: 9983
@@ -17,8 +17,11 @@ solr_jmx_port_1: 8601
 solr_user: solr
 solr_group: solr
 # We need to define this one because we are using the tomcat multiple instances role
-solr_base_dir: /opt/solr-files
-solr_data_dir: '{{ solr_base_dir }}/solr'
+solr_base_dir: /opt
+solr_server_dir: '{{ solr_base_dir }}/solr'
+solr_data_dir: '{{ solr_server_dir }}/server/solr'
+solr_collections_base_dir: '{{ solr_data_dir }}/data/solr'
+solr_pid_dir: '{{ solr_server_dir }}/bin'
 solr_heap:  1024M
 solr_mode: solrcloud
 solr_download_dir: '{{ solr_base_dir }}/download'
@@ -29,4 +32,18 @@ solr_jar_files:
   - contrib/analysis-extras/lib/icu4*.jar
   - contrib/analysis-extras/lucene-libs/lucene-analyzers-icu*.jar
 
+solr_startup_opts: '-Ddisable.configEdit=true'
 
+solr_set_gc_options: False
+#solr_gc_tune: '-XX:NewRatio=3 -XX:SurvivorRatio=4'
+solr_gc_tune: ''
+
+solr_multicore: False
+solr_cores:
+  - collection1
+
+solr_cloud_mode: True
+# When we want to use an external zookeeper cluster, set this one to True
+solr_zk_external_cluster: False
+solr_zk_hosts: '127.0.0.1:2181'
+solr_zk_timeout: 15000

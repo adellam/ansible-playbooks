@@ -1,0 +1,14 @@
+---
+- block:
+    - name: Install the EGI repos key
+      apt_key: url={{ rocci_repo_key }} state=present
+
+    - name: Install the egi-trustedanchors repository
+      apt_repository: repo='{{ rocci_repo }}' state=present filename='rocci' update_cache=yes
+
+    - name: Install the rOCCI client
+      apt: pkg={{ item }} state=present
+      with_items: '{{ rocci_pkgs }}'
+      
+  when: rocci_egi_install
+  tags: [ 'voms', 'egi', 'occi', 'rocci' ]

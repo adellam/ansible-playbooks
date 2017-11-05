@@ -301,3 +301,10 @@
     - Bundle install and reconfigure redmine
   tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_issue_templates' ]
 
+- name: Install the issue_todo_lists plugin
+  git: repo=https://github.com/canidas/redmine_issue_todo_lists dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_issue_todo_lists update=no
+  when: rm_issue_todo_lists_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_issue_todo_lists' ]
+

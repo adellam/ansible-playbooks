@@ -1,0 +1,66 @@
+- name: add ghn user #home is /opt/ghn/, password is "gCore??"
+  action: user name={{ ghn_user }}  password=$1$SuG4r$6AGiUoMKjZAHFJgYLDTkW/ shell=/bin/bash createhome=yes home={{ globus_location }}
+
+- name: download and extract ghn release specified in '../defaults/main.yml' 
+  unarchive: src='{{ globus_url }}' dest="{{ globus_location }}" copy=no extra_opts='--strip-components=1'
+  #unarchive: src='{{ globus_url }}' dest="{{ globus_location }}" copy=no extra_opts='--show-stored-names --strip-components=1'
+  #unarchive: src='http://dl.uxnr.de/mirror/curl/curl-7.52.1.tar.gz' dest="{{ globus_location }}" copy=no 
+
+- name: Test if ant is already deployed
+  raw: ls -d {{ ant_location }}
+  register: is_ant_deployed
+  ignore_errors: True
+  tags:
+    - ant
+
+- name: create ant_location as defined in '../defaults/main.yml'
+  file: path={{ ant_location }} state=directory owner=root group=root mode=0755
+  when: is_ant_deployed.rc != 0
+  tags:
+    - ant
+
+- name: install apache ant
+  unarchive: src={{ ant_url }} dest={{ ant_location }} copy=no extra_opts='--strip-components=1'
+  #unarchive: src={{ ant_url }} dest={{ ant_location }} copy=no extra_opts='--show-stored-names --strip-components=1'
+  when: is_ant_deployed.rc != 0
+  tags:
+    - ant
+
+- name: upload the gcube key specified in '../defaults/main.yml'
+  copy: src={{ gcube_key }} dest={{ globus_location }}/config/ mode=0600
+
+- name: upload ghn start script 
+  template: src=gcore-start.sh dest={{ globus_location }} mode=0700
+
+- name: copy custom servicemap files
+  template: src=ServiceMap_d4s.xml dest={{ globus_location }}/config/
+  when: patch_common_scope != 0
+
+- name: copy custom servicemap files
+  template: src=ServiceMap_d4stesting.xml dest={{ globus_location }}/config/
+  when: patch_common_scope != 0
+
+- name: patch_common_scope={{ patch_common_scope }}, removing bundled common-scope-maps
+  raw: rm -f {{ globus_location }}/lib/common-scope-maps*
+  when: patch_common_scope != 0
+  ignore_errors: True
+  tags:
+    - common_scope_maps
+
+- name: upload patched common-scope-maps
+  copy: src={{ common_scope_maps_file }} dest={{ globus_location }}/lib/ owner={{ ghn_user }} group={{ ghn_user }} mode=0644
+  when: patch_common_scope != 0
+  tags:
+    - common_scope_maps
+
+- name: upload d4s.authorization
+  template: src=d4s.authorization dest={{ globus_location }}/config/ mode=0644
+
+- name: restore ownership
+  file: dest={{ globus_location }} owner={{ ghn_user }}  group={{ ghn_user }} recurse=yes
+
+#  this is commented out since at this point no service has been deployed yet
+#- name: start the container
+#  become: yes
+#  become_user: "{{ ghn_user }}"
+#  command: "{{ globus_location }}/gcore-start.sh"

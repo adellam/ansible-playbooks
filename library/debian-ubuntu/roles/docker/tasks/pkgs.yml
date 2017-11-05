@@ -14,6 +14,10 @@
       apt: pkg={{ item }} state={{ docker_pkg_status }} update_cache=yes cache_valid_time=3600
       with_items: '{{ docker_packages }}'
 
+    - name: Install the Docker default options
+      template: src=docker-default.j2 dest={{ docker_defaults_file }} owner=root group=root mode=0644
+      notify: Restart docker
+
     - name: Ensure that the service is started and enabled
       service: name=docker state=started enabled=yes
 

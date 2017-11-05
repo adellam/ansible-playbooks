@@ -26,7 +26,7 @@
   tags: letsencrypt
 
 - name: Create the letsencrypt acme user
-  user: name={{ letsencrypt_acme_user }} home={{ letsencrypt_acme_user_home }} createhome=no shell=/bin/bash
+  user: name={{ letsencrypt_acme_user }} home={{ letsencrypt_acme_user_home }} createhome=no shell=/usr/sbin/nologin system=yes
   when: letsencrypt_acme_install
   tags: letsencrypt
 
@@ -79,13 +79,14 @@
   become_user: '{{ letsencrypt_acme_user }}'
   template: src=cert-requirements.j2 dest={{ letsencrypt_acme_certsconf_dir }}/{{ ansible_fqdn }} mode=0644
   when: letsencrypt_acme_install
+  register: letsencrypt_new_desired_file
   tags: letsencrypt
 
 - name: Set the cap_net_bind_service capability to the acmetool binary when we use it in listener mode
   capabilities: path=/usr/bin/acmetool capability=cap_net_bind_service+ep state=present
   when:
     - letsencrypt_acme_install
-    - "'{{ letsencrypt_acme_authenticator }}' == 'listener'"
+    - letsencrypt_acme_authenticator == 'listener'
   tags: letsencrypt
 
 - name: Remove the cap_net_bind_service capability to the acmetool binary if not needed
@@ -110,6 +111,16 @@
   template: src=acme-cert-request.sh.j2 dest=/usr/local/bin/acme-cert-request owner=root group=root mode=0755
   when: letsencrypt_acme_install
   tags: letsencrypt
+
+- name: Set certificates as to be revoked
+  become: True
+  become_user: '{{ letsencrypt_acme_user }}'
+  file: dest={{ letsencrypt_acme_user_home }}certs/{{ item.cert_name }}/revoke
+  with_items: '{{ letsencrypt_certs_revoke_list }}'
+  when:
+    - letsencrypt_acme_install
+    - letsencrypt_certs_revoke_list is defined
+  tags: letsencrypt
   
 - name: Install a daily cron job to renew the certificates when needed
   become: True
@@ -122,7 +133,7 @@
   become: True
   become_user: '{{ letsencrypt_acme_user }}'
   shell: '/usr/local/bin/acme-cert-request > {{ letsencrypt_acme_log_dir }}/acme-init.log 2>&1'
-  when: letsencrypt_acme_install
+  when: ( letsencrypt_new_desired_file | changed )
   ignore_errors: True
   tags: letsencrypt
 

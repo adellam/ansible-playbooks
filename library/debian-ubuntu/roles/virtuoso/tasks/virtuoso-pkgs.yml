@@ -16,10 +16,11 @@
 
 - name: Install the virtuoso packages
   apt: name={{ item }} state={{ virtuoso_pkg_state }}
-  with_items: virtuoso_pkg_list
+  with_items: '{{ virtuoso_pkg_list }}'
   tags: virtuoso
 
 - name: Install the virtuoso optional packages
   apt: name={{ item }} state={{ virtuoso_pkg_state }}
-  with_items: virtuoso_optional_pkgs
+  with_items: '{{ virtuoso_optional_pkgs }}'
+  when: virtuoso_install_optional_pkgs
   tags: virtuoso

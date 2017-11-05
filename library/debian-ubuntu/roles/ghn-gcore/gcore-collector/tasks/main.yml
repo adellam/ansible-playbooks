@@ -1,0 +1,73 @@
+- name: download eXist DB
+  get_url: url={{ exist_url }} dest=/tmp force=yes
+
+- name: create exist_location as defined in '../defaults/main.yml'
+  file: path={{ exist_location }} state=directory owner={{ ghn_user }} group={{ ghn_user }} mode=0755   
+
+- name: install eXist DB 
+  command: "java -jar /tmp/{{ exist_jar }} -p {{ exist_location }}"
+
+- name: remove eXist setup jar 
+  file: path="/tmp/{{ exist_jar }}" state=absent
+
+- name: add the EXIST_HOME parameter to the gcore startup script
+  lineinfile: dest="{{ globus_location }}/gcore-start.sh" insertafter="^export ANT_HOME" state=present line="export EXIST_HOME={{ exist_location }}"
+
+# remotely using with_fileglob seems to give all sorts of issues
+# while using copy module is out of question since it's not 
+# capable of using wildcards, hence we'll use the shell module
+# when there's a need to use wildcards in filenames
+#- name: copy exist libs in "{{ globus_location }}/lib/"
+#  copy: src={{ item }} dest="{{ globus_location }}/lib/" remote_src=true
+#  with_fileglob:
+#    - "{{ exist_location}}/exist.jar"
+#    - "{{ exist_location}}/lib/core/quartz-*.jar"
+#    - "{{ exist_location}}/lib/core/xmlrpc-*" 
+#    - "{{ exist_location}}/lib/core/xmldb.jar"
+#    - "{{ exist_location}}/lib/core/jta.jar"
+#    - "{{ exist_location}}/lib/core/commons-pool-*.jar"
+
+- name: copy exist.jar in $GLOBUS_LOCATION/lib
+  copy: src="{{ exist_location}}/exist.jar" dest="{{ globus_location }}/lib/" remote_src=true
+
+- name: copy quartz jar in $GLOBUS_LOCATION/lib
+  shell: cp -R {{ exist_location}}/lib/core/quartz-*.jar {{ globus_location }}/lib/
+
+- name: copy xmlrpc-* in $GLOBUS_LOCATION/lib
+  shell: cp -R {{ exist_location}}/lib/core/xmlrpc-* {{ globus_location }}/lib/
+
+- name: copy xmldb in $GLOBUS_LOCATION/lib
+  copy: src="{{ exist_location}}/lib/core/xmldb.jar" dest="{{ globus_location }}/lib/" remote_src=true
+
+- name: copy jta.jar in $GLOBUS_LOCATION/lib
+  copy: src="{{ exist_location}}/lib/core/jta.jar" dest="{{ globus_location }}/lib/" remote_src=true
+
+- name: copy commons-pool-*.jar in $GLOBUS_LOCATION/lib
+  shell: cp -R {{ exist_location}}/lib/core/commons-pool-*.jar {{ globus_location }}/lib/
+
+- name: download is-collector-service.gar
+  get_url: url={{ collector_url }} dest=/tmp force=yes
+
+- name: deploy is-collector-service.gar
+  shell: export GLOBUS_LOCATION={{ globus_location }} ANT_HOME={{ ant_location }} && {{ globus_location }}/bin/gcore-deploy-service /tmp/{{ collector_gar }}
+
+- name: add GLOBUS_OPTIONS to the gcore startup script
+  lineinfile: dest="{{ globus_location }}/gcore-start.sh" insertafter="^export EXIST_HOME" state=present line='export GLOBUS_OPTIONS="-Xms512M -Xmx1024M -Dexist.home=$EXIST_HOME"'
+
+- name: set logicalhost parameter on {{ globus_location }}/etc/globus_wsrf_core/server-config.wsdd
+  replace: dest="{{ globus_location }}/etc/globus_wsrf_core/server-config.wsdd" regexp='localhost' replace="{{ collector_hostname }}"
+
+- name: copy updated GHNConfig.xml
+  template: src=GHNConfig.xml dest={{ globus_location }}/config/
+
+- name: updated is-collector-service jndi-config.xml, add start scopes
+  lineinfile: dest="{{ globus_location }}/etc/{{ collector_artifact }}/jndi-config.xml" insertafter='.*?<service name="gcube/informationsystem/collector">' state=present line="                <environment name=\"startScopes\" value=\"/{{ infrastructure }}/{{ start_scopes }}\" type=\"java.lang.String\" override=\"false\" />"
+  when: start_scopes != ""
+
+- name: restore ownership
+  file: dest={{ globus_location }} owner={{ ghn_user }}  group={{ ghn_user }} recurse=yes
+
+- name: start gCore
+  become: yes
+  become_user: "{{ ghn_user }}"
+  shell: "{{ globus_location }}/gcore-start.sh"

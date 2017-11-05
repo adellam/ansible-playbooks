@@ -1,7 +1,10 @@
 ---
 generic_worker_install: False
-
-smart_generic_worker_plugin_ver: 1.0.3-4.0.0-128830
-smart_generic_worker_plugin_name: 'smart-generic-worker-{{ smart_generic_worker_plugin_ver }}-jar-with-dependencies.jar'
-smart_generic_worker_plugin_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}/org/gcube/dataanalysis/smart-generic-worker/{{ smart_generic_worker_plugin_ver }}/{{ smart_generic_worker_plugin_name }}'
+smart_generic_worker_plugin_name: 'smart-generic-worker'
+smart_generic_worker_plugin_group_id: 'org.gcube.dataanalysis'
+smart_generic_worker_plugin_artifact_id: '{{ smart_generic_worker_plugin_name }}'
+smart_generic_worker_plugin_version: latest
+smart_generic_worker_plugin_extension: jar
+smart_generic_worker_plugin_classifier: jar-with-dependencies
+smart_generic_worker_plugin_file: '{{ smart_generic_worker_plugin_name }}-{{ smart_generic_worker_plugin_version }}-jar-with-dependencies.{{ smart_generic_worker_plugin_extension }}'
 

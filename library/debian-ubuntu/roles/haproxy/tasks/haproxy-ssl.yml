@@ -1,0 +1,17 @@
+---
+- block:
+    - name: Install the socat binary needed to talk to the haproxy socket
+      apt: name=socat state=latest update_cache=yes cache_valid_time=3600
+
+    - name: Install a script that refreshes the OCSP configuration and reloads haproxy if needed
+      template: src=hapos-upd.j2 dest=/usr/local/bin/hapos-upd owner=root group=root mode=0755
+
+    - name: Install a cron job that refreshes the OCSP configuration
+      cron:
+        name: "Refresh the haproxy OCSP information"
+        user: root
+        special_time: daily
+        job: "/usr/local/bin/hapos-upd --cert {{ haproxy_cert_dir }}/haproxy.pem -v {{ letsencrypt_acme_certs_dir }}/fullchain -s {{ haproxy_admin_socket }} >/var/log/hapos-upd.log 2>&1"
+
+  tags: [ 'haproxy', 'letsencrypt', 'ssl', 'ssl_ocsp' ]
+

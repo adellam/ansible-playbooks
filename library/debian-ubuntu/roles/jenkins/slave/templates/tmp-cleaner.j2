@@ -1,0 +1,8 @@
+#!/bin/bash
+
+RETAIN_DAYS={{ jenkins_tmp_retain_days }}
+LOG_FILE=/var/log/tmp-cleaner.log
+find /tmp/ -ctime +${RETAIN_DAYS} -exec rm -fr  {} \; >>$LOG_FILE 2>&1
+
+exit 0
+

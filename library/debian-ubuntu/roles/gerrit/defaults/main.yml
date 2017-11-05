@@ -1,0 +1,22 @@
+---
+# See https://gerrit-documentation.storage.googleapis.com/Documentation/2.12.2/install.html
+gerrit_install: True
+gerrit_release_site: https://www.gerritcodereview.com/download
+gerrit_version: 2.12.2
+gerrit_war_file: 'gerrit-{{ gerrit_version }}.war'
+gerrit_user: gerrit
+gerrit_base_dir: /srv/gerrit
+gerrit_download_dir: '{{ gerrit_base_dir }}/download'
+gerrit_service_dir: '{{ gerrit_base_dir }}/service'
+gerrit_http_port: 8081
+gerrit_http_proxy_protocol: https
+gerrit_servername: '{{ ansible_fqdn }}'
+gerrit_app_context: /r
+gerrit_db_type: postgresql
+gerrit_db_user: gerrit
+gerrit_db_name: gerrit
+gerrit_db_hostname: localhost
+gerrit_db_password: '{{ psql_db_pwd }}'
+gerrit_smtp_server: localhost
+gerrit_ssh_port: 29419
+

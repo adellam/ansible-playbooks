@@ -14,6 +14,7 @@ redmine_db_host: localhost
 redmine_inst_dir: redmine
 redmine_user: redmine
 redmine_group: redmine
+redmine_log_level: warn
 # Minutes, from 1 to 60
 redmine_ldap_sync_freq: 10
 # users, groups, all
@@ -65,6 +66,8 @@ rm_addsubversionlinks_plugin: False
 rm_wiki_external_plugin: False
 rm_pastebin_plugin: False
 rm_issue_templates_plugin: False
+# TODO lists plugin: https://redmine.org/plugins/redmine_issue_todo_lists
+rm_issue_todo_lists_plugin: False
 #
 # IMPORTANT: these are mutually exclusive. One of the two needs to be set to True
 ruby_use_mod_passenger: True

@@ -1,0 +1,18 @@
+---
+- block:
+    - name: Install the README file that explains where the options files are placed and how start/stop the service
+      template: src={{ item }}-service.j2 dest={{ d4science_user_home }}/{{ item }} mode=0444
+      with_items:
+        - 'README'
+
+    - name: Install the script that allows the d4science user to start and stop the service without using the full path
+      template: src={{ item }}.j2 dest=/home/{{ d4science_user }}/{{ item }} owner={{ d4science_user }} group={{ d4science_user }} mode=0755
+      with_items: '{{ d4science_user_service_scripts }}'
+
+    - name: Install the sudoers config that permits the tomcat user to restart the service
+      become: False
+      template: src=d4science-sudoers.j2 dest=/etc/sudoers.d/d4science-services owner=root group=root mode=0440
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  tags: [ 'd4science', 'd4s_readme', 'sudo', 'startup_cmd' ]

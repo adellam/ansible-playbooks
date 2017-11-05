@@ -1,29 +1,41 @@
 ---
-- block:
-
-    - name: Remove the old smart executor files if present
-      file: path={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }} state=absent
-      when: ( not smart_executor_install ) or ( smartgears_upgrade )
-
+- block: 
     - name: Remove the old fhn-manager files
-      file: path={{ smartgears_instance_path }}/webapps/{{ fhn_manager_name }} state=absent
-      when: ( remove_fhn_manager_install ) or ( smartgears_upgrade )
-
-  
-    # NOTE: Install as the smartgears user so we do not mess with the permissions
-    - name: Get the fhn-manager-service 
-      get_url: url={{ fhn_manager_url }} dest={{ smartgears_user_home }}/{{ fhn_manager_file }}
-      when: fhn_manager_install
-  
-    - name: Create the fhn manager  working directory
-      file: path={{ smartgears_instance_path }}/webapps/{{ fhn_manager_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
-      when: fhn_manager_install
-  
-    - name: Unarchive the fhn_manager war
-      unarchive: copy=no src={{ smartgears_user_home }}/{{ fhn_manager_file }} dest={{ smartgears_instance_path }}/webapps/{{ fhn_manager_name }} creates={{ smartgears_instance_path }}/webapps/{{ fhn_manager_name }}/WEB-INF/lib
-      when: fhn_manager_install
+      file: path={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ fhn_manager_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ fhn_manager_name }}.{{ fhn_extension }}'
       notify: Restart smartgears
 
   become: True
   become_user: '{{ d4science_user }}'
+  when: not fhn_manager_install 
+  tags: [ 'smartgears', 'fhn_manager', 'tomcat' ]
+
+
+- block: 
+    # NOTE: Install as the smartgears user so we do not mess with the permissions
+    - name: Get the fhn-manager-service 
+      maven_artifact: artifact_id={{ fhn_manager_name }} version={{ fhn_manager_version | default(omit) }} group_id={{ fhn_group_id }} extension={{ fhn_extension | default('war') }} repository_url={{ fhn_manager_repository_url }} dest={{ smartgears_downloads_dir }}/{{ fhn_manager_file }}
+      register: fhn_mgr_download
+ 
+    - name: Remove the old fhn-manager files
+      file: path={{ smartgears_instance_path }}/webapps/{{ fhn_manager_name }} state=absent
+      when: ( fhn_mgr_download | changed )
+      notify: Restart smartgears
+
+    - name: Copy the fhn_manager war file to its destination place
+      copy: src={{ smartgears_downloads_dir }}/{{ fhn_manager_file }} dest={{ smartgears_instance_path }}/webapps/{{ fhn_manager_name }}.{{ fhn_extension }} force=yes remote_src=yes
+      notify: Restart smartgears
+
+    - name: Install the cron job that deletes the certificates from /tmp every day
+      cron: name="Delete tmp folder" special_time=daily job="find /tmp ! -name 'x509up_u1000' -type f -exec rm -f {} \; >/dev/null 2>&1"
+
+    - name: Install the cron job that refresh certificates every week
+      become_user: root
+      cron: name="refresh certificates" special_time=weekly job="/usr/sbin/fetch-crl >/dev/null 2>&1"
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: fhn_manager_install 
   tags: [ 'smartgears', 'fhn_manager', 'tomcat' ]

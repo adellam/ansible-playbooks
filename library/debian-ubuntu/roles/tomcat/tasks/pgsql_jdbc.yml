@@ -1,0 +1,18 @@
+---
+# Postgresql JDBC
+- name: Install the jdbc package if needed
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - libpostgresql-jdbc-java
+  when: tomcat_install_pg_jdbc
+  tags: [ 'tomcat', 'tomcat_jdbc' ]
+
+- name: Configure tomcat to use the global postgresql jdbc driver
+  file: src=/usr/share/java/{{ item }} dest=/usr/share/tomcat{{ tomcat_version }}/lib/{{ item }} state=link
+  with_items:
+    - postgresql-jdbc4.jar
+  when: tomcat_install_pg_jdbc
+  notify:
+    tomcat restart
+  tags: [ 'tomcat', 'tomcat_jdbc' ]
+

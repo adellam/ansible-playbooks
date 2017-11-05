@@ -1,0 +1,8 @@
+---
+social_networking_library_ws_install: False
+social_networking_library_ws_version: 2.1.0-4.6.1-152935
+social_networking_library_ws_name: social-networking-library-ws
+social_networking_library_ws_group_id: org.gcube.portal
+social_networking_library_ws_extension: war
+social_networking_library_ws_file: '{{ social_networking_library_ws_name }}-{{ social_networking_library_ws_version }}.{{ social_networking_library_ws_extension }}'
+

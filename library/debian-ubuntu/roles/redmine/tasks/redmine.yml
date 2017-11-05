@@ -57,7 +57,14 @@
   tags: redmine
 
 - name: Install the configuration file. Needed to send email
-  copy: src=redmine-configuration.yml dest=/{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/config/configuration.yml owner=root group={{ redmine_group }} mode=0440
+  template: src=redmine-configuration.yml.j2 dest=/{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/config/configuration.yml owner=root group={{ redmine_group }} mode=0440
+  notify:
+    - apache2 reload when needed
+    - Reload unicorn when needed
+  tags: redmine
+
+- name: Install the additional environment file
+  template: src=redmine_additional_environment.rb.j2 dest=/{{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/config/additional_environment.rb owner=root group={{ redmine_group }} mode=0440
   notify:
     - apache2 reload when needed
     - Reload unicorn when needed
