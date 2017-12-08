@@ -26,8 +26,10 @@ chgrp postgres ${PGPOOL2_KEYFILE}
 
 echo "Reload the pgpool2 service" >> $LE_LOG_DIR/pgpool2.log
 if [ -x /bin/systemctl ] ; then
+    sleep $RANDOM
     systemctl reload pgpool2 >> $LE_LOG_DIR/pgpool2.log 2>&1
 else
+    sleep $RANDOM
     service pgpool2 reload >> $LE_LOG_DIR/pgpool2.log 2>&1
 fi
 

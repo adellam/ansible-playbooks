@@ -22,7 +22,8 @@ letsencrypt_acme_certs_dir: '{{ letsencrypt_acme_user_home }}/live/{{ ansible_fq
 letsencrypt_acme_services_scripts_dir: /usr/lib/acme/hooks
 
 # responses parameters
-letsencrypt_tos_url: 'https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf'
+#letsencrypt_tos_url: 'https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf'
+letsencrypt_tos_url: 'https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf'
 letsencrypt_acme_agree_tos: true  
 letsencrypt_acme_rsa_key_size: 4096
 letsencrypt_ocsp_must_staple: True

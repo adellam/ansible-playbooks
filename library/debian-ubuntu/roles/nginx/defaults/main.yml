@@ -76,6 +76,7 @@ nginx_basic_auth_users:
   - { name: 'test', pwd: 'hide inside a vault file', file: '/etc/nginx/htpasswd' }
 # nginx_ldap_login_attribute: uid
 # nginx_ldap_pam_groupdn:
+nginx_webroot: /usr/share/nginx/html
 nginx_letsencrypt_managed: True
 nginx_websockets_support: False
 nginx_use_common_virthost: False
@@ -96,7 +97,7 @@ nginx_ssl_type: ssl
 #     ssl_enabled: False
 #     ssl_only: False
 #     ssl_letsencrypt_certs: '{{ nginx_letsencrypt_managed }}'
-#     root: /usr/share/nginx/html/
+#     root: {{ nginx_webroot }}
 #     server_tokens: 'off'
 #     proxy_standard_setup: True
 #     proxy_additional_options:

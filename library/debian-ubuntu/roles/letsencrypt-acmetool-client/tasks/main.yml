@@ -28,7 +28,7 @@
 - name: Create the letsencrypt acme user
   user: name={{ letsencrypt_acme_user }} home={{ letsencrypt_acme_user_home }} createhome=no shell=/usr/sbin/nologin system=yes
   when: letsencrypt_acme_install
-  tags: letsencrypt
+  tags: [ 'letsencrypt', 'letsencrypt_user' ]
 
 - name: Create the letsencrypt acme home, if it does not exist already. In a separate step because it could be already there.
   file: dest={{ letsencrypt_acme_user_home }} owner={{ letsencrypt_acme_user }} group={{ letsencrypt_acme_user }} state=directory recurse=yes
@@ -132,7 +132,7 @@
 - name: letsencrypt acmetool request the first certificate
   become: True
   become_user: '{{ letsencrypt_acme_user }}'
-  shell: '/usr/local/bin/acme-cert-request > {{ letsencrypt_acme_log_dir }}/acme-init.log 2>&1'
+  command: '/usr/local/bin/acme-cert-request'
   when: ( letsencrypt_new_desired_file | changed )
   ignore_errors: True
   tags: letsencrypt

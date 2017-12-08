@@ -10,6 +10,6 @@
   tags: ansible
 
 - name: Install the ansible package
-  apt: pkg=ansible state={{ ansible_pkg_state }}
+  apt: pkg=ansible state={{ ansible_pkg_state }} update_cache=yes cache_valid_time=3600
   tags: ansible
 

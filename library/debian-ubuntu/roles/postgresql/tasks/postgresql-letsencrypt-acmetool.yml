@@ -6,7 +6,7 @@
     - letsencrypt_acme_install
   tags: [ 'postgresql', 'postgres', 'letsencrypt' ]
 
-- name: Install a script that fix the letsencrypt certificate for postgresql and then reload the service
+- name: Install a script that fix the letsencrypt certificate for postgresql and then restarts the service
   copy: src=postgresql-letsencrypt-acme.sh dest={{ letsencrypt_acme_services_scripts_dir }}/postgresql owner=root group=root mode=4555
   when:
     - postgresql_letsencrypt_managed

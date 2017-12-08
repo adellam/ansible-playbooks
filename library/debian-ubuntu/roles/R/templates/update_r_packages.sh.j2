@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# TODO: kill an old process if it is running from too much time (12 hours?)
+#       using something like ps -o etimes= -p "$PROCNUM"
+# 
 
 export PATH="$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 
@@ -19,6 +23,9 @@ R_PKGS_SVN_DIR=RPackagesManagement
 R_PKGS_SVN_URL={{ r_package_updater_subversion_repo }}
 R_PKGS_SVN_BASE_DIR={{ r_packages_svn_base_dir }}
 R_PKGS_FILES_PREFIX={{ r_packages_svn_files_prefix }}
+SVN_UPDATE_STATUS=
+# In seconds. 60*60*6=21600s (6h)
+UPDATER_PROCESS_MAX_RUNTIME=21600
 # - debian packages list format:
 # one package per line
 DEB_PKGS_SKIP=0
@@ -65,7 +72,6 @@ function fail() {
     exit 1
 }
 
-
 function init_env() {
     if [ -f $LOCK_FILE ] ; then
         OLDPROC=$( cat $LOCK_FILE )
@@ -73,8 +79,15 @@ function init_env() {
         RETVAL=$?
         if [ $RETVAL -eq 0 ] ; then
             logger "update_r_packages: $OLDPROC_RUNNING"
-            logger "update_r_packages: another process is running, exiting."
-            exit 0
+            OLDPROC_RUNNING_TIME=$( ps -o etimes= -p ${PROCNUM} )
+            if [ $OLDPROC_RUNNING_TIME > $UPDATER_PROCESS_MAX_RUNTIME ] ; then
+                logger "update_r_packages: process $OLDPROC_RUNNING got stuck, killing it"
+                kill -9 $OLDPROC_RUNNING
+                cleanup
+            else
+                logger "update_r_packages: another process is running, exiting."
+                exit 0
+            fi
         else
             logger "update_r_packages: lock file exist but the process not. Continuing."
             rm -fr $TMP_FILES_DIR
@@ -119,7 +132,8 @@ function get_data_files_from_svn() {
     if [ -d $R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR ] ; then
         logger "update_r_packages: SVN update"
         cd $R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR
-        svn update >/dev/null 2>&1
+        SVN_UPDATE_OP=$( svn update | tail -1 | grep Updated  >/dev/null 2>&1 )
+        SVN_UPDATE_STATUS=$?
     else
         cd $R_PKGS_SVN_BASE_DIR
         logger "update_r_packages: first SVN checkout."
@@ -198,6 +212,11 @@ get_args
 init_env
 if [ $R_PKGS_FROM_SVN == 'True' ] ; then
     get_data_files_from_svn
+    if [ $SVN_UPDATE_STATUS -ne 0 -a "$ACTION" == "install" ] ; then
+        logger "update_r_packages: nothing new to install from SVN, exiting"
+        cleanup
+        exit 0
+    fi
 else
     get_data_files
 fi

@@ -1,7 +1,14 @@
 server {
     listen {{ item.http_port | default (80) }};
     server_name {{ item.server_name }} {% if item.serveraliases is defined %}{{ item.serveraliases }}{% endif %};
+    location ~ /\.(?!well-known).* {
+        deny all;
+        access_log off;
+        log_not_found off;
+        return 404;
+    }
 {% if letsencrypt_acme_install %}
+## Disable .htaccess and other hidden files
     include /etc/nginx/snippets/letsencrypt-proxy.conf;
 {% endif %}
     {% if item.access_log is defined %}
@@ -35,6 +42,12 @@ server {
         allow all;
         log_not_found off;
         access_log off;
+    }
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+        return 404;
     }
     {% if haproxy_ips is defined %}
     # We are behind haproxy
@@ -127,6 +140,9 @@ server {
         allow all;
         log_not_found off;
         access_log off;
+    }
+    location ~ /\. {
+        deny all;
     }
     {% if haproxy_ips is defined %}
     # We are behind haproxy

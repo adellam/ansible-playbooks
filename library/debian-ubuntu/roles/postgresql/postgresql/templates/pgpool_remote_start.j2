@@ -1,8 +1,0 @@
-#!/bin/bash
-DEST=$1
-DESTDIR=$2
-
-# Deploy a base backup
-ssh -T $DEST 'cd {{ psql_data_dir }}; tar zxf pgsql.tar.gz' 2>/dev/null 1>/dev/null < /dev/null
-# Startup PostgreSQL server
-ssh -T $DEST sudo /etc/init.d/postgresql start 2>/dev/null 1>/dev/null < /dev/null

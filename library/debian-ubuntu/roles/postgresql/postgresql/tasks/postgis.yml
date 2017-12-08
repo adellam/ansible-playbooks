@@ -1,7 +1,0 @@
----
-- name: install the postgresql GIS packages
-  apt: pkg={{ item }} state={{ psql_pkg_state }}
-  with_items: '{{ postgres_gis_pkgs }}'
-  notify: Restart postgresql
-  tags: [ 'postgresql', 'postgres', 'postgis' ]
-
