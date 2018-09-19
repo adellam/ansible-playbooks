@@ -1,0 +1,74 @@
+---
+- block:
+    - name: Create the user under pdns_admin will run
+      user: name={{ pdns_admin_user }} home={{ pdns_admin_home }} createhome=no shell=/usr/sbin/nologin system=yes
+      
+    - name: Create the pdns_admin server base directory
+      file: dest={{ item }} state=directory owner=root group=root
+      with_items:
+        - '{{ pdns_admin_home }}'
+
+    - name: Create the pdns_admin server log directory
+      file: dest={{ item }} state=directory owner={{ pdns_admin_user }} group={{ pdns_admin_user }}
+      with_items:
+        - '{{ pdns_admin_logdir }}'
+
+    - name: Install the pdns_admin prerequisite deb packages
+      apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
+      with_items: '{{ pdns_admin_prereqs }}'
+
+    - name: Clone pdns_admin
+      git: repo={{ pdns_admin_git_repo_url }} dest={{ pdns_admin_home }}
+
+    - name: Make the upload directory writeable by the pdnsadmin user
+      file: dest={{ pdns_admin_home }}/upload recurse=yes owner={{ pdns_admin_user }} group={{ pdns_admin_user }}
+
+    - name: Install the pdns_admin configuration
+      template: src=config.py dest={{ pdns_admin_home }}/config.py
+      notify: Restart pdns_admin
+
+    - name: Create a python3 virtualenv
+      shell: cd {{ pdns_admin_home }} ; virtualenv -p python3 flask
+      args:
+        creates: '{{ pdns_admin_home }}/flask'
+      notify: Restart pdns_admin
+
+    - name: Install the virtualenv requirements
+      pip: requirements={{ pdns_admin_home }}/requirements.txt virtualenv={{ pdns_admin_home }}/flask virtualenv_site_packages=True
+      notify: Restart pdns_admin
+
+    - name: Install psycopg2 as an additional requirement
+      pip: name=psycopg2-binary virtualenv={{ pdns_admin_home }}/flask
+      notify: Restart pdns_admin
+
+    - name: Initialise the database
+      shell: cd {{ pdns_admin_home }}; . {{ pdns_admin_home }}/flask/bin/activate ; ./create_db.py ; touch {{ pdns_admin_logdir }}/.db_initialised
+      args:
+        creates: '{{ pdns_admin_logdir }}/.db_initialised'
+
+    - name: Install the pdns_admin server systemd unit
+      template: src=powerdns-admin.service dest=/etc/systemd/system/powerdns-admin.service mode=0644 owner=root group=root
+      when: ansible_service_mgr == 'systemd'
+      notify: systemd reload
+
+    - name: Ensure that pdns_admin is started and enabled
+      service: name=powerdns-admin state=started enabled=yes
+
+  tags: pdns_admin
+  when: pdns_admin_install
+
+- block:
+    - name: Ensure that pdns_admin is stopped and disabled
+      service: name=powerdns-admin state=stopped enabled=no
+
+    - name: Remove the pdns_admin init script
+      file: dest=/etc/systemd/system/powerdns-admin.service state=absent
+
+    - name: Remove all the pdns_admin files
+      file: dest={{ item }} state=absent
+      with_items:
+        - '{{ pdns_admin_home }}'
+        - '{{ pdns_admin_logdir }}'
+
+  tags: pdns_admin
+  when: not pdns_admin_install

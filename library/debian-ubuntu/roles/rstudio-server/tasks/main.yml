@@ -15,7 +15,7 @@
 
     - name: Install the rstudio server package
       command: gdebi -n -q /srv/{{ rstudio_file }}
-      when: ( rstudio_download | changed )
+      when: rstudio_download is changed
 
     - name: Change the apparmor behaviour to complain, otherwise it cannot read the nslcd socket
       shell: RETVAL='' ; if [ -x /usr/sbin/apparmor_status ] ; then APPARMOR_STATE=$( /usr/sbin/apparmor_status ) ; RETVAL=$? ; if [ $RETVAL -eq 0 ] ; then aa-complain /usr/lib/rstudio-server/bin/rserver ; fi ; fi

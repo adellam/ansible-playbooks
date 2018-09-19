@@ -1,0 +1,11 @@
+[Unit]
+Description=solr_prometheus_exporter - Prometheus exporter for Solr metrics.
+After=network.target
+
+[Service]
+Type=simple
+User={{ solr_user }}
+Group={{ solr_group }}
+ExecStart={{ solr_prometheus_bindir }}/{{ solr_prometheus_command }} {{ solr_prometheus_command_params }}
+Restart=on-failure
+

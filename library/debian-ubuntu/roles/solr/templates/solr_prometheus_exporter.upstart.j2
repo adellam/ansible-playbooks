@@ -1,0 +1,12 @@
+description "Solr exporter for Prometheus"
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+respawn
+respawn limit 10 5
+setuid {{ solr_user }}
+setgid {{ solr_group }}
+
+script
+  exec {{ solr_prometheus_bindir }}/{{ solr_prometheus_command }} {{ solr_prometheus_command_params }}
+end script

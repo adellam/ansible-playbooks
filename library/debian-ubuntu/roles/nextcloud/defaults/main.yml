@@ -1,0 +1,28 @@
+---
+nextcloud_version: 13.0.4
+nextcloud_dist_filename: 'nextcloud-{{ nextcloud_version }}.tar.bz2'
+nextcloud_download_url: 'https://download.nextcloud.com/server/releases/{{ nextcloud_dist_filename }}'
+nextcloud_use_redis: True
+nextcloud_use_memcache: False
+nextcloud_web_basedir: /var/www
+nextcloud_web_root: '{{ nextcloud_web_basedir }}/nextcloud'
+nextcloud_data_dir: /srv/nextcloud/data
+nextcloud_oc_dir: /srv/nextcloud/oc_keys
+nextcloud_servername: '{{ ansible_fqdn }}'
+nextcloud_servernames:
+  - { webroot: '{{ nextcloud_web_root }}', id: 1, name: '{{ nextcloud_servername }}' }
+
+nextcloud_user: nextcloud
+
+nextcloud_db: pgsql
+nextcloud_db_host: localhost
+nextcloud_db_name: nextcloud
+nextcloud_db_user: nextcloud_u
+#nextcloud_db_pwd: 'Use a vault file'
+
+nextcloud_admin_user: nc_admin
+#nextcloud_admin_u_pwd: 'Use a vault file'
+
+nextcloud_encryption_enabled: True
+nextcloud_ldap_auth: False
+

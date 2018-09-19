@@ -46,7 +46,7 @@
 
 - name: Reload the systemd unit when changed
   command: systemctl daemon-reload
-  when: ( install_varnish_unit | changed )
+  when: install_varnish_unit is changed
   tags: [ 'varnish', 'varnishconf' ]
 
 - name: Ensure that the varnish service is started and enabled

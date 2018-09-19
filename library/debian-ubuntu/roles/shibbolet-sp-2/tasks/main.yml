@@ -1,0 +1,21 @@
+---
+- block:
+  - name: Install the shibbolet packages
+    apt: pkg={{ item }} state={{ shibbolet_pkg_state }} cache_valid_time=1800 update_cache=yes
+    with_items: '{{ shibbolet_pkg_list }}'
+
+  - name: Install the shibbolet apache module
+    apt: pkg={{ item }} state={{ shibbolet_pkg_state }} cache_valid_time=1800 update_cache=yes
+    with_items: '{{ shibbolet_apache_module_pkg }}'
+
+  - name: Enable the apache shib2 module
+    apache2_module: name=shib2 state=present
+    notify: apache2 reload
+
+  - name: Create the shibbolet log directory
+    file: dest=/var/log/shibbolet state=directory owner='_shibd' group='_shibd'
+
+  - name: Ensure that the shibd service is running and enabled
+    service: name=shibd state=started enabled=yes
+
+  tags: [ 'shibbolet', 'shibbolet_sp' ]

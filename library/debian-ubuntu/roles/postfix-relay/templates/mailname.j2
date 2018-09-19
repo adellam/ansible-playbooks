@@ -1,0 +1,6 @@
+{% if hostname is defined %}
+{{ hostname }}
+{% else %}
+{{ ansible_fqdn }}
+{% endif %}
+

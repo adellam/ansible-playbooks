@@ -1,0 +1,8 @@
+java_jdk: "java8-jdk" #### either java8-jdk or openjdk-8
+image_name: "smartgears-home-library"
+image_tag: "{{ home_library_war_version }}"
+push_to_repo: "no"
+repo: "gcube-staging"
+
+home_library_artifact_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/data/access/home-library-webapp/{{ home_library_war_version }}/home-library-webapp-{{ home_library_war_version }}.war"
+catalina_home: "/usr/share/tomcat7/"

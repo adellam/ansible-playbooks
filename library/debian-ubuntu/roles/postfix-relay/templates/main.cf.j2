@@ -16,8 +16,19 @@ readme_directory = no
 
 # TLS parameters
 # Server
+{% if letsencrypt_acme_install is defined %}
+{% if postfix_use_letsencrypt %}
+smtpd_tls_cert_file={{ letsencrypt_acme_certs_dir }}/cert
+smtpd_tls_key_file={{ letsencrypt_acme_certs_dir }}/privkey
+{% else %}
 smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
 smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+{% endif %}
+{% endif %}
+{% if letsencrypt_acme_install is not defined %}
+smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+{% endif %}
 smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
 {% if postfix_relay_server %}
 smtpd_tls_security_level = encrypt

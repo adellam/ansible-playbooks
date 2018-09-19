@@ -7,7 +7,9 @@
 - name: Install the apache modules packages
   apt: pkg={{ item }} state={{ apache_pkg_state }} update_cache=yes cache_valid_time=3600
   with_items: '{{ apache_modules_packages }}'
-  when: not apache_from_ppa
+  when:
+    - not apache_from_ppa
+    - is_trusty
   tags: [ 'apache', 'apache_additional_packages' ]
 
 # - name: Load the required worker module

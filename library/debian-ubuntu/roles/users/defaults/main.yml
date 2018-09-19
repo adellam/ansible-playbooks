@@ -13,4 +13,5 @@ users_default_password: '*'
 users_update_password: 'on_create'
 #users_system_users:
 #  - { login: 'foo', name: "Foo Bar", home: '{{ users_home_dir }}', createhome: 'yes', ssh_key: '{{ foo_ssh_key }}', shell: '/bin/bash', admin: False, log_as_root: False }
-
+#users_additional_groups:
+#  - { group: 'foo' }

@@ -7,10 +7,10 @@
       file: dest={{ r_packages_svn_base_dir }} state=directory
 
     - name: Cron job that installs new R packages, if any
-      cron: name="install new R packages" user=root cron_file=install-r-packages minute="*/10" job="/usr/local/bin/update_r_packages install >/var/log/install_r_packages 2>&1" state=present
+      cron: name="install new R packages" user=root cron_file=install-r-packages minute="*/10" hour="5-23,1-2" job="/usr/local/bin/update_r_packages install >/var/log/install_r_packages 2>&1" state=present
 
     - name: Cron job that upgrades existing R packages and installs new ones, if any
-      cron: name="install new R packages" user=root cron_file=upgrade-r-packages hour="3" job="/usr/local/bin/update_r_packages upgrade >/var/log/update_r_packages 2>&1" state=present
+      cron: name="install new R packages" user=root cron_file=upgrade-r-packages minute="7" hour="3" job="/usr/local/bin/update_r_packages upgrade >/var/log/update_r_packages 2>&1" state=present
 
   when: r_packages_updater
   tags: [ 'r_software', 'r_pkg', 'r_plugins', 'r_plugins_github', 'r_cran_pkgs', 'r_github_pkgs', 'r_packages_updater' ]

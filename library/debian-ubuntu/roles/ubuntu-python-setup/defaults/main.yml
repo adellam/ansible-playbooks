@@ -1,0 +1,22 @@
+---
+python_pkgs_state: present
+python_trusty_workaround: True
+python_get_pip_url: https://bootstrap.pypa.io/get-pip.py
+
+python_basic_pkgs:
+  - python-pip
+
+python_pip_dev_packages:
+  - libpython-dev
+  - libssl-dev
+  - libffi-dev
+
+python_pip_fix_ssl_warnings:
+  - pyOpenSSL
+  - cryptography
+  - idna
+  - certifi
+  - ndg-httpsclient
+  - urllib3
+  - pyasn1
+

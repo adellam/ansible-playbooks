@@ -4,13 +4,8 @@
   tags: couchdb
 
 - name: Remove the couchdb ppa
-  apt_repository: repo='{{ couchdb_ppa }}' state=absent
+  apt_repository: repo='{{ couchdb_ppa }}' state=absent update_cache=yes
   register: update_apt_cache
-  tags: couchdb
-
-- name: Update the apt cache if needed
-  apt: update_cache=yes
-  when: (update_apt_cache|changed)
   tags: couchdb
 
 - name: Change the open files limit

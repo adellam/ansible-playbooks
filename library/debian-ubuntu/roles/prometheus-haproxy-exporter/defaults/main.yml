@@ -1,0 +1,18 @@
+---
+prometheus_h_e_install: True
+prometheus_h_e_version: 0.9.0
+prometheus_h_e_dir: 'haproxy_exporter-{{ prometheus_h_e_version }}.linux-amd64'
+prometheus_h_e_file: '{{ prometheus_h_e_dir }}.tar.gz'
+prometheus_h_e_download_url: 'https://github.com/prometheus/haproxy_exporter/releases/download/v{{ prometheus_h_e_version }}/{{ prometheus_h_e_file }}'
+prometheus_h_e_user: prometheus
+prometheus_h_e_home: /opt/prometheus
+prometheus_h_e_dist_dir: '{{ prometheus_h_e_home }}/dist'
+prometheus_h_e_logdir: '/var/log/prometheus-haproxy-exporter'
+prometheus_h_e_cmd: '{{ prometheus_h_e_dist_dir }}/{{ prometheus_h_e_dir }}/haproxy_exporter'
+prometheus_h_e_port: 9101
+prometheus_h_e_loglevel: info
+prometheus_h_e_haproxy_pid: '/run/haproxy.pid'
+prometheus_h_e_haproxy_stats_port: 8881
+prometheus_h_e_opts: '--web.listen-address=":{{ prometheus_h_e_port }}" --log.level={{ prometheus_h_e_loglevel }} --haproxy.pid-file="{{ prometheus_h_e_haproxy_pid }}" --haproxy.scrape-uri="http://localhost:{{ prometheus_h_e_haproxy_stats_port }}/;csv"'
+# List the additional options here
+prometheus_h_e_additional_opts: ''

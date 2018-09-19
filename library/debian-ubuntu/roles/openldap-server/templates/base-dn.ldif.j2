@@ -1,0 +1,24 @@
+dn: olcDatabase={1}hdb,cn=config
+changetype: modify
+replace: olcSuffix
+olcSuffix: {{ openldap_base_dn }}
+
+dn: olcDatabase={1}hdb,cn=config
+changetype: modify
+replace: olcRootDN
+olcRootDN: cn={{ openldap_admin_user }},{{ openldap_base_dn }}
+
+#dn: olcDatabase={1}hdb,cn=config
+#changetype: modify
+#replace: olcAccess
+#olcAccess: {0}to attrs=userPassword,shadowLastChange by self write by anonymous auth by dn="cn={{ openldap_admin_user }},{{ openldap_base_dn }}" write by * none
+#
+#dn: olcDatabase={1}hdb,cn=config
+#changetype: modify
+#replace: olcAccess
+#olcAccess: {1}to dn.base="" by * read
+#
+#dn: olcDatabase={1}hdb,cn=config
+#changetype: modify
+#replace: olcAccess
+#olcAccess: {2}to * by dn="cn={{ openldap_admin_user }},{{ openldap_base_dn }}" write by * read

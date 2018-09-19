@@ -11,7 +11,7 @@
   
 - name: install the php-fpm package. We assume that apache is the web server of choice.
   yum: pkg={{ item }} state={{ pkg_state }}
-  with_items: '{{ php_fpm_packages }}'
+  with_items: php_fpm_packages
   tags: php
 
 - name: Set the timezone if we defined one
@@ -22,7 +22,7 @@
 
 - name: Set some other php.ini values
   ini_file: dest={{ php_conf_dir }}/php.ini section=Date option={{ item.option }} value={{ item.value }} backup=yes
-  with_items: '{{ php_ini_values }}'
+  with_items: php_ini_values
   when: php_ini_values is defined
   notify: Reload php-fpm
   tags: [ 'php', 'php_ini' ]
@@ -40,7 +40,7 @@
 
 - name: Create the directories where to store the sessions files. One for each pool
   file: dest={{ phpfpm_session_prefix }}/{{ item.pool_name }} owner={{ item.user }} group={{ item.group }} mode=0750 state=directory
-  with_items: '{{ phpfpm_pools }}'
+  with_items: phpfpm_pools
   when: phpfpm_use_default_template
   tags: [ 'php', 'fpm_pool', 'php_session' ]
 
@@ -51,7 +51,7 @@
 
 - name: Install the php-fpm pools
   template: src=php-fpm-pool.conf.j2 dest={{ php_conf_dir }}/php-fpm.d/{{ item.pool_name }}.conf owner=root group=root mode=0444
-  with_items: '{{ phpfpm_pools }}'
+  with_items: phpfpm_pools
   when: phpfpm_use_default_template
   notify: Restart php-fpm
   tags: [ 'php', 'fpm_pool', 'fpm_conf', 'fpm_pool_conf' ]

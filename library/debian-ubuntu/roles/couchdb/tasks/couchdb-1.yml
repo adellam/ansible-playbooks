@@ -2,13 +2,8 @@
 # This is the playbook that installs couchdb 1.x
 #
 - name: Add the ppa for couchdb
-  apt_repository: repo='{{ couchdb_ppa }}'
+  apt_repository: repo='{{ couchdb_ppa }}' update_cache=yes
   register: install_ppa
-  tags: couchdb
-
-- name: Update the apt cache if needed
-  apt: update_cache=yes
-  when: ( install_ppa | changed )
   tags: couchdb
 
 - name: Install the couchdb packages
@@ -34,7 +29,7 @@
   with_items: couchdb_admin_users
   when:
     - couchdb_set_admin
-#    - admin_init is defined and ( admin_init | changed )
+#    - admin_init is defined and admin_init is changed
   notify: Restart couchdb
   tags: [ 'couchdb', 'couch_opts']
   

@@ -7,6 +7,7 @@ postfix_biff: "no"
 postfix_append_dot_mydomain: "no"
 postfix_use_relay_host: True
 
+postfix_use_letsencrypt: False
 # Accepted values: none, may, encrypt
 postfix_smtpd_tls_security_level: encrypt
 # Accepted values: none, may, encrypt, fingerprint, verify, secure. And from 2.11: dane, dane-only

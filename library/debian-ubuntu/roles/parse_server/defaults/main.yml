@@ -1,0 +1,11 @@
+---
+parse_server_user: parsesrv
+parse_server_user_home: /srv/parse
+parse_server_npm_modules:
+  - parse-server
+  - pm2
+
+parse_server_http_port: 1337
+parse_server_db: parse_db
+parse_server_mongodb_url: 'mongodb://localhost:27017/{{ parse_server_db }}'
+

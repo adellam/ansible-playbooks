@@ -1,5 +1,10 @@
 ---
-  
+- name: Create a basic configuration via debconf
+  debconf: name=slapd question='{{ item.question }}' value='{{ item.value }}' vtype='{{ item.vtype }}'
+  with_items: '{{ slapd_debconf_params }}'
+  when: openldap_service_enabled
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf' ]
+
 - name: Install the openldap server packages
   apt: name={{ item }} state={{ openldap_pkg_state }}
   with_items: '{{ openldap_pkg_list }}'

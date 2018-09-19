@@ -82,16 +82,16 @@
 
 - name: Initialize the DB
   shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; RAILS_ENV=production rake db:migrate
-  when: redmine_install.changed
+  when: redmine_install is changed
   tags: redmine
 
 - name: Install the defauld DB data
   shell: cd {{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}; RAILS_ENV=production REDMINE_LANG=en rake redmine:load_default_data
-  when: redmine_install.changed
+  when: redmine_install is changed
   tags: redmine
 
 - name: Install the packages needed by plugins or to build plugins required gems
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present
   with_items:
     - libxslt1-dev
   tags: redmine

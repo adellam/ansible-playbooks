@@ -1,0 +1,13 @@
+---
+- block:
+  - name: apt key for the internal ppa repository
+    apt_key: url=http://ppa.research-infrastructures.eu/system/keys/system-archive.asc state=present
+
+  - name: Setup the infrascience trusty repository
+    apt_repository: repo='deb [arch=amd64] http://ppa.research-infrastructures.eu/trusty-infrascience {{ ansible_distribution_release }} main' update_cache=yes
+
+  - name: Install the hdf5 packages 
+    apt: pkg={{ item }} state={{ hdf5_pkg_state }} update_cache=yes cache_valid_time=3600
+    with_items: '{{ hdf5_pkgs_list }}'
+
+  tags: [ 'hdf5' ]

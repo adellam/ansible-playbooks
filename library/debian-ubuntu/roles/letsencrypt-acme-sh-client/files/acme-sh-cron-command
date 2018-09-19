@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ -f "/etc/default/acme_sh_request_env" ] ; then
+    . "/etc/default/acme_sh_request_env"
+else
+    exit 1
+fi
+
+if [ -f "$ACME_SH_ENV_FILE" ] ; then
+    . "$ACME_SH_ENV_FILE"
+else
+    exit 1
+fi
+
+$ACME_SH_BIN --cron --home "$ACME_SH_BINDIR" --config-home "$ACME_SH_CONFIG_HOME" > "$ACME_SH_CRON_LOG_FILE" 2>&1
+
+exit $?

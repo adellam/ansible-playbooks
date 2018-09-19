@@ -4,14 +4,14 @@
   tags:
     - nsca
 
-- apt: pkg={{ item }} state=installed
+- apt: pkg={{ item }} state=present
   with_items:
     - nsca-client
   when: '(({{ is_not_ubuntu_less_than_precise }}) == True) or (({{ is_debian7 }}) == True)'
   tags:
     - nsca
 
-- apt: pkg={{ item }} state=installed
+- apt: pkg={{ item }} state=present
   with_items:
     - nsca
   when: "(({{ is_not_debian_less_than_6 }}) == True) and (({{ is_ubuntu_less_than_precise }}) == True)"

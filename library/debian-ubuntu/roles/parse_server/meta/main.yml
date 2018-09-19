@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: '../../library/roles/nginx'
+  - role: '../../library/roles/node_js'

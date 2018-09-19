@@ -1,0 +1,12 @@
+---
+- block: 
+    - name: Add schemas to a database.
+      become: True
+      become_user: postgres
+      postgresql_schema: database={{ item.0.name }} port={{ psql_db_port }} name={{ item.1 }} owner={{ item.0.user }} state={{ item.0.schemastate | default('present') }}
+      with_subelements:
+        - '{{ psql_db_schemas | default([]) }}'
+        - schema
+
+  when: psql_db_schemas is defined
+  tags: [ 'postgresql', 'postgres', 'pg_db', 'pg_schema' ]

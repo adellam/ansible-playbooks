@@ -1,20 +1,33 @@
 ---
 joomla_dist_name: Joomla
-joomla_dist_version: 3.4.8
+joomla_major: 3
+joomla_minor: 8
+joomla_fix: 5
+joomla_dist_version: '{{ joomla_major }}.{{ joomla_minor }}.{{ joomla_fix }}' 
 joomla_dist_file: '{{ joomla_dist_name }}_{{ joomla_dist_version }}-Stable-Full_Package.zip'
-joomla_tar_url: 'https://github.com/joomla/joomla-cms/releases/download/{{ joomla_dist_version }}/{{ joomla_dist_file }}'
+joomla_download_version: '{{ joomla_major }}-{{ joomla_minor }}-{{ joomla_fix }}' 
+joomla_download_file: '{{ joomla_dist_name }}_{{ joomla_dist_version }}-Stable-Full_Package.zip'
+joomla_tar_url: 'https://downloads.joomla.org/cms/joomla{{ joomla_major }}/{{ joomla_download_version }}/{{ joomla_download_file }}?format=zip'
 joomla_download_dir: /srv/joomla
 joomla_install_dir: /var/www
 
 joomla_php_prereq:
-  - php5-json
-  - php5-intl
-  - php5-cli
-  - php5-pgsql
-  - php5-gd
-  - php5-memcached
+  - 'php{{ php_version }}-json'
+  - 'php{{ php_version }}-intl'
+  - 'php{{ php_version }}-cli'
+  - 'php{{ php_version }}-gd'
+  - 'php{{ php_version }}-memcached'
+  - 'php{{ php_version }}-zip'
+  - 'php{{ php_version }}-curl'
   - php-pear
   - php-date
   - php-xml-serializer
   - imagemagick
 
+joomla_use_postgresql: True 
+joomla_php_pg_driver:
+  - 'php{{ php_version }}-pgsql'
+
+joomla_use_mysql: False
+joomla_php_my_driver:
+  - 'php{{ php_version }}-mysqlnd'

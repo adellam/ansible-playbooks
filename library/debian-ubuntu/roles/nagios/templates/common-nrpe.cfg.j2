@@ -2,8 +2,14 @@
 command[global_check_disk]={{ nagios_plugins_dir }}/check_disk -w {{ nagios_check_disk_w }}% -c {{ nagios_check_disk_c }}% -X tmpfs -X proc -X sysfs -X devpts -X dev -A -i /mnt/.*
 
 command[global_check_load]={{ nagios_plugins_dir }}/check_load {% if nagios_load_per_cpu %}-r{% endif %} -w {{ nagios_load_w }} -c {{ nagios_load_c }}
+{% if ansible_distribution_release == 'xenial' %}
+command[global_check_memory]={{ nagios_plugins_dir }}/check_memory.xenial -u M -w 5% -c 1%
+{% else %}
 command[global_check_memory]={{ nagios_plugins_dir }}/check_memory -u M -w 5% -c 1%
-command[global_check_swap]={{ nagios_plugins_dir }}/check_swap -w 20% -c 5%
+{% endif %}
+
+command[global_check_swap]={{ nagios_plugins_dir }}/check_swap -w 20% -c 5% {% if ansible_distribution_release == 'xenial' %}-n ok{% endif %}
+
 command[global_check_zombie_procs]={{ nagios_plugins_dir }}/check_procs -w 5 -c 10 -s Z
 command[global_check_total_procs]={{ nagios_plugins_dir }}/check_procs -w 800 -c 1000 
 
@@ -35,7 +41,8 @@ command[global_check_linux_raid]={{ nagios_plugins_dir }}/check_raid
 command[global_check_smart]={{ nagios_isti_plugdir }}/check_smart -d $ARG1$ -i $ARG2$
 
 # Network interfaces
-command[global_net_interfaces]={{ nagios_isti_plugdir }}/check_netint.pl -K -f -e
+#command[global_net_interfaces]={{ nagios_isti_plugdir }}/check_netint.pl -K -f -e
+command[global_net_interfaces]={{ nagios_isti_plugdir }}/check_netint.pl -K -f -e -D -S -n \(l\|eth\|p\|bond\)
 
 # Restart ntp (via handler)
 command[global_restart_ntp]=/usr/bin/sudo /etc/init.d/ntp start

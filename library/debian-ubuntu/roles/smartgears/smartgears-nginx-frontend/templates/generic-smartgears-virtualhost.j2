@@ -69,6 +69,18 @@ server {
     {% if context != "whn-manager" %}
     {% if context != '' %}
     location /{{ context }} {
+        {% if varnish_install is defined and varnish_install %}
+        {% if smartgears_nginx_cors_enabled %}
+        include /etc/nginx/snippets/nginx-cors.conf;
+        {% if nginx_cors_extended_rules %}
+        proxy_pass http://127.0.0.1:{{ varnish_listen_port }};
+        {% else %}
+        proxy_pass http://127.0.0.1:{{ varnish_listen_port }}/{{ context }};
+        {% endif %}
+        {% else %}
+        proxy_pass http://127.0.0.1:{{ varnish_listen_port }}/{{ context }};
+        {% endif %}
+        {% else %}
         {% if smartgears_nginx_cors_enabled %}
         include /etc/nginx/snippets/nginx-cors.conf;
         {% if nginx_cors_extended_rules %}
@@ -78,6 +90,7 @@ server {
         {% endif %}
         {% else %}
         proxy_pass http://127.0.0.1:{{ item.http_port }}/{{ context }};
+        {% endif %}
         {% endif %}
     }
     {% endif %}
@@ -94,6 +107,17 @@ server {
         proxy_pass http://127.0.0.1:{{ smartgears_http_port }}/data-transfer-service;
     }
     {% endif %}
+    {% if tomcat_m_manager_install or tomcat_m_host_manager_install %}
+    {% if smartgears_tomcat_manager_exposed %}
+    location /manager {
+        {% for acl in smartgears_tomcat_manager_access_acls %}
+        {{ acl.policy }} {{ acl.address }};
+        {% endfor %}
+        proxy_pass http://127.0.0.1:{{ smartgears_http_port }}/manager;
+    }
+    {% endif %}
+    {% endif %}
+    
     {% if remote_opencpu_server is defined and remote_opencpu_server %}
     location {{ opencpu_context | default('/ocpu') }} {
         {% if smartgears_nginx_cors_enabled %}
@@ -198,6 +222,18 @@ server {
     {% if context != "whn-manager" %}
     {% if context != '' %}
     location /{{ context }} {
+        {% if varnish_install is defined and varnish_install %}
+        {% if smartgears_nginx_cors_enabled %}
+        include /etc/nginx/snippets/nginx-cors.conf;
+        {% if nginx_cors_extended_rules %}
+        proxy_pass http://127.0.0.1:{{ varnish_listen_port }};
+        {% else %}
+        proxy_pass http://127.0.0.1:{{ varnish_listen_port }}/{{ context }};
+        {% endif %}
+        {% else %}
+        proxy_pass http://127.0.0.1:{{ varnish_listen_port }}/{{ context }};
+        {% endif %}
+        {% else %}
         {% if smartgears_nginx_cors_enabled %}
         include /etc/nginx/snippets/nginx-cors.conf;
         {% if nginx_cors_extended_rules %}
@@ -207,6 +243,7 @@ server {
         {% endif %}
         {% else %}
         proxy_pass http://127.0.0.1:{{ item.http_port }}/{{ context }};
+        {% endif %}
         {% endif %}
     }
     {% endif %}
@@ -222,6 +259,16 @@ server {
     location /data-transfer-service {
         proxy_pass http://127.0.0.1:{{ smartgears_http_port }}/data-transfer-service;
     }
+    {% endif %}
+    {% if tomcat_m_manager_install or tomcat_m_host_manager_install %}
+    {% if smartgears_tomcat_manager_exposed %}
+    location /manager {
+        {% for acl in smartgears_tomcat_manager_access_acls %}
+        {{ acl.policy }} {{ acl.address }};
+        {% endfor %}
+        proxy_pass http://127.0.0.1:{{ smartgears_http_port }}/manager;
+    }
+    {% endif %}
     {% endif %}
     {% if remote_opencpu_server is defined and remote_opencpu_server %}
     location {{ opencpu_context | default('/ocpu') }} {

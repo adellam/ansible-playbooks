@@ -1,0 +1,5 @@
+---
+dependencies:
+  - role: '../library/roles/smartgears/smart_executor'
+  - role: '../library/roles/smartgears/catalina-app-conf'
+

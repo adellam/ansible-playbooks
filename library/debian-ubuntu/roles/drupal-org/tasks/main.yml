@@ -1,6 +1,6 @@
 ---
-- include: drupal-main.yml
+- import_tasks: drupal-main.yml
   when: drupal_install
-- include: drupal-utility.yml
-- include: drush.yml
+- import_tasks: drupal-utility.yml
+- import_tasks: drush.yml
   when: drupal_install_drush

@@ -1,15 +1,21 @@
 ---
-- name: Create the acme hooks directory if it does not yet exist
-  file: dest={{ letsencrypt_acme_services_scripts_dir }} state=directory owner=root group=root
+- block:
+    - name: Create the acme hooks directory if it does not yet exist
+      file: dest={{ letsencrypt_acme_services_scripts_dir }} state=directory owner=root group=root
+
+    - name: Install a script that fix the letsencrypt certificate for postgresql and then restarts the service
+      copy: src=postgresql-letsencrypt-acme.sh dest={{ letsencrypt_acme_services_scripts_dir }}/postgresql owner=root group=root mode=4555
+
   when:
     - postgresql_letsencrypt_managed
     - letsencrypt_acme_install
   tags: [ 'postgresql', 'postgres', 'letsencrypt' ]
 
-- name: Install a script that fix the letsencrypt certificate for postgresql and then restarts the service
-  copy: src=postgresql-letsencrypt-acme.sh dest={{ letsencrypt_acme_services_scripts_dir }}/postgresql owner=root group=root mode=4555
-  when:
-    - postgresql_letsencrypt_managed
-    - letsencrypt_acme_install
-  tags: [ 'postgresql', 'postgres', 'letsencrypt' ]
 
+- block:
+    - name: Remove the letsencrypt certificate hook for postgresql
+      file: dest=/usr/lib/acme/hooks/postgresql state=absent
+
+  when:
+    - not postgresql_letsencrypt_managed
+  tags: [ 'postgresql', 'postgres', 'letsencrypt' ]

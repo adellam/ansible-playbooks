@@ -1,6 +1,13 @@
 ---
-- name: Install the system resolv.conf
-  copy: src=resolv.conf dest=/etc/resolv.conf owner=root group=root mode=0644
+- block:
+  # - name: Find the Openstack region, if any
+  #   set_fact: openstack_region_name={{ location.region_name|replace('-','_') }} cacheable=True
+  #   when: location.region_name is defined
+
+  - name: Install the system resolv.conf
+    template: src=resolv.conf dest=/etc/resolv.conf owner=root group=root mode=0644
+
   when: install_resolvconf
+  tags: resolvconf
 
 

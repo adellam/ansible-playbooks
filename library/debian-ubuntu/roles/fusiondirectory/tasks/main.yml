@@ -1,6 +1,6 @@
 ---
-- include: manage-fd-repos.yml
-- include: manage-fd-packages.yml
-- include: manage-fd-schemas.yml
+- import_tasks: manage-fd-repos.yml
+- import_tasks: manage-fd-packages.yml
+- import_tasks: manage-fd-schemas.yml
   when: fusiondirectory_schemas_install
 

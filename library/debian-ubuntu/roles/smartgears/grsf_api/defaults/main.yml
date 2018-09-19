@@ -1,0 +1,7 @@
+---
+grsf_api_install: False
+grsf_api_ver: latest
+grsf_api_group_id: gr.forth.ics.isl
+grsf_api_name: grsf-api
+grsf_api_extension: war
+grsf_api_file: '{{ grsf_api_name }}-{{ grsf_api_ver }}.{{ grsf_api_extension }}'

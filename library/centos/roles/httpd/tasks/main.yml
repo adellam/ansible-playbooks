@@ -1,5 +1,5 @@
 ---
-- include: httpd.yml
-- include: httpd-letsencrypt.yml
+- import_tasks: httpd.yml
+- import_tasks: httpd-letsencrypt.yml
   when: apache_letsencrypt_managed
   

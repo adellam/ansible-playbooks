@@ -18,7 +18,7 @@
   
     - name: Remove the old sdi files
       file: path={{ smartgears_instance_path }}/webapps/{{ sdi_service_name }} state=absent
-      when: ( sdi_service_download | changed )
+      when: sdi_service_download is changed
 
     - name: Copy the sdi service war file into the webapps directory
       copy: src={{ smartgears_downloads_dir }}/{{ sdi_service_file }} dest={{ smartgears_instance_path }}/webapps/{{ sdi_service_name }}.{{ sdi_extension }} remote_src=yes force=yes

@@ -2,7 +2,7 @@
 pg_use_postgresql_org_repo: True
 
 psql_postgresql_install: False
-psql_pkg_state: installed
+psql_pkg_state: present
 postgresql_enabled: True
 psql_pgpool_install: False
 psql_pgpool_service_install: False
@@ -62,12 +62,19 @@ psql_autovacuum_configuration:
 # SSL as a special case
 psql_enable_ssl: False
 psql_force_ssl_client_connection: False
-postgresql_letsencrypt_managed: True
-psql_conf_ssl_parameters:
+postgresql_letsencrypt_managed: '{{ psql_enable_ssl }}'
+psql_ssl_privkey_global_file: '/var/lib/acme/live/{{ ansible_fqdn }}/privkey'
+psql_ssl_privkey_file: /etc/pki/postgresql/postgresql.key
+psql_ssl_cert_file: '/var/lib/acme/live/{{ ansible_fqdn }}/cert'
+psql_ssl_ca_file: '/var/lib/acme/live/{{ ansible_fqdn }}/chain'
+psql_conf_ssl_parameters: 
   - { name: 'ssl', value: 'true' }
-  - { name: 'ssl_cert_file', value: '/var/lib/acme/live/{{ ansible_fqdn }}/cert' }
-  - { name: 'ssl_key_file', value: '/etc/pki/postgresql/postgresql.key' }
-  - { name: 'ssl_ca_file', value: '/var/lib/acme/live/{{ ansible_fqdn }}/chain' }
+  - { name: 'ssl_cert_file', value: '{{ psql_ssl_cert_file }}' }
+  - { name: 'ssl_key_file', value: '{{ psql_ssl_privkey_file }}' }
+  - { name: 'ssl_ca_file', value: '{{ psql_ssl_ca_file }}' }
+
+psql_conf_disable_ssl_parameters: 
+  - { name: 'ssl', value: 'false' }
 
 psql_set_shared_memory: False
 psql_sysctl_file: 30-postgresql-shm.conf
@@ -211,14 +218,14 @@ pg_backup_enabled: True
 pg_backup_bin: /usr/local/sbin/postgresql-backup
 pg_backup_pgdump_bin: /usr/bin/pg_dump
 pg_backup_retain_copies: 1
-pg_backup_build_db_list: "no"
+pg_backup_build_db_list: "yes"
 # Dynamically created from psql_db_data if pg_backup_db_list is not set
 #pg_backup_db_list: '{{ psql_db_name}}'
 pg_backup_base_dir: /var/lib/pgsql
 pg_backup_destdir: '{{ pg_backup_base_dir }}/backups'
 pg_backup_logdir: /var/log/postgresql
 pg_backup_logfile: '{{ pg_backup_logdir }}/postgresql-backup.log'
-pg_backup_use_auth: "yes"
+pg_backup_use_auth: "no"
 pg_backup_pass_file: /root/.pgpass
 pg_backup_use_nagios: "yes"
 

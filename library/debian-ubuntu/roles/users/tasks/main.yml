@@ -1,36 +1,37 @@
 ---
-- name: Create the sudoers group if needed
-  group: name={{ users_sudoers_group }} state=present
-  when: users_sudoers_create_group
-  tags: users
+- block: 
+    - name: Create the sudoers group if needed
+      group: name={{ users_sudoers_group }} state=present
+      when: users_sudoers_create_group
 
-- name: Add a sudo additional configuration for the new sudoers group
-  template: src=sudoers.j2 dest=/etc/sudoers.d/{{ users_sudoers_group }}
-  when: users_sudoers_create_sudo_conf
-  tags: users
+    - name: Add a sudo additional configuration for the new sudoers group
+      template: src=sudoers.j2 dest=/etc/sudoers.d/{{ users_sudoers_group }}
+      when: users_sudoers_create_sudo_conf
 
-- name: Create users
-  user: name={{ item.login }} comment="{{ item.name }}" home={{ item.home }}/{{ item.login }} createhome={{ item.createhome }} shell={{ item.shell }} password={{ item.password | default('*') }} update_password={{ item.update_password | default('on_create') }}
-  with_items: '{{ users_system_users | default([]) }}'
-  tags: users
+    - name: Manage additional groups
+      group: name={{ item.group }} state={{ item.state | default('present') }}
+      with_items: '{{ users_additional_groups }}'
+      when: users_additional_groups is defined
+  
+    - name: Create users
+      user: name={{ item.login }} group={{ item.group | default(omit) }} comment="{{ item.name }}" home={{ item.home }}/{{ item.login }} createhome={{ item.createhome }} shell={{ item.shell }} password={{ item.password | default('*') }} update_password={{ item.update_password | default('on_create') }}
+      with_items: '{{ users_system_users | default([]) }}'
 
-- name: ensure that the users can login with their ssh keys
-  authorized_key: user="{{ item.login }}" key="{{ item.ssh_key }}" state=present
-  with_items: '{{ users_system_users | default([]) }}'
-  when: item.ssh_key is defined
-  tags: users
+    - name: ensure that the users can login with their ssh keys
+      authorized_key: user="{{ item.login }}" key="{{ item.ssh_key }}" state=present
+      with_items: '{{ users_system_users | default([]) }}'
+      when: item.ssh_key is defined
 
-- name: Add the admin users to the sudoers group
-  user: name={{ item.login }} groups={{ users_sudoers_group }} append=yes
-  with_items: '{{ users_system_users | default([]) }}'
-  when: item.admin
-  tags: users
+    - name: Add the admin users to the sudoers group
+      user: name={{ item.login }} groups={{ users_sudoers_group }} append=yes
+      with_items: '{{ users_system_users | default([]) }}'
+      when: item.admin
 
-- name: ensure that the users can login with their ssh keys as root if we want ensure direct access
-  authorized_key: user=root key="{{ item.ssh_key }}" state=present
-  with_items: '{{ users_system_users | default([]) }}'
-  when:
-    - item.ssh_key is defined
-    - ( item.log_as_root is defined ) and ( item.log_as_root )
-  tags: users
+    - name: ensure that the users can login with their ssh keys as root if we want ensure direct access
+      authorized_key: user=root key="{{ item.ssh_key }}" state=present
+      with_items: '{{ users_system_users | default([]) }}'
+      when:
+        - item.ssh_key is defined
+        - ( item.log_as_root is defined ) and ( item.log_as_root )
 
+  tags: users

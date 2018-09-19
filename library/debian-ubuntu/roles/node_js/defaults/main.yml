@@ -1,0 +1,20 @@
+---
+node_js_repo_version: 8
+node_js_repo_name: 'node_{{ node_js_repo_version }}.x'
+node_js_repo_key: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+node_js_repo_urls:
+  - 'deb https://deb.nodesource.com/{{ node_js_repo_name }} {{ ansible_distribution_release }} main'
+  - 'deb-src https://deb.nodesource.com/{{ node_js_repo_name }} {{ ansible_distribution_release }} main'
+
+node_js_pkgs:
+  - nodejs
+
+node_js_pkg_state: present
+
+node_js_yarn_install: False
+node_js_yarn_repo_key: https://dl.yarnpkg.com/debian/pubkey.gpg
+node_js_yarn_repo_urls:
+  - 'deb https://dl.yarnpkg.com/debian/ stable main'
+
+node_js_yarn_pkgs:
+  - yarn

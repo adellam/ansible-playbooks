@@ -19,7 +19,7 @@
 MASTER='true'
 
 # checking if there are alive keepalived processes so we can trust the content of the notify 'state' file
-KEEPALIVENUM=`ps uax|grep '/usr/sbin/keepalived --dont-fork'|grep -v grep|wc -l|tr -d "\n"`
+KEEPALIVENUM=`ps uax|grep '/usr/sbin/keepalived'|grep -v grep|wc -l|tr -d "\n"`
 
 if [ $KEEPALIVENUM -gt 0 ]; then
 

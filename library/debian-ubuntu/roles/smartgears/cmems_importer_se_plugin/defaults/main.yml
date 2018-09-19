@@ -1,0 +1,16 @@
+---
+cmems_importer_se_plugin_install: False
+cmems_importer_se_plugin_upgrade: False
+cmems_importer_se_plugin_version: latest
+
+cmems_importer_se_plugin_group_id: 'org.gcube.dataanalysis'
+cmems_importer_se_plugin_name: 'cmems-importer-se-plugin'
+cmems_importer_se_plugin_extension: 'jar'
+cmems_importer_se_plugin_classifier: 'uberjar'
+cmems_importer_se_plugin_uber_file: '{{ cmems_importer_se_plugin_name }}-{{ cmems_importer_se_plugin_version }}-{{ cmems_importer_se_plugin_classifier }}.{{ cmems_importer_se_plugin_extension }}'
+cmems_importer_se_plugin_file: '{{ cmems_importer_se_plugin_name }}-{{ cmems_importer_se_plugin_version }}.{{ cmems_importer_se_plugin_extension }}'
+
+catalina_apps_conf:
+  - { app_name: '{{ smart_executor_name }}', plugin_name: '{{ cmems_importer_se_plugin_name }}' }
+
+# Note: the deb package nco is required

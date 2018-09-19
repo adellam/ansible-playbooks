@@ -1,0 +1,21 @@
+---
+# This playbook creates the usernames needed by the relay clients to connect to the relay server.
+#
+- hosts: smtp_clients
+  remote_user: root
+  vars_files:
+    - ../library/vars/isti-global.yml
+    - ../library/isti_vars/relay_host.yml
+  tasks:
+    - name: Create the user that will be used for the smtp authentication
+      user: name={{ postfix_smtp_relay_user }} comment="{{ ansible_fqdn }} smtp user" createhome=no home=/dev/null shell=/bin/true
+      delegate_to: "{{ postfix_relay_host }}"
+      register: smtp_add_user
+      tags: smtp
+
+    - name: Set the user password on the relay server
+      shell: echo "{{ postfix_smtp_relay_user }}:{{ postfix_smtp_relay_pwd }}" | chpasswd
+      delegate_to: "{{ postfix_relay_host }}"
+      when: smtp_add_user is changed
+      tags: smtp
+      

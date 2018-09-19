@@ -1,18 +1,18 @@
 ---
 - name: Remove unneeded base packages
-  apt: pkg={{ item }} state=removed
+  apt: pkg={{ item }} state=absent
   with_items: '{{ cleanup_base_packages }}'
   when: cleanup_base_packages
   tags: [ 'packages', 'pkg_cleanup' ]
 
 - name: Remove unneeded X packages
-  apt: pkg={{ item }} state=removed
+  apt: pkg={{ item }} state=absent
   with_items: '{{ x_base_packages_to_remove }}'
   when: cleanup_x_base_packages
   tags: [ 'packages', 'pkg_cleanup' ]
 
 - name: Remove the nfs packages
-  apt: pkg={{ item }} state=removed
+  apt: pkg={{ item }} state=absent
   with_items: '{{ nfs_packages }}'
   when:
     - is_not_precise
@@ -20,13 +20,13 @@
   tags: [ 'packages', 'pkg_cleanup' ]
 
 - name: Remove rpcbind packages
-  apt: pkg={{ item }} state=removed
+  apt: pkg={{ item }} state=absent
   with_items: '{{ rpcbind_packages }}'
   when: cleanup_rpcbind_packages
   tags: [ 'packages', 'pkg_cleanup' ]
 
 - name: Remove the exim packages
-  apt: name={{ item }} state=removed
+  apt: name={{ item }} state=absent
   with_items: '{{ exim_email_server_pkgs }}'
   when: cleanup_exim_email_server
   tags: [ 'packages', 'pkg_cleanup', 'exim' ]

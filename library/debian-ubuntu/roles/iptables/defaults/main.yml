@@ -43,7 +43,7 @@ iptables_default_policy: ACCEPT
 iptables_nat_enabled: False
 iptables_nat_specify_interfaces: True
 iptables_nat_interfaces:
-  - eth0
+  - '{{ ansible_default_ipv4.interface }}'
 iptables_input_default_policy: '{{ iptables_default_policy }}'
 iptables_forward_default_policy: '{{ iptables_default_policy }}'
 iptables_banned_default_policy: DROP

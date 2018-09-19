@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: '../../library/roles/nginx', when: elastic_hq_use_nginx_proxy }

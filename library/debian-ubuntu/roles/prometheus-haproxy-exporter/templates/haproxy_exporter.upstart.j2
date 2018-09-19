@@ -1,0 +1,12 @@
+description "Prometheus haproxy exporter"
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+respawn
+respawn limit 10 5
+setuid {{ prometheus_h_e_user }}
+setgid {{ prometheus_h_e_user }}
+
+script
+  exec {{ prometheus_h_e_cmd }} {{ prometheus_h_e_opts }} {{ prometheus_h_e_additional_opts }} > {{ prometheus_h_e_logdir }}/haproxy_exporter.log 2>&1
+end script

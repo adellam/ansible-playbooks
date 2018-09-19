@@ -1,6 +1,6 @@
 ---
 - name: Install the riemann rpm
-  yum: name={{ riemann_rpm_url }} state=installed
+  yum: name={{ riemann_rpm_url }} state=present
   when: riemann_use_rpm
   tags:
     - riemann

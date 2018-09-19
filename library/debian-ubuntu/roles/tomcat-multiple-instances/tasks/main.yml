@@ -66,7 +66,7 @@
   copy: src={{ item[1] }} dest={{ item.0.instance_path }}/conf/{{ item[1] }} owner={{ item.0.user }} group={{ item.0.user }} mode=0640
   with_nested:
     - '{{ tomcat_m_instances }}'
-    - [ 'context.xml', 'tomcat-users.xml', 'web.xml' ]
+    - [ 'context.xml', 'web.xml' ]
   register: restart_needed
   notify:
     - tomcat restart instances with changed configs 
@@ -112,6 +112,38 @@
   notify:
     - tomcat restart instances with changed configs 
   tags: [ 'tomcat', 'tomcat_instances', 'tomcat_conf', 'tomcat_serverxml' ]
+
+- name: Install the tomcat-admin package if the host-manager or manager apps are required
+  apt: pkg={{ item }} state={{ tomcat_pkg_state }} cache_valid_time=1800 update_cache=yes
+  with_items: 'tomcat{{ tomcat_version }}-admin'
+  when: tomcat_m_host_manager_install or tomcat_m_manager_install
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_conf', 'tomcat_host_manager', 'tomcat_manager' ]
+
+- name: Install the catalina configuration for the tomcat manager
+  template: src=tomcat-manager.xml.j2 dest={{ item.instance_path }}/conf/Catalina/localhost/manager.xml owner={{ item.user }} group={{ item.user }} mode=0640
+  with_items: '{{ tomcat_m_instances }}'
+  register: restart_needed
+  when: tomcat_m_manager_install
+  notify:
+    - tomcat restart instances with changed configs 
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_conf', 'tomcat_manager' ]
+
+- name: Install the catalina configuration for the tomcat host manager
+  template: src=tomcat-host-manager.xml.j2 dest={{ item.instance_path }}/conf/Catalina/localhost/host-manager.xml owner={{ item.user }} group={{ item.user }} mode=0640
+  with_items: '{{ tomcat_m_instances }}'
+  register: restart_needed
+  when: tomcat_m_host_manager_install
+  notify:
+    - tomcat restart instances with changed configs 
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_conf', 'tomcat_host_manager' ]
+
+- name: Install the catalina configuration for the tomcat manager
+  template: src=tomcat-users.xml.j2 dest={{ item.instance_path }}/conf/tomcat-users.xml owner={{ item.user }} group={{ item.user }} mode=0640
+  with_items: '{{ tomcat_m_instances }}'
+  register: restart_needed
+  notify:
+    - tomcat restart instances with changed configs 
+  tags: [ 'tomcat', 'tomcat_instances', 'tomcat_conf', 'tomcat_host_manager', 'tomcat_manager' ]
 
 - name: Install the instances startup scripts
   template: src=tomcat-instance.init.j2 dest=/etc/init.d/tomcat-instance-{{ item.http_port }} mode=0755 owner=root group=root

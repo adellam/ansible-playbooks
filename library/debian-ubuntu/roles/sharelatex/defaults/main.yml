@@ -11,6 +11,7 @@ sharelatex_hostname: '{{ ansible_fqdn }}'
 sharelatex_local_mongodb: False
 sharelatex_local_redis: False
 sharelatex_local_nginx: False
+sharelatex_secure_cookie: False
 
 sharelatex_mongodb_host: 'localhost'
 sharelatex_mongodb_db: 'sharelatex'
@@ -18,7 +19,7 @@ sharelatex_mongodb_url: 'mongodb://{{ sharelatex_mongodb_host }}/{{ sharelatex_m
 sharelatex_redis_host: localhost
 sharelatex_app_name: Our ShareLaTeX
 sharelatex_site_url: 'http://localhost/sharelatex'
-sharelatex_data_dir: '/srv/sharelatex'
+sharelatex_data_volume: 'sharelatex_data'
 sharelatex_host_data_dir: '/srv/sharelatex_data'
 sharelatex_container_data_dir: '/var/lib/sharelatex'
 

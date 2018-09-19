@@ -3,8 +3,8 @@
 # Note: in the index.php directory, the path to the yii distribution will be something like
 # $yii='{{ yii_install_dir }}/yii/framework/yii.php';
 #
-yii_version: 1.1.19
-yii_release: 5790cb
+yii_version: 1.1.20
+yii_release: 6ed384
 yii_installs:
   - { version: '{{ yii_version }}', release: '{{ yii_release }}' }
 
@@ -13,19 +13,15 @@ yii_download_url: 'https://github.com/yiisoft/yii/releases/download/{{ yii_versi
 yii_install_dir: '/opt'
 yii_framework_dir: '{{ yii_install_dir }}/yii-{{ yii_version }}'
 
-yii_php_modules:
-  - php-xml-dtd
-  - php-xml-parser
-  - php5-imagick
-  - php5-memcache
-  - php5-xcache
-  - php5-gd
-  - php5-mcrypt
-  - php5-curl
-  
-yii_php_db_server_modules:
-  - php5-pgsql
-  - php5-mysqlnd
+php_additional_packages:
+  - php-xml
+  - php-imagick
+  - php-memcache
+  - php-gd
+  - php-mcrypt
+  - php-curl
+  - php-pgsql
+  - 'php{{ php_version }}-opcache'
 
 yii_unneeded_files:
   - CHANGELOG

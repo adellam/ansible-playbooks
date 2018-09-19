@@ -7,12 +7,15 @@
            http://www.unidata.ucar.edu/schemas/thredds/InvCatalog.1.0.6.xsd">
 
   <service name="all" base="" serviceType="compound">
-    <service name="odap" serviceType="OpenDAP" base="/thredds/dodsC/" />
-    <service name="dap4" serviceType="DAP4" base="/thredds/dap4/" />
-    <service name="http" serviceType="HTTPServer" base="/thredds/fileServer/" />
-    <service name="wcs" serviceType="WCS" base="/thredds/wcs/" />
-    <service name="wms" serviceType="WMS" base="/thredds/wms/" />
-    <service name="ncss" serviceType="NetcdfSubset" base="/thredds/ncss/" />
+    <service base="/thredds/dodsC/" name="odap" serviceType="OpenDAP"/>
+    <service base="/thredds/dap4/" name="dap4" serviceType="DAP4"/>
+    <service base="/thredds/fileServer/" name="http" serviceType="HTTPServer"/>
+    <service base="/thredds/ncml/" name="ncml" serviceType="NCML"/>     <!-- Add by JULIEN -->
+    <service base="/thredds/iso/" name="iso" serviceType="ISO"/>     <!-- Add by JULIEN -->
+    <service base="/thredds/wcs/" name="wcs" serviceType="WCS"/>
+    <service base="/thredds/wms/" name="wms" serviceType="WMS"/>
+    <service base="/thredds/sos/" name="sos" serviceType="SOS"/>     <!-- Add by JULIEN / IF POSSIBLE-->
+    <service base="/thredds/ncss/" name="ncss" serviceType="NetcdfSubset"/>
   </service>
 
   <service name="dap" base="" serviceType="compound">
@@ -20,23 +23,27 @@
     <service name="dap4" serviceType="DAP4" base="/thredds/dap4/" />
   </service>
 
-  <datasetScan name="public files" ID="DatasetScan"
-             path="public/netcdf" location="{{ thredds_public_netcdf_dir }}">
-          <metadata inherited="true">
-              <serviceName>all</serviceName>
-          </metadata>
+ <datasetScan ID="Root-DatasetScan" location="{{ thredds_public_netcdf_dir }}" name="Thredds Root Catalog" path="public/netcdf">
+    <metadata inherited="true">
+        <serviceName>all</serviceName>
+    </metadata>
 
-          <filter>
-           <include wildcard="*.nc" />
-           <include wildcard="*.tiff" />
-           <include wildcard="*.geotiff" />
-   <include wildcard="*.asc" /> 
-     <include wildcard="*.ncml" />
-          </filter>
-<sort>
-    <lexigraphicByName increasing="true" />
-</sort>
-      </datasetScan>
+    <filter>
+     <include wildcard="*.nc"/>
+     <include wildcard="*.tiff"/>
+     <include wildcard="*.geotiff"/>
+     <include wildcard="*.asc"/> 
+     <include wildcard="*.ncml"/>
+    </filter>
 
+    <sort>
+        <lexigraphicByName increasing="true"/>
+    </sort>
+  </datasetScan>
+
+
+<dataset ID="VRE_Catalogs" name="Catalogs of Virtual Research Environments VRE">  
+ <!-- Contains dedicated catalogs reference -->
+</dataset>
 
 </catalog>

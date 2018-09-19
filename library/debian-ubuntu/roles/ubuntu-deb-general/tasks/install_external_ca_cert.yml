@@ -1,11 +1,11 @@
 ---
 - name: Install the additional CA certificates
-  get_url: url={{ item.url }} dest={{ item.dest_file }}
+  copy: src={{ item.file }} dest={{ item.dest_file }}
   with_items: '{{ x509_additional_ca_certs }}'
   when: install_additional_ca_certs
   notify: Update the CA bundle list
   tags: ca
 
-- name: Install a CA file that contains both the letsencrypt complete chain and the INFN CA certs
+- name: Install a CA file that contains both the letsencrypt complete chain, the INFN CA certs and the TERENA personal certs CA
   copy: src=infn-letsencrypt-ca.crt dest={{ pki_dir }}/infn-letsencrypt-ca.crt
   tags: ca

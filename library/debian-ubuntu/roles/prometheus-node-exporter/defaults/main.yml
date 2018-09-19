@@ -1,0 +1,16 @@
+---
+prometheus_n_e_install: True
+prometheus_n_e_version: 0.15.2
+prometheus_n_e_dir: 'node_exporter-{{ prometheus_n_e_version }}.linux-amd64'
+prometheus_n_e_file: '{{ prometheus_n_e_dir }}.tar.gz'
+prometheus_n_e_download_url: 'https://github.com/prometheus/node_exporter/releases/download/v{{ prometheus_n_e_version }}/{{ prometheus_n_e_file }}'
+prometheus_n_e_user: prometheus
+prometheus_n_e_home: /opt/prometheus
+prometheus_n_e_dist_dir: '{{ prometheus_n_e_home }}/dist'
+prometheus_n_e_logdir: '/var/log/prometheus-node-exporter'
+prometheus_n_e_cmd: '{{ prometheus_n_e_dist_dir }}/{{ prometheus_n_e_dir }}/node_exporter'
+prometheus_n_e_port: 9100
+prometheus_n_e_loglevel: info
+prometheus_n_e_opts: '--web.listen-address=":{{ prometheus_n_e_port }}" --log.level={{ prometheus_n_e_loglevel }}'
+# List the additional options here
+prometheus_n_e_additional_opts: ''

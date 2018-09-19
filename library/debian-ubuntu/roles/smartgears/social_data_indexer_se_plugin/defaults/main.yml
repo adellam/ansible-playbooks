@@ -6,4 +6,4 @@ social_data_indexer_se_plugin_name: 'social-data-indexer-se-plugin'
 social_data_indexer_se_plugin_artifact_id: '{{ social_data_indexer_se_plugin_name }}' 
 social_data_indexer_se_plugin_extension: jar
 social_data_indexer_se_plugin_classifier: jar-with-dependencies
-social_data_indexer_se_plugin_file: '{{ social_data_indexer_se_plugin_name }}-{{ social_data_indexer_se_plugin_ver }}-jar-with-dependencies.{{ social_data_indexer_se_plugin_extension }}'
+social_data_indexer_se_plugin_file: '{{ social_data_indexer_se_plugin_name }}-{{ social_data_indexer_se_plugin_version }}-jar-with-dependencies.{{ social_data_indexer_se_plugin_extension }}'

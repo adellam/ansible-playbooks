@@ -11,9 +11,7 @@
             disabled="{{ item.disabled | default(False) }}"
       with_items: '{{ gcore_maintenance_cron_users }}'
 
-  when:
-    - gcoreboot_enabled is defined and gcoreboot_enabled
-    - gcore_maintenance_restart_cron
+  when: gcore_maintenance_restart_cron
   tags: [ 'gcoreboot', 'gcore_cron' ]
 
 - block:

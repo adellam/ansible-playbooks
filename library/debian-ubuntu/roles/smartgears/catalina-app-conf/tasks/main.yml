@@ -1,0 +1,17 @@
+---
+- block:
+    - name: Install the catalina webapp configurations
+      template: src=catalina-app-conf.xml.j2 dest={{ smartgears_instance_path }}/conf/Catalina/localhost/{{ item.app_name }}.xml
+      with_items: '{{ catalina_apps_conf }}'
+      when: ( item.state | default(True) )
+
+    - name: Remove the catalina webapp configurations
+      file: dest={{ smartgears_instance_path }}/conf/Catalina/localhost/{{ item.app_name }}.xml state=absent
+      with_items: '{{ catalina_apps_conf }}'
+      when: ( not item.state | default(True) )
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: catalina_apps_conf is defined
+  tags: [ 'smartgears', 'tomcat', 'catalina_apps' ]
+  

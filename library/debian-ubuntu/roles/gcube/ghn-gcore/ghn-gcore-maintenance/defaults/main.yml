@@ -1,6 +1,0 @@
----
-gcore_maintenance_restart_cron: False
-
-gcore_maintenance_cron_users:
-  - { user: '{{ d4science_user }}', weekday: "*", job: "echo '`date`' >/home/{{ d4science_user }}/gcore_service_restart.log ; /home/{{ d4science_user }}/stopContainer.sh >>/home/{{ d4science_user }}/gcore_service_restart.log 2>&1 ; sleep 30 ; /home/{{ d4science_user }}/startContainer.sh >>/home/{{ d4science_user }}/gcore_service_restart.log 2>&1" }
-

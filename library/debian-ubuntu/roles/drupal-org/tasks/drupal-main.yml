@@ -18,13 +18,13 @@
   tags: drupal
 
 - name: Install the drupal deb package
-  apt: name=drupal state=installed
+  apt: name=drupal state=present
   when: drupal_install_deb
   tags: [ 'drupal', 'drupal_deb' ]
 
 - name: Unpack the drupal tar file
   unarchive: copy=no src={{ drupal_download_dir }}/{{ drupal_dist_file }} dest={{ drupal_download_dir }}
-  when: ( drupal_download | changed )
+  when: drupal_download is changed
   tags: drupal
 
 - name: Move the drupal files to the right place
@@ -32,7 +32,7 @@
   args:
     creates: '{{ drupal_install_dir }}/{{ item.virthost }}/index.php'
   with_items: '{{ phpfpm_pools }}'
-  when: ( drupal_download | changed )
+  when: drupal_download is changed
   register: unpack_drupal
   tags: drupal
 
@@ -42,7 +42,7 @@
     creates: '{{ drupal_install_dir }}/{{ item.virthost }}/sites/default/settings.php'
   with_items: '{{ phpfpm_pools }}'
   when:
-    - ( unpack_drupal | changed )
+    - unpack_drupal is changed 
     - '{{ drupal_major_ver }} >= 8'
   tags: drupal
 
@@ -52,30 +52,30 @@
     creates: '{{ drupal_install_dir }}/{{ item.virthost }}/sites/default/services.yml'
   with_items: '{{ phpfpm_pools }}'
   when:
-    - ( unpack_drupal | changed )
+    - unpack_drupal is changed
     - '{{ drupal_major_ver }} >= 8'
   tags: drupal
 
 - name: Create the files directory
   file: dest={{ drupal_install_dir }}/{{ item.virthost }}/sites/default/files owner={{ item.user }} group={{ item.group }} mode=0775 state=directory
   with_items: '{{ phpfpm_pools }}'
-  when: ( unpack_drupal | changed )
+  when: unpack_drupal is changed
   tags: drupal
 
 - name: Set the correct ownership of the drupal files
   file: dest={{ drupal_install_dir }}/{{ item.virthost }} owner={{ item.user }} group={{ item.group }} recurse=yes state=directory
   with_items: '{{ phpfpm_pools }}'
-  when: ( unpack_drupal | changed )
+  when: unpack_drupal is changed
   tags: drupal
 
 - name: Set the correct ownership of the drupal modules directory
   file: dest={{ drupal_install_dir }}/{{ item.virthost }}/modules owner={{ item.user }} group={{ http_group }} recurse=yes state=directory mode=0775
   with_items: '{{ phpfpm_pools }}'
-  when: ( unpack_drupal | changed )
+  when: unpack_drupal is changed
   tags: drupal
 
 - name: Remove the original drupal unpacked distribution
   file: dest={{ drupal_download_dir }}/{{ drupal_dist_name }} state=absent
-  when: ( unpack_drupal | changed )
+  when: unpack_drupal is changed
   tags: drupal
 

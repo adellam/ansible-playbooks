@@ -1,12 +1,12 @@
 ---
-- include: d4s-basic-node.yml
+- import_tasks: d4s-basic-node.yml
   when: gcore_node or d4s_additional_users
-- include: d4s-smartgears-node.yml
+- import_tasks: d4s-smartgears-node.yml
   when: smartgears_node
-- include: d4s-tomcat-node.yml
+- import_tasks: d4s-tomcat-node.yml
   when: d4s_tomcat_node
-- include: d4s-service-node.yml
+- import_tasks: d4s-service-node.yml
   when: d4s_service_node
-- include: users-data-dirs.yml
+- import_tasks: users-data-dirs.yml
   when: d4s_users_data_directories is defined
-- include: security_limits.yml
+- import_tasks: security_limits.yml

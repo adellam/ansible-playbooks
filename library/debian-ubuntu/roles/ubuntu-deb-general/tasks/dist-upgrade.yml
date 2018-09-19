@@ -1,0 +1,6 @@
+---
+- name: Dist upgrade, if requested
+  apt: upgrade=dist update_cache=yes cache_valid_time=1800
+  when: dist_upgrade
+  tags: [ 'packages', 'upgrade', 'dist_upgrade' ]
+

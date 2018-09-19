@@ -1,5 +1,5 @@
 server {
-    listen {{ item.http_port | default (80) }};
+    listen {{ item.http_port | default ('80') }};
     server_name {{ item.server_name }} {% if item.serveraliases is defined %}{{ item.serveraliases }}{% endif %};
     location ~ /\.(?!well-known).* {
         deny all;
@@ -7,27 +7,30 @@ server {
         log_not_found off;
         return 404;
     }
+
 {% if letsencrypt_acme_install %}
-## Disable .htaccess and other hidden files
     include /etc/nginx/snippets/letsencrypt-proxy.conf;
 {% endif %}
+
     {% if item.access_log is defined %}
     access_log {{ item.access_log }};
     {% else %}
     access_log /var/log/nginx/{{ item.server_name }}_access.log;
     {% endif %}
+
     {% if item.error_log is defined %}
     error_log {{ item.error_log }};
     {% else %}
     error_log /var/log/nginx/{{ item.server_name }}_error.log;
     {% endif %}
+
     server_tokens {{ item.server_tokens | default('off') }};
+
 {% if item.ssl_enabled and item.ssl_only %}
     location / {
         return 301 https://{{ item.server_name }}$request_uri;
     }
 {% else %}
-    # This is the default for nginx on Ubuntu 14.04
     root {{ item.root | default('/usr/share/nginx/html/') }};
     index {{ item.index | default('index.html index.htm') }};
     error_page   500 502 503 504  {{ item.error_page | default('/50x.html') }};
@@ -56,22 +59,34 @@ server {
     {% endfor %}
     real_ip_header X-Forwarded-For;
     {% endif %}
+
     {% if item.max_body is defined %}
     client_max_body_size {{ item.max_body }};
     {% else %}
     client_max_body_size {{ nginx_client_max_body_size }};
     {% endif %}
+
     {% if item.body_timeout is defined %}
     client_body_timeout {{ item.body_timeout }};
     {% else %}
     client_body_timeout {{ nginx_client_body_timeout }};
     {% endif %}
 
+    {% if nginx_cors_enabled %}
+    {% if nginx_cors_global %}
+    include /etc/nginx/snippets/nginx-cors.conf;
+    {% endif %}
+    {% endif %}
+
     {% if item.additional_options is defined %}
     {% for add_opt in item.additional_options %}
-
     {{ add_opt }};
+    {% endfor %}
+    {% endif %}
 
+    {% if item.http_acls is defined %}
+    {% for acl in item.http_acls %}
+    {{ acl }};
     {% endfor %}
     {% endif %}
 
@@ -79,53 +94,83 @@ server {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection $connection_upgrade;
     {% endif %}
+
     {% if item.proxy_standard_setup is defined and item.proxy_standard_setup %}
+
     # Proxy stuff
+    {% if item.include_global_proxy_conf is defined and not item.include_global_proxy_conf %}
+    {% else %}
     include /etc/nginx/snippets/nginx-proxy-params.conf;
+    {% endif %}
+
     {% if item.proxy_additional_options is defined %}
     {% for popt in item.proxy_additional_options %}
     {{ popt }};
     {% endfor %}
     {% endif %}
+
     {% if item.locations is defined %}
     {% for location in item.locations %}
+
 	location {{ location.location }} {
+
+        {% if nginx_cors_enabled %}
+        {% if not nginx_cors_global %}
+        {% if location.cors is defined and location.cors %}
+		include /etc/nginx/snippets/nginx-cors.conf;
+        {% endif %}
+        {% endif %}
+        {% endif %}
+
         {% if location.target is defined %}
 		proxy_pass {{ location.target }};
         {% endif %}
+
         {% if location.extra_conf is defined %}
         {{ location.extra_conf }}
         {% endif %}
-        {% if location.other_opts is defined %}
+
+        {% if location.acls is defined %}
+        {% for acl in location.acls %}
+        {{ acl }};
+        {% endfor %}
+        {% endif %}
+
+	    {% if location.other_opts is defined %}
         {% for opt in location.other_opts %}
         {{ opt }};
         {% endfor %}
         {% endif %}
-	}
+    }
     {% endfor %}
     {% endif %}
     {% endif %}
+
     {% if item.extra_parameters is defined %}
     {{ item.extra_parameters }}
     {% endif %}
+
 {% endif %}
 
 }
 
 {% if item.ssl_enabled %}
 server {
-    listen {{ https_port | default(443) }} {{ nginx_ssl_type }};
+    listen {{ https_port | default('443') }} {{ nginx_ssl_type }};
     server_name {{ item.server_name }} {% if item.serveraliases is defined %}{{ item.serveraliases }}{% endif %};
+
     {% if item.access_log is defined %}
     access_log {{ item.access_log }};
     {% else %}
     access_log /var/log/nginx/{{ item.server_name }}_ssl_access.log;
     {% endif %}
+
     {% if item.error_log is defined %}
     error_log {{ item.error_log }};
     {% else %}
     error_log /var/log/nginx/{{ item.server_name }}_ssl_error.log;
     {% endif %}
+
     root {{ item.root | default('/usr/share/nginx/html/') }};
     index {{ item.index | default('index.html index.htm') }};
     error_page   500 502 503 504  {{ item.error_page | default('/50x.html') }};
@@ -144,6 +189,7 @@ server {
     location ~ /\. {
         deny all;
     }
+
     {% if haproxy_ips is defined %}
     # We are behind haproxy
     {% for ip in haproxy_ips %}
@@ -151,6 +197,7 @@ server {
     {% endfor %}
     real_ip_header X-Forwarded-For;
     {% endif %}
+
     {% if item.max_body is defined %}
     client_max_body_size {{ item.max_body }};
     {% else %}
@@ -161,37 +208,84 @@ server {
     {% else %}
     client_body_timeout {{ nginx_client_body_timeout }};
     {% endif %}
-    server_tokens {{ item.server_tokens | default('off') }};
 
     include /etc/nginx/snippets/nginx-server-ssl.conf;
 
-    {% if item.websockets is defined and item.websockets %}
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection $connection_upgrade;
+    server_tokens {{ item.server_tokens | default('off') }};
+
+    {% if nginx_cors_enabled %}
+    {% if nginx_cors_global %}
+    include /etc/nginx/snippets/nginx-cors.conf;
     {% endif %}
+    {% endif %}
+
+    {% if item.additional_options is defined %}
+    {% for add_opt in item.additional_options %}
+    {{ add_opt }};
+    {% endfor %}
+    {% endif %}
+
+    {% if item.https_acls is defined %}
+    {% for acl in item.https_acls %}
+    {{ acl }};
+    {% endfor %}
+    {% endif %}
+
     {% if item.proxy_standard_setup is defined and item.proxy_standard_setup %}
+
     # Proxy stuff
+    {% if item.include_global_proxy_conf is defined and not item.include_global_proxy_conf %}
+    {% else %}
     include /etc/nginx/snippets/nginx-proxy-params.conf;
+    {% endif %}
+
     {% if item.proxy_additional_options is defined %}
     {% for popt in item.proxy_additional_options %}
     {{ popt }}
     {% endfor %}
     {% endif %}
+
     {% if item.locations is defined %}
     {% for location in item.locations %}
 	location {{ location.location }} {
+
+        {% if nginx_cors_enabled %}
+        {% if not nginx_cors_global %}
+        {% if location.cors is defined and location.cors %}
+		include /etc/nginx/snippets/nginx-cors.conf;
+        {% endif %}
+        {% endif %}
+        {% endif %}
+
         {% if location.target is defined %}
 		proxy_pass {{ location.target }};
         {% endif %}
-        {% if location.other_opts is defined %}
+
+        {% if location.websockets is defined and location.websockets %}
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        {% endif %}
+
+        {% if location.extra_conf is defined %}
+        {{ location.extra_conf }}
+        {% endif %}
+
+        {% if location.acls is defined %}
+        {% for acl in location.acls %}
+        {{ acl }};
+        {% endfor %}
+        {% endif %}
+
+	    {% if location.other_opts is defined %}
         {% for opt in location.other_opts %}
         {{ opt }};
         {% endfor %}
         {% endif %}
-	}
+    }
     {% endfor %}
     {% endif %}
     {% endif %}
+
     {% if item.extra_parameters is defined %}
     {{ item.extra_parameters }}
     {% endif %}

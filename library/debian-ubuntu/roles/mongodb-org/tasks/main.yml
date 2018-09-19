@@ -1,4 +1,5 @@
 ---
-- include: mongodb.yml
-- include: ganglia-plugin.yml
-  when: ganglia_enabled
+- import_tasks: mongodb.yml
+- import_tasks: mongodb-letsencrypt-acmetool.yml
+  when: mongodb_ssl_letsencrypt_managed
+

@@ -1,11 +1,11 @@
 ---
 - name: Restart apache
   service: name=apache2 state=restarted enabled=yes
-  when: ( ckan_install | changed )
+  when: ckan_install is changed
   tags: ckan
 
 - name: Restart nginx
   service: name=nginx state=restarted enabled=yes
-  when: ( ckan_install | changed )
+  when: ckan_install is changed
   tags: ckan
 

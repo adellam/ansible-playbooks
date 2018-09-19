@@ -32,3 +32,10 @@
   notify: Reload nginx
   tags: [ 'nginx', 'virtualhost' ]
 
+- name: Give the smartgears user access to the document root, and create it if needed
+  file: dest={{ item.web_document_root}} state=directory owner={{ item.user }} group={{ item.user }} mode=0755
+  with_items: '{{ tomcat_m_instances }}'
+  when: smartgears_nginx_rw_html_root
+  notify: Reload nginx
+  tags: [ 'nginx', 'virtualhost', 'web_root' ]
+

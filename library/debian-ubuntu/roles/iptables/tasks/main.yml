@@ -1,80 +1,130 @@
 ---
-- name: Install the needed iptables packages
-  apt: pkg={{ item }} state=installed
-  with_items:
-    - iptables
-    - iptables-persistent
-  tags: iptables
+- block:
+  - name: Install the needed iptables packages
+    apt: pkg={{ item }} state=present
+    with_items:
+      - iptables
+      - iptables-persistent
 
-- name: Create the /etc/iptables directory when needed
-  file: dest=/etc/iptables state=directory owner=root group=root mode=0755
-  when: is_ubuntu_between_10_04_and_11_04_and_is_debian_6
-  tags: iptables
-  
-- name: Install the IPv4 rules with a different name. Needed by Ubuntu < 12.04
-  template: src=iptables-{{ item }}.j2 dest=/etc/iptables/rules owner=root group=root mode=0640
-  with_items:
-    - rules.v4
-  when: is_ubuntu_between_10_04_and_11_04_and_is_debian_6
-  notify: Start the iptables service on Ubuntu < 12.04
-  tags: [ 'iptables', 'iptables_rules' ]
+  - name: Create the /etc/iptables directory when needed
+    file: dest=/etc/iptables state=directory owner=root group=root mode=0755
+    when: is_ubuntu_between_10_04_and_11_04_and_is_debian_6
+    
+  - name: Install the IPv4 rules with a different name. Needed by Ubuntu < 12.04
+    template: src=iptables-{{ item }}.j2 dest=/etc/iptables/rules owner=root group=root mode=0640
+    with_items:
+      - rules.v4
+    when: is_ubuntu_between_10_04_and_11_04_and_is_debian_6
+    notify: Start the iptables service on Ubuntu < 12.04
 
-- name: Install the IPv4 and IPv6 iptables rules. The IPv6 ones are not used. On precise
-  template: src=iptables-{{ item }}.j2 dest=/etc/iptables/{{ item }} owner=root group=root mode=0640
-  with_items:
-    - rules.v4
-    - rules.v6
-  when: is_precise
-  register: install_iptables_rules_precise
-  tags: [ 'iptables', 'iptables_rules' ]
+  - name: Install the IPv4 and IPv6 iptables rules. The IPv6 ones are not used. On precise
+    template: src=iptables-{{ item }}.j2 dest=/etc/iptables/{{ item }} owner=root group=root mode=0640
+    with_items:
+      - rules.v4
+      - rules.v6
+    when: is_precise
+    register: install_iptables_rules_precise
 
-- name: Install the IPv4 and IPv6 iptables rules. The IPv6 ones are not used. On trusty
-  template: src=iptables-{{ item }}.j2 dest=/etc/iptables/{{ item }} owner=root group=root mode=0640
-  with_items:
-    - rules.v4
-    - rules.v6
-  when: is_trusty
-  register: install_iptables_rules_trusty
-  tags: [ 'iptables', 'iptables_rules' ]
+  - name: Install the IPv4 and IPv6 iptables rules. The IPv6 ones are not used. On trusty
+    template: src=iptables-{{ item }}.j2 dest=/etc/iptables/{{ item }} owner=root group=root mode=0640
+    with_items:
+      - rules.v4
+      - rules.v6
+    when: is_trusty
+    register: install_iptables_rules_trusty
 
-- name: Install the IPv4 and IPv6 iptables rules. The IPv6 ones are not used. On debian 7
-  template: src=iptables-{{ item }}.j2 dest=/etc/iptables/{{ item }} owner=root group=root mode=0640
-  with_items:
-    - rules.v4
-    - rules.v6
-  when: is_debian7
-  register: install_iptables_rules_deb7
-  tags: [ 'iptables', 'iptables_rules' ]
+  - name: Install the IPv4 and IPv6 iptables rules. The IPv6 ones are not used. On debian 7
+    template: src=iptables-{{ item }}.j2 dest=/etc/iptables/{{ item }} owner=root group=root mode=0640
+    with_items:
+      - rules.v4
+      - rules.v6
+    when: is_debian7
+    register: install_iptables_rules_deb7
 
-- name: Install the IPv4 and IPv6 iptables rules. The IPv6 ones are not used. On debian 8
-  template: src=iptables-{{ item }}.j2 dest=/etc/iptables/{{ item }} owner=root group=root mode=0640
-  with_items:
-    - rules.v4
-    - rules.v6
-  when: is_debian8
-  register: install_netfilter_rules
-  tags: [ 'iptables', 'iptables_rules' ]
+  - name: Install the IPv4 and IPv6 iptables rules. The IPv6 ones are not used. On debian 8
+    template: src=iptables-{{ item }}.j2 dest=/etc/iptables/{{ item }} owner=root group=root mode=0640
+    with_items:
+      - rules.v4
+      - rules.v6
+    when: is_debian8
+    register: install_netfilter_rules
 
-- name: Start the iptables service immediately after the new rules have been installed, on Ubuntu precise. This can have an impact on other tasks
-  service: name=iptables-persistent state=restarted enabled=yes
-  notify: Restart fail2ban
-  when: ( install_iptables_rules_precise | changed )
-  tags: [ 'iptables', 'iptables_rules' ]
+  - name: Install the IPv4 and IPv6 iptables rules. The IPv6 ones are not used. On Ubuntu >= 16.04
+    template: src=iptables-{{ item }}.j2 dest=/etc/iptables/{{ item }} owner=root group=root mode=0640
+    with_items:
+      - rules.v4
+      - rules.v6
+    when:
+      - ansible_distribution == 'Ubuntu'
+      - ansible_distribution_major_version >= '16'
+    register: install_netfilter_rules
 
-- name: Start the iptables service immediately after the new rules have been installed, on Ubuntu Trusty. This can have an impact on other tasks
-  service: name=iptables-persistent state=restarted enabled=yes
-  notify: Restart fail2ban
-  when: ( install_iptables_rules_trusty | changed )
-  tags: [ 'iptables', 'iptables_rules' ]
+  - name: Start the iptables service immediately after the new rules have been installed, on Ubuntu precise. This can have an impact on other tasks
+    service: name=iptables-persistent state=restarted enabled=yes
+    register: restart_related_p
+    notify: Restart fail2ban after an iptables restart
+    when: install_iptables_rules_precise is changed
 
-- name: Start the iptables service immediately after the new rules have been installed, on Debian 7. This can have an impact on other tasks
-  service: name=iptables-persistent state=restarted enabled=yes
-  notify: Restart fail2ban
-  when: ( install_iptables_rules_deb7 | changed )
-  tags: [ 'iptables', 'iptables_rules' ]
+  - name: Start the iptables service immediately after the new rules have been installed, on Ubuntu Trusty. This can have an impact on other tasks
+    service: name=iptables-persistent state=restarted enabled=yes
+    register: restart_related_t
+    notify: Restart fail2ban after an iptables restart
+    when: install_iptables_rules_trusty is changed
 
-- name: Start the netfilter service immediately after the new rules have been installed. This can have an impact on other tasks
-  service: name=netfilter-persistent state=restarted enabled=yes
-  notify: Restart fail2ban
-  when: ( install_netfilter_rules | changed )
+  - name: Start the iptables service immediately after the new rules have been installed, on Debian 7. This can have an impact on other tasks
+    service: name=iptables-persistent state=restarted enabled=yes
+    register: restart_related_d7
+    notify: Restart fail2ban after an iptables restart
+    when: install_iptables_rules_deb7 is changed
+
+  - name: Start the netfilter service immediately after the new rules have been installed. This can have an impact on other tasks
+    service: name=netfilter-persistent state=restarted enabled=yes
+    register: restart_related_x
+    notify: Restart fail2ban after an iptables restart
+    when: install_netfilter_rules is changed
+
+  - name: Check if the fail2ban service is present
+    stat: path=/usr/bin/fail2ban-server
+    register: fail2ban_installed
+
+  - name: Restart fail2ban after an iptables restart on Ubuntu Precise
+    service: name=fail2ban state=restarted enabled=yes
+    when:
+      - fail2ban_installed.stat.exists
+      - restart_related_p is changed 
+
+  - name: Restart fail2ban after an iptables restart on Ubunt Trusty
+    service: name=fail2ban state=restarted enabled=yes
+    when:
+      - fail2ban_installed.stat.exists
+      - restart_related_t is changed 
+
+  - name: Restart fail2ban after an iptables restart on debian 7
+    service: name=fail2ban state=restarted enabled=yes
+    when:
+      - fail2ban_installed.stat.exists
+      - restart_related_d7 is changed 
+
+  - name: Restart fail2ban after an iptables restart on Ubuntu Xenial
+    service: name=fail2ban state=restarted enabled=yes
+    when:
+      - fail2ban_installed.stat.exists
+      - restart_related_x is changed 
+
+  - name: Check if the docker service is present
+    stat: path=/usr/bin/dockerd
+    register: dockerd_installed
+
+  - name: Restart docker after an iptables restart on Ubuntu Trusty
+    service: name=docker state=restarted enabled=yes
+    when:
+      - dockerd_installed.stat.exists
+      - restart_related_t is changed 
+
+  - name: Restart docker after an iptables restart on Ubuntu Xenial
+    service: name=docker state=restarted enabled=yes
+    when:
+      - dockerd_installed.stat.exists
+      - restart_related_x is changed 
+
   tags: [ 'iptables', 'iptables_rules' ]

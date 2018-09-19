@@ -1,0 +1,8 @@
+---
+- block:
+  - name: Download the Spark2 jar file
+    get_url: url={{ cdh_spark2_csd_url }} dest={{ cdh_csd_directory }} owner=cloudera-scm group=cloudera-scm
+    notify: Restart cloudera-scm-server
+
+  when: cdh_spark2_enabled
+  tags: [ 'cdh', 'hadoop', 'spark' ]

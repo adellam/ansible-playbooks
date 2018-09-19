@@ -1,0 +1,39 @@
+---
+elasticsearch_repo_key: https://packages.elastic.co/GPG-KEY-elasticsearch
+elasticsearch_major_version: 2
+elasticsearch_repo_version: '{{ elasticsearch_major_version }}.x'
+elasticsearch_repo: 'deb http://packages.elastic.co/elasticsearch/{{ elasticsearch_repo_version }}/debian stable main'
+#elasticsearch_major_version: 5
+#elasticsearch_repo: 'deb https://artifacts.elastic.co/packages/{{ elasticsearch_repo_version }}/apt stable main'
+elasticsearch_packages:
+  - elasticsearch
+
+elasticsearch_package_state: 'present'
+elasticsearch_cluster_name: 'Elasticsearch Cluster'
+elasticsearch_enabled: True
+elasticsearch_http_port: 9200
+elasticsearch_data_dir: /var/lib/elasticsearch
+elasticsearch_log_dir: /var/log/elasticsearch
+elasticsearch_bind_ip: 0.0.0.0
+elasticsearch_discovery_host_list: '["127.0.0.1", "[::1]"]'
+elasticsearch_define_majority_of_nodes: True
+elasticsearch_majority_of_nodes: 1
+elasticsearch_real_cluster: False
+elasticsearch_recover_after_nodes: 3
+elasticsearch_max_local_storage_nodes: 1
+elasticsearch_destructive_requires_name: 'true'
+elasticsearch_define_heap_size: False
+elasticsearch_heap_size: 2g
+elasticsearch_additional_java_opts: '-server -Djava.awt.headless=true'
+elasticsearch_max_open_files: 65536
+
+# bin/plugin for 2.x, bin/elasticsearch-plugin for 5.x
+#elasticsearch_plugin_bin: /usr/share/elasticsearch/bin/elasticsearch-plugin
+elasticsearch_plugin_bin: /usr/share/elasticsearch/bin/plugin
+#elasticsearch_plugins:
+#  - { name: 'royrusso/elasticsearch-HQ', state: 'present' }
+
+# elasticsearch 5 not supported yet, so set it to False when installing 5.x
+elasticsearch_hq_install: True
+elasticsearch_hq_plugin:
+  - { name: 'royrusso/elasticsearch-HQ', state: 'present' }

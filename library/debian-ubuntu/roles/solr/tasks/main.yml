@@ -3,6 +3,9 @@
     - name: Create a solr user
       user: name={{ solr_user }} home={{ solr_base_dir }} createhome=yes shell=/bin/bash
 
+    - name: Create the downloads directory
+      file: dest={{ solr_download_dir }} state=directory
+
     - name: Download solr
       get_url: url='{{ solr_download_url }}' dest={{ solr_download_dir }}/solr-{{ solr_version }}.tgz validate_certs=no
 
@@ -28,12 +31,16 @@
     - name: Create the solr lib directory
       file: dest={{ solr_data_dir }}/lib state=directory
 
+    - name: Create the solr conf directory
+      file: dest={{ solr_conf_dir }} state=directory
+
     - name: Install the zookeeper configuration
       template: src={{ item }}.j2 dest={{ solr_data_dir }}/{{ item }}
       with_items:
         - solr.xml
         - zoo.cfg
       notify: solr restart
+      tags: [ 'solr', 'solr_default', 'solr_conf' ]
 
     - name: copy extra libraries
       shell: cd {{ solr_server_dir }}; cp -u {{ item }} {{ solr_data_dir }}/lib
@@ -45,7 +52,7 @@
     - name: Install the solr default
       template: src=solr-default.j2 dest=/etc/default/solr.in.sh mode=0644 owner=root group=root
       notify: solr restart
-      tags: [ 'solr', 'solr_default' ]
+      tags: [ 'solr', 'solr_default', 'solr_conf' ]
 
     - name: Start and enable the solr service
       service: name=solr state=started enabled=yes
@@ -55,3 +62,32 @@
   become_user: root
   when: solr_install
   tags: solr
+
+- block:
+  - name: Create the Solr prometheus exporter conf directory
+    file: dest={{ solr_prometheus_conf_dir }} state=directory mode=0755
+
+  - name: Install the Solr prometheus exporter config file
+    template: src=solr-exporter-config.xml dest={{ solr_prometheus_conf_file }} mode=0644
+    notify: Restart Solr prometheus exporter
+    tags: [ 'solr', 'solr_prometheus', 'solr_prometheus_exporter', 'solr_prometheus_exporter_config' ]
+
+  - name: Install the Solr prometheus exporter upstart script
+    template: src=solr_prometheus_exporter.upstart.j2 dest=/etc/init/solr_prometheus_exporter.conf mode=0644 owner=root group=root
+    when: ansible_service_mgr != 'systemd'
+
+  - name: Install the Solr prometheus exporter systemd unit
+    template: src=solr_prometheus_exporter.systemd.j2 dest=/etc/systemd/system/solr_prometheus_exporter.service mode=0644 owner=root group=root
+    when: ansible_service_mgr == 'systemd'
+    notify: systemd reload
+
+  - name: Ensure that Solr prometheus exporter is started and enabled
+    service: name=solr_prometheus_exporter state=started enabled=yes
+
+  become: True
+  become_user: root
+  when:
+    - solr_install
+    - solr_prometheus_exporter
+  tags: [ 'solr', 'solr_prometheus', 'solr_prometheus_exporter' ]
+

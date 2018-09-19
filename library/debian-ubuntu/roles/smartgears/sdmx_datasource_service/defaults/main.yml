@@ -1,0 +1,10 @@
+---
+sdmx_datasource_service_install: False
+sdmx_datasource_service_upgrade: False
+sdmx_datasource_service_version: latest
+sdmx_datasource_service_name: sdmx-datasource-service
+
+sdmx_datasource_group_id: org.gcube.data.publishing
+sdmx_datasource_extension: war
+sdmx_datasource_service_file: '{{ sdmx_datasource_service_name }}-{{ sdmx_datasource_service_version }}.{{ sdmx_datasource_extension }}'
+

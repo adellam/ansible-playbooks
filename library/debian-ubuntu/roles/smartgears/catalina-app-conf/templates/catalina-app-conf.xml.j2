@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Context reloadable="true">
+    <Loader className="org.apache.catalina.loader.VirtualWebappLoader"
+          virtualClasspath="{{ smartgears_instance_path }}/webapps/{{ item.app_name }}/WEB-INF/lib/plugins/{{ item.plugin_name }}/*.jar"/>    
+</Context>
+

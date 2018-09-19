@@ -1,0 +1,17 @@
+---
+- block:
+  - name: Install the unbound resolver packages
+    apt: pkg={{ item }} state=latest cache_valid_time=1800 update_cache=yes
+    with_items: '{{ unbound_pkgs }}'
+
+  - name: Install the unbound config files
+    template: src={{ item }} dest=/etc/unbound/unbound.conf.d/{{ item }}
+    with_items:
+      - unbound-server.conf
+      - unbound-remote-control.conf
+    notify: Restart unbound
+  
+  - name: Ensure that the unbound service is started and enabled
+    service: name=unbound state=started enabled=yes    
+
+  tags: [ 'unbound' ]

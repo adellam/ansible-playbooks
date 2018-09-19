@@ -9,10 +9,11 @@ PG_SERVICE='postgresql-{{ psql_version }}'
 PG_DUMP_BIN='{{ pg_backup_pgdump_bin }}'
 {% endif %}
 PG_BCK_BIN='{{ pg_backup_bin }}'
-{% if pg_backup_enabled }}
+{% if pg_backup_use_nagios %}
 USE_NAGIOS={{ pg_backup_use_nagios }}
 {% else %}
 USE_NAGIOS=no
+{% endif %}
 LOG_DIR='{{ pg_backup_logdir }}'
 LOG_FILE='{{ pg_backup_logfile}}'
 N_DAYS_TO_SPARE='{{ pg_backup_retain_copies }}'

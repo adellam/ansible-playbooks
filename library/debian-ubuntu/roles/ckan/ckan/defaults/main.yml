@@ -81,9 +81,11 @@ ckan_oai_pmh_state: absent
 ckan_oai_pmh_url: 'git+https://github.com/florenthemmi/ckanext-oaipmh#egg=ckanext-oaipm'
 # Google analytics
 ckan_google_analytics: False
+ckan_ga_plugin_state: '{{ ckan_plugins_state }}'
 ckan_google_analytics_name: googleanalytics
 ckan_google_analytics_url: 'git+https://github.com/ckan/ckanext-googleanalytics.git#egg=ckanext-googleanalytics'
-ckan_google_analytics_fixed_file: 'http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-catalogue/ckan-d4science-extension/plugins/googleanalytics/plugin.py'
+ckan_google_analytics_fixed_file: 'http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-catalogue/ckan-d4science-extension/{{ ckan_version }}/ckan-default/plugins/googleanalytics/plugin.py'
+
 # Google analytics reports
 ckan_ga_reports: False
 ckan_ga_reports_name: ga-report

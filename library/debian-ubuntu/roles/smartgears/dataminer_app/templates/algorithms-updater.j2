@@ -3,6 +3,7 @@
 set -e
 set -o pipefail
 
+PROCNUM=$$
 INFRA_REFERENCE={{ dataminer_infra_reference }}
 ADD_ALGORITHM_DIR={{ smartgears_user_home }}/algorithmInstaller
 ADD_ALGORITHM_PATH={{ smartgears_user_home }}/algorithmInstaller/addAlgorithm.sh
@@ -14,61 +15,88 @@ LOG_FILE=${LOG_DIR}/algorithms_updater.log
 ALGORITHMS_INSTALLED_FILE=${LOG_DIR}/already_installed_algorithms.txt
 ALGORITHMS_INSTALLED_SORTED_FILE=${LOG_DIR}/already_installed_algorithms_sorted.txt
 LOCK_FILE=${LOG_DIR}/.algorithms_updater.lock
-ALGO_DIR={{ dataminer_wps_algorithms_dest }}/${INFRA_REFERENCE}
-RUNNING_JOB=
-RUNNING_JOB_RETVAL=
+ALGO_BASE_DIR={{ dataminer_wps_algorithms_dest }}
+ALGO_DIR=${ALGO_BASE_DIR}/${INFRA_REFERENCE}
+SVN_ALGORITHMS_URL={{ dataminer_wps_algorithms_svn }}
+SVN_UPDATE_STATUS=
+# In seconds. 60*60*6=21600s (6h)
+UPDATER_PROCESS_MAX_RUNTIME=21600
+OLDPROC=
+OLDPROC_RUNNING=
 
 trap "logger 'algorithms-updater: trap intercepted, exiting.' ; cleanup 1" SIGHUP SIGINT SIGTERM
 
-function cleanup() {
+cleanup() {
     rm -fr $OUT_DIR
     rm -f $LOCK_FILE
     logger 'algorithms-updater: Exiting'
     exit $1
 }
 
-function create_log_dir() {
+create_log_dir() {
     if [ ! -d $LOG_DIR ] ; then
         mkdir -p $LOG_DIR
     fi
 }
 
-function check_lock_file() {
+ check_lock_file() {
     # Create the lock file
-    if [ -f $LOCK_FILE ] ; then
+    if [ -f "$LOCK_FILE" ] ; then
         set +o pipefail
         set +e
-        RUNNING_JOB=$( ps auwwx |  grep `cat $LOCK_FILE` | grep -v grep )
-        RUNNING_JOB_RETVAL=$?
-        if [ $RUNNING_JOB_RETVAL -eq 0 ] ; then
-            logger 'algorithms-updater: another job still running, exiting.'
-            rm -fr $OUT_DIR
-            exit 0
+        OLDPROC=$( cat "$LOCK_FILE" )
+        OLDPROC_RUNNING=$( ps auwwx |  grep -v grep | awk '{ print $2 }' | grep "$OLDPROC"  )
+        if [ ! -z "$OLDPROC_RUNNING" ] ; then
+            logger "algorithms_updater: pid of the already running process: $OLDPROC_RUNNING"
+            OLDPROC_RUNNING_TIME=$( ps -o etimes= -p "${OLDPROC_RUNNING}" )
+            if [ "$OLDPROC_RUNNING_TIME" -gt $UPDATER_PROCESS_MAX_RUNTIME ] ; then
+                logger "algorithms_updater: process $OLDPROC_RUNNING was running for $OLDPROC_RUNNING_TIME seconds. Got stuck, killing it"
+                kill -9 "$OLDPROC_RUNNING"
+                rm -f "$LOCK_FILE"
+            else
+                logger "algorithms_updater: another process is running, exiting."
+                rm -fr "$OUT_DIR"
+                exit 0
+            fi
         else
-            rm -f $LOCK_FILE
+            logger "algorithms_updater: lock file exist but the process not. Continuing."
+            rm -f "$LOCK_FILE"
         fi
     else
         logger 'algorithms-updater: no other jobs running, proceeding.'
     fi
     set -o pipefail
     set -e
-    echo "$$" > $LOCK_FILE
+    echo "$PROCNUM" > "$LOCK_FILE"
 }
 
-function update_svn_repo() {
-    logger 'algorithms-updater: update the SVN repo'
-    cd $ALGO_DIR
-    svn update > $LOG_FILE 2>&1
+update_svn_repo() {
+    if [ -d $ALGO_DIR ]; then
+        logger 'algorithms-updater: update the SVN repo'
+        cd $ALGO_DIR
+        # Do a svn cleanup to be on the safe side
+        set +o pipefail
+        set +e
+        SVN_CLEANUP_OP=$( svn cleanup )
+        SVN_UPDATE_OP=$( svn update | tail -1 | grep Updated  >$LOG_FILE 2>&1 )
+        SVN_UPDATE_STATUS=$?
+        set -o pipefail
+        set -e
+    else 
+        cd $ALGO_BASE_DIR
+        logger "algorithms-updater: First subversion checkout"
+        svn co $SVN_ALGORITHMS_URL >> $LOG_FILE 2>&1
+    fi
 }
 
-function sort_installed_algo_file() {
+ sort_installed_algo_file() {
     if [ -f $ALGORITHMS_INSTALLED_FILE ] ; then
         sort -u $ALGORITHMS_INSTALLED_FILE > $ALGORITHMS_INSTALLED_SORTED_FILE
         mv $ALGORITHMS_INSTALLED_SORTED_FILE $ALGORITHMS_INSTALLED_FILE
     fi
 }
 
-function algorithms_updater() {
+ algorithms_updater() {
     logger 'algorithms-updater: scan the algorithms list and build the algorithms script. Reference infra is {{ dataminer_infra_reference }}'
     echo "#!/bin/bash" > $ALGORITHMS_TEMP_SCRIPT.head
     echo "cd $ADD_ALGORITHM_DIR" >> $ALGORITHMS_TEMP_SCRIPT.head
@@ -178,6 +206,16 @@ function algorithms_updater() {
 create_log_dir
 check_lock_file
 update_svn_repo
+if [ $SVN_UPDATE_STATUS -ne 0 ] ; then
+    if [ -d "${LOG_DIR}" ] ; then
+        if [ ! -f "$ALGORITHMS_INSTALLED_FILE" ] ; then
+                logger "algorithms-updater: nothing new to from SVN but the file that lists the installed algorithms does not exist. We are going to reinstall all the algorithms."
+            else
+                logger "algorithms-updater: nothing new to from SVN, exiting."
+                cleanup 0
+        fi 
+    fi
+fi
 sort_installed_algo_file
 algorithms_updater
 cleanup 0

@@ -1,7 +1,15 @@
 ---
 accounting_service_install: False
-accounting_service_version: 1.0.0-4.5.0-148495
+accounting_service_version: latest
+smart_executor_context: /accounting-service
 accounting_service_name: accounting-service
 accounting_service_extension: war
 accounting_service_file: '{{ accounting_service_name }}-{{ accounting_service_version }}.{{ accounting_service_extension }}'
-accounting_service_group_id: org.gcube.data.publishing
+accounting_service_group_id: org.gcube.accounting
+
+accounting_service_library_name: document-store-lib-accounting-service 
+accounting_service_library_classifier: jar-with-dependencies
+accounting_couchbase_library_name: document-store-lib-couchbase
+accounting_couchbase_library_extension: jar
+accounting_couchbase_library_version: latest
+accounting_couchbase_library_group_id: org.gcube.data.publishing

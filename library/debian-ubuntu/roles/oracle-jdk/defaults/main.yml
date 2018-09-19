@@ -1,6 +1,6 @@
 ---
-# Supported versions: 6,7,8
-jdk_default: 7
+# Supported versions: 8,9
+jdk_default: 8
 # jdk_version is a dictionary because it's possible to install more than one version
 jdk_version:
   - '{{ jdk_default }}'

@@ -1,8 +1,10 @@
 ---
-- include: dataminer-upgrade.yml
+- import_tasks: dataminer-upgrade.yml
   when: dataminer_app_upgrade
-- include: dataminer-app.yml
-  when: dataminer_war_install
-- include: dataminer-zip.yml
-  when: not dataminer_war_install
-- include: install-gcube-key.yml
+- import_tasks: dataminer-app.yml
+  when: dataminer_app_install
+- import_tasks: dataminer-external-files.yml
+  when: dataminer_app_install
+- import_tasks: install-gcube-key.yml
+- import_tasks: dataminer-algorithms-installer.yml
+  when: dataminer_app_install

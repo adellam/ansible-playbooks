@@ -32,6 +32,29 @@
     <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
     -->
 {% if tomcat_m_jndi_pool %}
+{% if tomcat_jndi_pool_databases is defined %}
+{% for pool in tomcat_jndi_pool_databases %}
+    <Resource name="{{ pool. jndi_resource_name | default('jdbc/postgres') }}"
+              auth="Container"
+              type="{{ pool.jndi_resource_type | default('javax.sql.DataSource') }}"
+              driverClassName="{{ pool.jndi_class_name | default('org.postgresql.Driver') }}"
+              url="jdbc:postgresql://{{ pool. jndi_db_host }}:{{ pool.jndi_db_port | default (5432) }}/{{ pool.jndi_db_name }}"
+              username="{{ pool.jndi_db_user }}" password="{{ pool.jndi_db_pwd }}"
+              maxActive="20"
+              initialSize="0"
+              minIdle="0"
+              maxIdle="8"
+              maxWait="10000"
+              timeBetweenEvictionRunsMillis="30000"
+              minEvictableIdleTimeMillis="60000"
+              testWhileIdle="true"
+              validationQuery="SELECT 1"
+              maxAge="600000"
+              rollbackOnReturn="true"
+              />
+
+{%  endfor %}
+{% else %}
     <Resource name="jdbc/postgres"
               auth="Container"
               type="javax.sql.DataSource"
@@ -49,6 +72,8 @@
               validationQuery="SELECT 1"
               maxAge="600000"
               rollbackOnReturn="true"
-{% endif %}
       />
+{% endif %}
+{% endif %}
+
 </Context>

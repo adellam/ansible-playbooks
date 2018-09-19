@@ -14,7 +14,6 @@ sshd_strict_mode: "yes"
 sshd_use_pam: "yes"
 # set to "yes" only if you are using s/key or something equivalent
 sshd_challenge_response_authentication: "no"
-sshd_enable_sftp_subsystem: True
 sshd_use_login: "no"
 sshd_permit_tunnel: "no"
 sshd_gssapi_authentication: "no"
@@ -27,3 +26,9 @@ sshd_show_patchlevel: "no"
 # Usually /etc/issue.net
 sshd_banner_path: "none"
 sshd_acceptenv: "LANG LC_*"
+#
+sshd_enable_sftp_subsystem: True 
+sshd_enable_sftp_jail: False
+sshd_sftp_chroot_match_group: filetransfer
+sshd_sftp_chroot_directory: '%h'
+sshd_sftp_force_command: 'internal-sftp'

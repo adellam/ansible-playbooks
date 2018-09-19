@@ -1,6 +1,6 @@
 ---
 - name: install denyhosts on debian <=7 and ubuntu <= 12.04
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present
   with_items:
     - denyhosts
   tags: denyhosts

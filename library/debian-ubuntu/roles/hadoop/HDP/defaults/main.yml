@@ -1,7 +1,12 @@
 ---
 # See http://docs.hortonworks.com/HDPDocuments/Ambari-2.4.1.0/bk_ambari-installation/content/download_the_ambari_repo_ubuntu14.html
 hdp_ambari_install: False
-hdp_ambari_repo_url: 'http://public-repo-1.hortonworks.com/ambari/ubuntu14/2.x/updates/2.4.1.0/ambari.list'
+hdp_ambari_repo_url: 'http://public-repo-1.hortonworks.com/ambari/ubuntu14/2.x/updates/2.6.0.0/ambari.list'
 hdp_ambari_repo_key: 'B9733A7A07513CAD'
 
 ambari_use_separate_postgres_db: False
+ambari_postgres_db_name: ambari
+ambari_postgres_db_user: ambari
+ambari_postgres_db_schema: ambari
+ambari_postgresql_version: 9.6
+postgresql_jdbc_driver_version: 42.1.4

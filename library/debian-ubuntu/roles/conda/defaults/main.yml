@@ -1,0 +1,13 @@
+---
+# http://conda.pydata.org/miniconda.html
+conda_ver: 2
+conda_installer_file: 'Miniconda{{ conda_ver }}-latest-Linux-x86_64.sh'
+conda_url: 'https://repo.continuum.io/miniconda/{{ conda_installer_file }}'
+conda_install_prefix: '/srv/conda{{ conda_ver }}'
+# Change it to an unprivileged user
+conda_user: root
+conda_user_home: /root
+
+#conda_env_pkgs:
+#  - { env_name: '', env_opts: '', conda_prefix: '{{ conda_install_prefix }}', pkg: '', repo_list: '' }
+

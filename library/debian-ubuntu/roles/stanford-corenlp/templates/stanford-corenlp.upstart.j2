@@ -1,0 +1,13 @@
+description "Stanford CoreNLP"
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+respawn
+respawn limit 10 5
+setuid {{ stanford_corenlp_user }}
+setgid {{ stanford_corenlp_user }}
+chdir {{ stanford_corenlp_dist_dir }}
+
+script
+  exec {{ stanford_corenlp_cmd }}  > {{ stanford_corenlp_log_dir }}/corenlp.log 2>&1
+end script

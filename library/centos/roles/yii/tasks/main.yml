@@ -22,7 +22,7 @@
 
 - name: Fix the permissions on the yii framework directory
   command: chown -R root:root {{ yii_install_dir }}/yii-{{ yii_version }}.{{ yii_release }}
-  when: yii_unpack.changed
+  when: yii_unpack is changed
   tags:
     - yii
     - yii-framework

@@ -9,7 +9,11 @@
 	</context-param>
 	<context-param>
 		<param-name>hostname</param-name>
-		<param-value>{{ ansible_fqdn }}</param-value>
+  {% if hostname is defined %}
+		<param-value>{{ hostname }}</param-value>
+  {% else %}
+		<param-value>{{ smartgears_hostname }}</param-value>
+  {% endif %}
 	</context-param>
 	<context-param>
 		<param-name>internalPort</param-name>

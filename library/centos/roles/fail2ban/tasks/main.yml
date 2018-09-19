@@ -1,63 +1,44 @@
 ---
-- name: Install fail2ban
-  yum: name={{ item }} state=present
-  with_items:
-    - fail2ban
-    - fail2ban-server
-    - fail2ban-systemd
-    - fail2ban-firewalld
-    - fail2ban-sendmail
-  notify:
-    - Enable and start fail2ban
-    - Enable and start firewalld
-  tags:
-    - centos
-    - rhel
-    - fail2ban
+- block:
+    - name: Install fail2ban
+      yum: name={{ item }} state=present
+      with_items:
+        - fail2ban
+        - fail2ban-server
+        - fail2ban-systemd
+        - fail2ban-firewalld
+        - fail2ban-sendmail
+      notify:
+        - Enable and start fail2ban
+        - Enable and start firewalld
 
-- name: Install fail2ban local config
-  template: src={{ item }}.j2 dest=/etc/fail2ban/{{ item }} owner=root group=root mode=0444
-  with_items: fail2ban.local
-  notify: Reload fail2ban
-  tags:
-    - centos
-    - rhel
-    - fail2ban
+    - name: Install fail2ban local config
+      template: src={{ item }}.j2 dest=/etc/fail2ban/{{ item }} owner=root group=root mode=0444
+      with_items: fail2ban.local
+      notify: Reload fail2ban
 
-- name: Install fail2ban jail custom configuration
-  template: src=jail-d-{{ item }}.j2 dest=/etc/fail2ban/jail.d/{{ item }} owner=root group=root mode=0444
-  with_items: customization.local
-  notify: Reload fail2ban
-  tags:
-    - centos
-    - rhel
-    - fail2ban
+    - name: Install fail2ban jail custom configuration
+      template: src=jail-d-{{ item }}.j2 dest=/etc/fail2ban/jail.d/{{ item }} owner=root group=root mode=0444
+      with_items: customization.local
+      notify: Reload fail2ban
 
-- name: Install the selinux policy file for fail2ban
-  copy: src=fail2ban-journal-sepol.te dest=/usr/local/etc/fail2ban-journal-sepol.te
-  register: fail2ban_selinux_policy
-  tags:
-    - centos
-    - rhel
-    - fail2ban
-    - selinux
+    - name: Install the selinux policy file for fail2ban
+      copy: src=fail2ban-journal-sepol.te dest=/usr/local/etc/fail2ban-journal-sepol.te
+      register: fail2ban_selinux_policy
 
-- name: Activate the selinux policy for fail2ban
-  shell: checkmodule -M -m -o /usr/local/etc/fail2ban-journal-sepol.mod /usr/local/etc/fail2ban-journal-sepol.te ; semodule_package -o /usr/local/etc/fail2ban-journal-sepol.pp -m /usr/local/etc/fail2ban-journal-sepol.mod ; semodule -i /usr/local/etc/fail2ban-journal-sepol.pp
-  args:
-    creates: /usr/local/etc/fail2ban-journal-sepol.pp
-  when: fail2ban_selinux_policy.changed
-  tags:
-    - centos
-    - rhel
-    - fail2ban
-    - selinux
+    - name: Activate the selinux policy for fail2ban
+      shell: checkmodule -M -m -o /usr/local/etc/fail2ban-journal-sepol.mod /usr/local/etc/fail2ban-journal-sepol.te ; semodule_package -o /usr/local/etc/fail2ban-journal-sepol.pp -m /usr/local/etc/fail2ban-journal-sepol.mod ; semodule -i /usr/local/etc/fail2ban-journal-sepol.pp
+      args:
+        creates: /usr/local/etc/fail2ban-journal-sepol.pp
+      when: fail2ban_selinux_policy is changed
 
-- name: Ensure that fail2ban and firewalld are started and enabled
-  service: name={{ item }} state=started enabled=yes
-  with_items:
-    - fail2ban
-    - firewalld
+    - name: Ensure that fail2ban and firewalld are started and enabled
+      service: name={{ item }} state=started enabled=yes
+      with_items:
+        - fail2ban
+        - firewalld
+
+  when: centos_install_epel
   tags:
     - centos
     - rhel

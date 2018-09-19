@@ -1,10 +1,12 @@
 ---
 orientdb_install: False
 orientdb_enabled: True
-orientdb_version: 2.2.17
+orientdb_version: 2.2.36
+orientdb_archive_commpression: tar.gz
 orientdb_dir: 'orientdb-community'
-orientdb_tar_file: '{{ orientdb_dir }}-{{ orientdb_version }}.tar.gz'
-orientdb_binary_distribution_url: 'http://orientdb.com/download.php?file={{ orientdb_tar_file }}' 
+orientdb_tar_filename: '{{ orientdb_dir }}-importers-{{ orientdb_version }}'
+orientdb_tar_file: '{{ orientdb_tar_filename }}.{{ orientdb_archive_commpression }}'
+orientdb_binary_distribution_url: 'https://s3.us-east-2.amazonaws.com/orientdb3/releases/{{ orientdb_version }}/{{ orientdb_tar_file }}' 
 orientdb_user: orientdb
 orientdb_log_dir: /var/log/orientdb
 orientdb_log_level: INFO
@@ -46,11 +48,13 @@ orientdb_default_settings: ''
 
 orientdb_distributed: False
 orientdb_distributed_autodeploy: 'true'
-#orientdb_distributed_writequorum: 'majority'
-orientdb_distributed_writequorum: 'all'
+orientdb_distributed_writequorum: 'majority'
+#orientdb_distributed_writequorum: 'all'
 orientdb_distributed_readquorum: 1
 orientdb_distributed_readyourwrites: 'true'
 orientdb_distributed_executionmode: 'undefined'
+orientdb_new_node_strategy: 'dynamic'
+
 orientdb_hazelcast_group_name: orientdb
 orientdb_hazelcast_group_password: orientdb
 orientbd_hazelcast_encryption: False

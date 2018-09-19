@@ -8,6 +8,15 @@
 # NOTE: managed by ansible
 #
 local({r <- getOption("repos")
-       r["CRAN"] <- "{{ r_cran_mirror_site }}"
-       options(repos=r)
+        r["CRAN"] <- "{{ r_cran_mirror_site }}"
+        options(repos=r)
 })
+
+# Explicitly set the R encoding using the system one, if it exists
+if (file.exists("/etc/default/locale")) {
+        readRenviron("/etc/default/locale")
+        LANG <- Sys.getenv("LANG")
+        if(nchar(LANG))
+                Sys.setlocale("LC_ALL", LANG)
+}
+

@@ -2,3 +2,5 @@
 - name: solr restart
   service: name=solr state=restarted
 
+- name: Restart Solr prometheus exporter
+  service: name=solr_prometheus_exporter state=restarted enabled=yes

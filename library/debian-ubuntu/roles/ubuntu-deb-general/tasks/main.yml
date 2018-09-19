@@ -1,23 +1,31 @@
 ---
-- include: apt-proxy.yml
-- include: resolvconf.yml
+- import_tasks: apt-proxy.yml
+- import_tasks: resolvconf.yml
   when: install_resolvconf
-- include: packages.yml
-- include: ntp.yml
-- include: remove-unneeded-pkgs.yml
-- include: denyhost.yml
+- import_tasks: dist-upgrade.yml
+  when: dist_upgrade
+- import_tasks: packages.yml
+- import_tasks: install_nscd.yml
+  when: install_nscd
+- import_tasks: ntp.yml
+- import_tasks: remove-unneeded-pkgs.yml
+- import_tasks: denyhost.yml
   when: is_debian_7_or_older
-- include: denyhost.yml
+- import_tasks: denyhost.yml
   when: is_ubuntu_less_than_trusty
-- include: munin.yml
+- import_tasks: munin.yml
   when: configure_munin
-- include: pubkeys.yml
+- import_tasks: pubkeys.yml
   when: manage_root_ssh_keys
-- include: rsyslogfix.yml
-- include: unattended-upgrades.yml
-- include: pki-basics.yml
-- include: install_external_ca_cert.yml
-- include: manage_su_limits.yml
-- include: disable-unneeded-services.yml
+- import_tasks: rsyslogfix.yml
+- import_tasks: unattended-upgrades.yml
+- import_tasks: pki-basics.yml
+- import_tasks: pki-basics-letsencrypt-acmetool.yml
+  when: letsencrypt_acme_install is defined and letsencrypt_acme_install
+- import_tasks: pki-basics-letsencrypt-acme-sh.yml
+  when: letsencrypt_acme_sh_install is defined and letsencrypt_acme_sh_install
+- import_tasks: install_external_ca_cert.yml
+- import_tasks: manage_su_limits.yml
+- import_tasks: disable-unneeded-services.yml
 
 

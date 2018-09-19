@@ -1,14 +1,13 @@
 ---
 # The internal repository is used for the check-openmanage nagios plugin:
 # http://folk.uio.no/trondham/software/check_openmanage.html
-- name: research infrastructures system repository on ubuntu
-  apt_repository: repo='deb http://ppa.research-infrastructures.eu/system stable main'
-  when: is_ubuntu
-  register: update_apt_cache
-  tags: [ 'dell', 'nagios' ]
-
 - name: Install the NeMIS internal repository apt key
   apt_key: url=http://ppa.research-infrastructures.eu/system/keys/system-archive.asc state=present
+  tags: [ 'dell', 'nagios' ]
+
+- name: research infrastructures system repository on ubuntu
+  apt_repository: repo='deb http://ppa.research-infrastructures.eu/system stable main' state=present update_cache=yes
+  when: is_ubuntu
   tags: [ 'dell', 'nagios' ]
 
 - name: research infrastructures system repository on debian
@@ -21,7 +20,7 @@
 
 - name: Update apt cache
   apt: update_cache=yes
-  when: ( update_apt_cache | changed )
+  when: update_apt_cache is changed
   tags: [ 'dell', 'nagios' ]
 
 #- action: apt_key id=1285491434D8786F state=present
@@ -30,18 +29,16 @@
   tags: [ 'dell', 'nagios' ]
 
 - name: Install the Dell apt repository
-  template: src={{ item }}.j2 dest=/etc/apt/sources.list.d/{{ item }}
-  with_items:
-    - linux.dell.com.sources.list
+  apt_repository: repo='deb http://linux.dell.com/repo/community/ubuntu {{ ansible_distribution_release }} openmanage' update_cache=yes
   tags: [ 'dell', 'nagios' ]
 
 - name: Install the Dell OMSA packages dependencies
-  apt: pkg={{ item }} state=installed force=yes update_cache=yes
+  apt: pkg={{ item }} state=present force=yes update_cache=yes cache_valid_time=1800
   with_items: '{{ nagios_dell_omsa_deps }}'
   tags: [ 'dell', 'nagios' ]
 
 - name: Install other Dell OMSA packages dependencies
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
   with_items:
     - python-requests
   register: requests_pkg
@@ -49,7 +46,7 @@
   tags: [ 'dell', 'nagios' ]
 
 - name: Install the python-pip package if requests is not available as a package
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
   with_items:
     - python-pip
   when: requests_pkg|failed
@@ -70,17 +67,17 @@
 
 - name: Install libssl0.9.8_0.9.8o-4squeeze14_amd64.deb on debian 7
   shell: /usr/bin/dpkg -i /var/lib/libssl0.9.8_0.9.8o-4squeeze14_amd64.deb
-  when: ( libssl_legacy | changed )
+  when: libssl_legacy is changed
   tags: [ 'dell', 'nagios' ]
 
 - name: Install the main Dell OMSA package
-  apt: pkg={{ item }} state={{ nagios_dell_omsa_pkg_state }} force=yes
+  apt: pkg={{ item }} state={{ nagios_dell_omsa_pkg_state }} force=yes update_cache=yes cache_valid_time=1800
   with_items:
     - syscfg
   tags: [ 'dell', 'nagios' ]
 
 - name: Install the Dell OMSA packages
-  apt: pkg={{ item }} state={{ nagios_dell_omsa_pkg_state }} force=yes
+  apt: pkg={{ item }} state={{ nagios_dell_omsa_pkg_state }} force=yes update_cache=yes cache_valid_time=1800
   with_items: '{{ nagios_dell_omsa_pkgs }}'
   notify: Start Dell OMSA
   tags: [ 'dell', 'nagios' ]

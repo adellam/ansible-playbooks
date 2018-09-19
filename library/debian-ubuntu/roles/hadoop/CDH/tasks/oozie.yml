@@ -1,0 +1,12 @@
+---
+- block:
+  - name: Get the Oozie external libraries needet to activate the web console
+    get_url: url={{ cdh_oozie_ext_libs_url }} dest=/srv/
+
+  - name: Unarchive the Oozie ext libraries needed to activate the web console
+    unarchive: remote_src=yes src=/srv/ext-2.2.zip dest=/var/lib/oozie owner=oozie group=oozie
+    args:
+      creates: /var/lib/oozie/ext2.2
+
+  when: cdh_oozie_server
+  tags: [ 'cdh', 'hadoop', 'cdh_manager', 'oozie' ]

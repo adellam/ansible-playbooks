@@ -1,0 +1,10 @@
+---
+- hosts: all
+  remote_user: "{{ d4science_ansible_user | default('root') }}"
+  become: '{{ d4science_ansible_become | default(False) }}'
+  become_user: "{{ d4science_ansible_become_user | default('root') }}"
+  serial: '{{ hosts_serial | default(10) }}'
+  gather_facts: False
+  roles:
+    - { role: ../library/roles/letsencrypt-acmetool-client, when: letsencrypt_acme_install is defined and letsencrypt_acme_install }
+

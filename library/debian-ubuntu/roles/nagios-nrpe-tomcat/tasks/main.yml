@@ -1,6 +1,6 @@
 ---
 - name: Install the plugin dependencies
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present
   with_items: check_tomcat_deps
   tags:
     - nagios

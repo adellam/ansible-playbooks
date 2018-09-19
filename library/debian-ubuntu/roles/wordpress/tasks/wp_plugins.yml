@@ -1,0 +1,25 @@
+---
+- block:
+  - name: Remove the default dummy plugin
+    command: wp plugin delete hello
+    args:
+      chdir: '{{ wordpress_doc_root }}'
+
+  - name: Install the wanted plugins
+    command: wp plugin install {{ item }} --force --activate
+    args:
+      chdir: '{{ wordpress_doc_root }}'
+    with_items: '{{ wordpress_plugins_install_list }}'
+    when: wordpress_plugins_install_list is defined
+        
+  - name: Remove the default dummy plugin
+    command: wp plugin delete {{ item }}
+    args:
+      chdir: '{{ wordpress_doc_root }}'
+    with_items: '{{ wordpress_plugins_delete_list }}'
+    when: wordpress_plugins_delete_list is defined
+    
+  become: True
+  become_user: '{{ wordpress_system_user }}'
+  tags: wordpress
+

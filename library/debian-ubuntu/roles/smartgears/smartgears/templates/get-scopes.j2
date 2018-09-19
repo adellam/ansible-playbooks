@@ -1,4 +1,15 @@
 #!/bin/bash
+#
+# get-scopes: get smartgears scopes using an authorization token or getting them from the current smartgears state. Or both.
+#
+# Set the ansible 'smartgears_merge_scopes' variable to 'False' in the playbook run if you do not want to merge the scopes
+#
+#######################
+#
+# * token + SMARTGEARS_MERGE_SCOPES boolean set to true (default): we merge the scopes
+#   - if it is a first install there is no state to merge. Do not fail, only get the playbook scopes
+# * token + SMARTGEARS_MERGE_SCOPES boolean set to false: we only use the playbook scopes
+# * no token, SMARTGEARS_MERGE_SCOPES boolean set to false: we do nothing
 
 CONTAINER_XML_HEAD={{ smartgears_user_home }}/.containerxml/1-container.xml
 SCOPES_FILE={{ smartgears_user_home }}/.containerxml/2-container.xml
@@ -7,49 +18,10 @@ LOCAL_LIB=/usr/local/lib
 LOCAL_ETC=/usr/local/etc
 LOG_PREFIX="get-scopes: "
 GHN_ENV_FILE=/etc/default/tomcat-instance-{{ item.http_port }}.local
-SMARTGEARS_VO_AUTH={{ smartgears_authorized_on_all_scopes }}
 SMARTGEARS_SAVED_STATE_F=saved_scopes_list.xml
 SMARTGEARS_SAVED_STATE_PATH={{ smartgears_user_home }}/SmartGears/$SMARTGEARS_SAVED_STATE_F
 SMARTGEARS_SCRIPTS_DIR={{ smartgears_user_home }}/SmartGears/scripts
 SMARTGEARS_RUNNING_STATE_FILE={{ smartgears_install_path }}/state/ghn.xml
-
-CONTAINER_XML_FILE={{ smartgears_install_path }}/container.xml
-
-# 0: True, 1: False
-USE_SAVED_STATE=1
-TOKEN=
-RETVAL=
-
-if [ $# -eq 0  ] ; then
-    if [ -f $SMARTGEARS_RUNNING_STATE_FILE ] ; then
-        if [ "$SMARTGEARS_VO_AUTH" == 'true' ] ; then
-            # - The node must run on all VOs
-            logger "$LOG_PREFIX When the node must run on all the VOs a valid token is mandatory, aborting without doing anything"
-            exit 0
-        fi
-        USE_SAVED_STATE=0
-        echo "No token, assuming that we can use the local state"
-        logger "$LOG_PREFIX No token, assuming that we can use the local state"
-    else
-        # - First installation, no upgrade.
-        logger "$LOG_PREFIX No token was passed and not working state available, aborting"
-        exit 1
-    fi
-elif [ $# -eq 1 ] ; then
-    logger "$LOG_PREFIX We have an authorization token"
-    TOKEN=$1
-else
-    logger "$LOG_PREFIX More than one parameter was passed, aborting"
-    exit 1
-fi
-
-SCOPES_LIST=""
-if [ -f $LOCAL_ETC/scopes.list ] ; then
-    . $LOCAL_ETC/scopes.list
-else
-    logger "$LOG_PREFIX There is no token list, aborting"
-    exit 1
-fi
 
 {%if setup_nginx %}
 HTTP_PORT={{ http_port }}
@@ -61,51 +33,164 @@ HTTP_PORT={{ item.http_port }}
 {% endif %}
 {% endif %}
 
-function get_scopes_from_auth() {
+# True (defaul): merge the scopes. False: do not merge
+SMARTGEARS_MERGE_SCOPES="{{ smartgears_merge_scopes }}"
+# If true, all the VRE associated to the listed VOs are authorized
+SMARTGEARS_VO_AUTH={{ smartgears_authorized_on_all_scopes }}
+
+CONTAINER_XML_FILE={{ smartgears_install_path }}/container.xml
+
+TOKEN=
+RETVAL=
+USE_SAVED_STATE=
+CREATE_CONTAINER_XML_RES=0
+
+#######################
+
+check_merge_scopes_behaviour() {
+    # 0: True, 1: False
+    USE_SAVED_STATE=0
+    if [ $SMARTGEARS_MERGE_SCOPES == 'True' ] ; then
+        USE_SAVED_STATE=0
+        logger "$LOG_PREFIX check_merge_scopes_behaviour: smartgears_merge_scopes set to True by the caller."
+    elif [ $SMARTGEARS_MERGE_SCOPES == 'False' ] ; then
+        USE_SAVED_STATE=1
+        logger "$LOG_PREFIX check_merge_scopes_behaviour: smartgears_merge_scopes set to False by the caller."
+    else
+        logger "$LOG_PREFIX check_merge_scopes_behaviour: smartgears_merge_scopes set to a not correct value. Assuming True."
+    fi
+}
+
+check_smartgears_state_presence() {
+    if [ ! -f $SMARTGEARS_RUNNING_STATE_FILE ] ; then
+        USE_SAVED_STATE=1
+        logger "$LOG_PREFIX check_smartgears_state_presence: No state file, it was removed or it is a first installation. We need a token to proceed successfully from now on."
+    else
+        logger "$LOG_PREFIX check_smartgears_state_presence: There is a local state."
+    fi
+}
+
+decide_how_to_proceed() {
+    if [ -z $TOKEN ] ; then
+        if [ ! -f $SMARTGEARS_RUNNING_STATE_FILE ] ; then
+            logger "$LOG_PREFIX decide_how_to_proceed: No token no local state. Maybe a first installation. Aborting."
+            exit 1
+        elif [ $USE_SAVED_STATE -eq 1 ] ; then
+            logger "$LOG_PREFIX decide_how_to_proceed: No token and we do not want to merge the local state. Doing nothing."
+            exit 0
+        fi
+    else
+        logger "$LOG_PREFIX decide_how_to_proceed: Got a token. We are going to request tokens from the authorisation service."
+    fi 
+}
+
+load_the_scopes_list_from_file() {
+    if [ ! -z $TOKEN ] ; then
+        SCOPES_LIST=""
+        if [ -f $LOCAL_ETC/scopes.list ] ; then
+            . $LOCAL_ETC/scopes.list
+            logger "$LOG_PREFIX load_the_scopes_list_from_file: A token was provided."
+        else
+            logger "$LOG_PREFIX load_the_scopes_list_from_file: There is no scopes list file, this should never happen. Aborting."
+            exit 1
+        fi
+    else
+        # If no token was provided, we cannot use the file with the list of provided scopes
+        logger "$LOG_PREFIX load_the_scopes_list_from_file: No token was provided, not loading the scopes list file."
+    fi
+}
+
+get_scopes_from_auth() {
+    # We have a token and a list of scopes names. Get the scope tokens for them.
+    logger "$LOG_PREFIX get_scopes_from_auth: get_scopes_from_auth. We have a token and a list of scopes names. Get the scope tokens for them."
     for jar in $( ls -1 /home/gcube/tomcat/lib/ ) ; do
         export CLASSPATH="/home/gcube/SmartGears/lib/${jar}:$CLASSPATH"
     done
     cd $LOCAL_LIB
+    {% if hostname is defined %}
+    java TokenGenerator {{ hostname }} $TOKEN $HTTP_PORT $SCOPES_FILE $SCOPES_LIST >/dev/null 2>&1
+    {% else %}
     java TokenGenerator {{ smartgears_hostname }} $TOKEN $HTTP_PORT $SCOPES_FILE $SCOPES_LIST >/dev/null 2>&1
+    {% endif %}
     RETVAL=$?
     if [ $RETVAL -eq 0 ] ; then
-        logger "$LOG_PREFIX We got the scope tokens"
+        logger "$LOG_PREFIX get_scopes_from_auth: We got the scope tokens."
     else
-        logger "$LOG_PREFIX Unable to obtain the scope tokens, aborting"
+        logger "$LOG_PREFIX get_scopes_from_auth: Unable to obtain the scope tokens, aborting."
         exit 1
     fi
 }
 
-if [ $USE_SAVED_STATE -ne 0 ] ; then
-    logger "$LOG_PREFIX First installation or moving avay to a configuration that needs to be present on all the VREs. Using our scopes list and not the state memorized one"
-    get_scopes_from_auth
+get_scopes_from_local_state() {
+    if [ ! -f $SMARTGEARS_RUNNING_STATE_FILE ] ; then
+        USE_SAVED_STATE=1
+        logger "$LOG_PREFIX get_scopes_from_local_state: No state file, it was removed or it is a first installation. Skip the request for the local state, do not merge the local state."
+        return 0
+    fi
+    # Get the scopes from the local state
+    cd $SMARTGEARS_SCRIPTS_DIR
+    . $GHN_ENV_FILE
+    ./clean-container-state -s $SMARTGEARS_SAVED_STATE_F
+    RETVAL=$?
+    if [ $RETVAL -ne 0 ] ; then
+        # We were not able to get the running state from the IS. Try to get new scope tokens 
+        logger "$LOG_PREFIX get_scopes_from_local_state: We were not able to get the running state from the IS."
+    fi
+    logger "$LOG_PREFIX get_scopes_from_local_state: Got the scopes."
+}
+
+get_scopes() {
+    if [ ! -z $TOKEN ] ; then
+        # We have a token, let's use it
+        load_the_scopes_list_from_file
+        get_scopes_from_auth
+    fi 
+    # We try to get the scopes from the local state unconditionally, so that we always cleanup the state.
+    get_scopes_from_local_state
+}
+
+assemble_the_container_xml_file() {
+    # Now that we have the tokens, we can assemble the container.xml file
+    logger "$LOG_PREFIX assemble_the_container_xml_file: Start assembling the container.xml file."
+    chmod 640 $CONTAINER_XML_FILE
+    if [ ! -z $TOKEN ] && [ $USE_SAVED_STATE -eq 0 ] ; then
+        CREATE_CONTAINER_XML=$( cat $CONTAINER_XML_HEAD $SCOPES_FILE $SMARTGEARS_SAVED_STATE_PATH $CONTAINER_XML_TAIL > $CONTAINER_XML_FILE )
+        CREATE_CONTAINER_XML_RES=$?
+        logger "$LOG_PREFIX $CONTAINER_XML_FILE assemble_the_container_xml_file: Merge the scopes obtained from the authorisation service with the local state."
+    elif [ ! -z $TOKEN ] && [ $USE_SAVED_STATE -eq 1 ] ; then
+        CREATE_CONTAINER_XML=$( cat $CONTAINER_XML_HEAD $SCOPES_FILE $CONTAINER_XML_TAIL > $CONTAINER_XML_FILE )
+        CREATE_CONTAINER_XML_RES=$?
+        logger "$LOG_PREFIX $CONTAINER_XML_FILE assemble_the_container_xml_file: Use the scopes obtained from the authorisation service."
+    elif [ -z $TOKEN ] && [ $USE_SAVED_STATE -eq 0 ] ; then
+        CREATE_CONTAINER_XML=$( cat $CONTAINER_XML_HEAD $SMARTGEARS_SAVED_STATE_PATH $CONTAINER_XML_TAIL > $CONTAINER_XML_FILE )
+        CREATE_CONTAINER_XML_RES=$?
+        logger "$LOG_PREFIX $CONTAINER_XML_FILE assemble_the_container_xml_file: Use the scopes from the local state."
+    fi 
+    if [ $CREATE_CONTAINER_XML_RES -ne 0 ] ; then
+        logger "$LOG_PREFIX assemble_the_container_xml_file: $CONTAINER_XML_FILE cannot be updated. Error is $CREATE_CONTAINER_XML"
+        exit $CREATE_CONTAINER_XML_RES
+    fi
+    chmod 440 $CONTAINER_XML_FILE
+    logger "$LOG_PREFIX $CONTAINER_XML_FILE assemble_the_container_xml_file: updated"
+}
+
+############
+#
+# Main
+#
+# check_token_presence
+if [ $# -gt 0 ] ; then
+    # Ignore anything other than the first parameter
+    logger "$LOG_PREFIX check_token_presence: We have an authorization token."
+    TOKEN=$1
 else
-    logger "$LOG_PREFIX We are going to use the scopes memorized into the state"
-    SCOPES_FILE=$SMARTGEARS_SAVED_STATE_PATH
+    logger "$LOG_PREFIX check_token_presence: # of arguments is $#. No token."
 fi
 
-# We always remove the current state
-cd $SMARTGEARS_SCRIPTS_DIR
-. $GHN_ENV_FILE
-./clean-container-state -s $SMARTGEARS_SAVED_STATE_F
-RETVAL=$?
-if [ $RETVAL -ne 0 ] ; then
-    # We were not able to get the running state from the IS. Try to get new scope tokens 
-    logger "$LOG_PREFIX We were not able to get the running state from the IS. Try to get new scope tokens from the authorization service"
-    SCOPES_FILE={{ smartgears_user_home }}/.containerxml/2-container.xml
-    get_scopes_from_auth
-fi
-
-# Now that we have the tokens, we can assemble the container.xml file
-chmod 640 $CONTAINER_XML_FILE
-CREATE_CONTAINER_XML_RES=0
-CREATE_CONTAINER_XML=$( cat $CONTAINER_XML_HEAD $SCOPES_FILE $CONTAINER_XML_TAIL > $CONTAINER_XML_FILE )
-CREATE_CONTAINER_XML_RES=$?
-if [ $CREATE_CONTAINER_XML_RES -ne 0 ] ; then
-    logger "$LOG_PREFIX $CONTAINER_XML_FILE cannot be updated. Error is $CREATE_CONTAINER_XML"
-    exit $CREATE_CONTAINER_XML_RES
-fi
-chmod 440 $CONTAINER_XML_FILE
-logger "$LOG_PREFIX $CONTAINER_XML_FILE updated"
+check_merge_scopes_behaviour
+check_smartgears_state_presence
+decide_how_to_proceed
+get_scopes
+assemble_the_container_xml_file
 
 exit 0

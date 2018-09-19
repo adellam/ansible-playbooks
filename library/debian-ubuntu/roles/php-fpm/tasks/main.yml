@@ -15,6 +15,11 @@
   with_items: '{{ php_fpm_packages }}'
   tags: php
 
+- name: Install additional php packages
+  apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=3600
+  with_items: '{{ php_additional_packages | default([]) }}'
+  tags: php
+
 - name: Set the timezone if we have one
   ini_file: dest={{ phpfpm_base_dir }}/php.ini section=Date option=date.timezone value={{ timezone }} backup=yes
   when: timezone is defined

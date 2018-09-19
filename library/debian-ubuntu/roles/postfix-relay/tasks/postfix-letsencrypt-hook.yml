@@ -1,0 +1,4 @@
+---
+- name: Install a hook for letsencrypt
+  template: src=postfix-letsencrypt-hook dest=/usr/lib/acme/hooks/postfix owner=root group=root mode=4555
+  tags: [ 'postfix', 'postfix-relay' ]

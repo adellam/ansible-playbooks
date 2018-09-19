@@ -5,7 +5,7 @@ smartgears_gcube_repository: '{{ gcube_repository }}'
 # distribution version
 smartgears_upgrade: False
 smartgears_force_install: False
-smartgears_remove_state: False
+smartgears_force_remove_state: False
 
 smartgears_node: True
 smartgears_install_generic_virthost: True
@@ -16,7 +16,8 @@ smartgears_user_home: '{{ d4science_user_home }}'
 smartgears_downloads_dir: '{{ d4science_user_home }}/downloads'
 smartgears_instance_path: '{{ smartgears_user_home }}/tomcat'
 smartgears_install_path: '{{ smartgears_user_home }}/SmartGears'
-smartgears_distribution_version: 2.1.3-4.7.0-154641
+#smartgears_distribution_version: 2.2.0-4.10.0-162179
+smartgears_distribution_version: latest
 smartgears_global_base_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ gcube_repository }}'
 smartgears_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/{{ smartgears_gcube_repository }}'
 
@@ -42,6 +43,7 @@ smartgears_production_vo:
 
 # Set to 'true' or 'false'. Pay attention to the case
 smartgears_authorized_on_all_scopes: 'false'
+smartgears_merge_scopes: True 
 smartgears_scopes:
   - '/{{ smartgears_infrastructure_name }}'
 smartgears_hostname: '{{ ansible_fqdn }}'
@@ -54,8 +56,12 @@ smartgears_http_port: 9000
 smartgears_service_name: 'tomcat-instance-{{ smartgears_http_port }}'
 
 smartgears_log_use_timesize_appender: True
+smartgears_logback_conf_autoscan: 'true'
+smartgears_logback_conf_debug: 'false'
 smartgears_loglevel: WARN
+smartgears_accounting_log_level: ERROR  
 smartgears_dataanalysis_loglevel: DEBUG
+smartgears_dataanalysis_log_max_history: 90
 smartgears_log_max_history: 30
 smartgears_log_max_file_size: 10MB
 smartgears_log_total_file_cap: 2GB

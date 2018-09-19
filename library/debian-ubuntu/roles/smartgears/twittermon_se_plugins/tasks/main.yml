@@ -6,6 +6,7 @@
         - '{{ twittermon_twmoncron_se_plugin_name }}'
         - '{{ twittermon_twmoncrawler_se_plugin_name }}'
       when: twittermon_se_plugin_upgrade
+      tags: [ 'smartgears', 'twittermon_se']
 
     - name: Get the twittermon TwMonCron smart executor plugin
       get_url: url={{ twittermon_twmoncron_se_plugin_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ twittermon_twmoncron_se_plugin_name }}

@@ -1,0 +1,53 @@
+---
+- block:
+    - name: Create the user under the haproxy exporter will run
+      user: name={{ prometheus_h_e_user }} home={{ prometheus_h_e_home }} createhome=no shell=/usr/sbin/nologin system=yes
+
+    - name: Create the prometheus haproxy exporter base directory
+      file: dest={{ item }} state=directory owner=root group=root
+      with_items:
+        - '{{ prometheus_h_e_home }}'
+        - '{{ prometheus_h_e_dist_dir }}'
+
+    - name: Create the prometheus haproxy exporter log directory
+      file: dest={{ prometheus_h_e_logdir }} state=directory owner={{ prometheus_h_e_user }} group={{ prometheus_h_e_user }}
+
+    - name: Download the prometheus haproxy exporter
+      get_url: url={{ prometheus_h_e_download_url }} dest=/srv/
+
+    - name: Unarchive the prometheus distribution
+      unarchive: src=/srv/{{ prometheus_h_e_file }} dest={{ prometheus_h_e_dist_dir }} remote_src=yes owner=root group=root
+      args:
+        creates: '{{ prometheus_h_e_dist_dir }}/{{ prometheus_h_e_dir }}/haproxy_exporter'
+      notify: Restart haproxy exporter
+
+    - name: Install the prometheus haproxy exporter upstart script
+      template: src=haproxy_exporter.upstart.j2 dest=/etc/init/haproxy_exporter.conf mode=0644 owner=root group=root
+      when: ansible_service_mgr != 'systemd'
+
+    - name: Install the prometheus haproxy exporter systemd unit
+      template: src=haproxy_exporter.systemd.j2 dest=/etc/systemd/system/haproxy_exporter.service mode=0644 owner=root group=root
+      when: ansible_service_mgr == 'systemd'
+      notify: systemd reload
+
+    - name: Ensure that prometheus haproxy_exporter is started and enabled
+      service: name=haproxy_exporter state=started enabled=yes
+
+  tags: [ 'prometheus', 'haproxy_exporter' ]
+  when: prometheus_h_e_install
+
+- block:
+    - name: Ensure that prometheus haproxy_exporter is stopped and disabled
+      service: name=haproxy_exporter state=stopped enabled=no
+
+    - name: Remove prometheus haproxy exporter upstart script
+      file: dest=/etc/init/haproxy_exporter.conf state=absent
+      when: ansible_service_mgr != 'systemd'
+
+    - name: Remove the prometheus haproxy exporter systemd unit
+      file: dest=/etc/systemd/system/haproxy_exporter.service state=absent
+      when: ansible_service_mgr == 'systemd'
+      notify: systemd reload
+
+  tags: [ 'prometheus', 'haproxy_exporter' ]
+  when: not prometheus_h_e_install

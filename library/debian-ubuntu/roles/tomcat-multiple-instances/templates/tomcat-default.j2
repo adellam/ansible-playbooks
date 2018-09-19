@@ -1,7 +1,7 @@
 TOMCAT_USER={{ item.user }}
 TOMCAT_GROUP={{ item.user }}
 JAVA_HOME={{ item.java_home }}
-JAVA_OPTS="-server -Djava.awt.headless=true"
+JAVA_OPTS="-server -Djava.awt.headless=true -Dfile.encoding={{ tomcat_m_file_encoding }}"
 {% if item.java_heap is defined %}
 JAVA_HEAP="{{ item.java_heap }}"
 {% else %}
@@ -33,7 +33,9 @@ JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.ssl=true"
 JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.ssl=false"
 {% endif %}
 {% if item.jmx_localhost_only is defined and item.jmx_localhost_only %}
-JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.local.only=true"
+JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.local.only=true -Djava.rmi.server.hostname=127.0.0.1"
+{% else %}
+JAVA_OPTS="${JAVA_OPTS} -Djava.rmi.server.hostname={{ tomcat_m_jmx_ip_address }}"
 {% endif %}
 {% if item.jmx_auth_enabled is defined and item.jmx_auth_enabled %}
 JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.password.file={{ item.jmx_auth_dir }}/jmxremote.password -Dcom.sun.management.jmxremote.access.file={{ item.jmx_auth_dir }}/jmxremote.access"
@@ -49,7 +51,11 @@ JAVA_OPTS="${JAVA_OPTS} -XX:+DisableAttachMechanism -Dcom.sun.management.jmxremo
 JAVA_OPTS="${JAVA_OPTS} -agentlib:jdwp=transport=dt_socket,address={{ item.remote_debugging_port }},server=y,suspend=n"
 {% endif %}
 # WARNING: This directory will be destroyed and recreated at every startup !
-JVM_TMP={{ item.instance_path }}/tmp
+{% if item.catalina_tmp_directory is defined %}
+JVM_TMP={{ item.catalina_tmp_directory }}/jvm_tmp
+{% else %}
+JVM_TMP={{ item.instance_path }}/tmp/jvm_tmp
+{% endif %}
 {% if item.catalina_tmp_directory is defined %}
 export CATALINA_TMPDIR={{ item.catalina_tmp_directory }}
 {% endif %}

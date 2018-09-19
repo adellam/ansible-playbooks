@@ -1,19 +1,45 @@
 ---
-- name: Install the grafana repo key
-  apt_key: url={{ grafana_repo_key }} state=present
+- block: 
+    - name: Ensure that grafana is stopped and disabled
+      service: name=grafana-server state=stopped enabled=no
+
+    - name: Remove the grafana deb packages
+      apt: name='{{ item }}' state=absent
+      with_items: '{{ grafana_packages }}'
+
+    - name: Install the grafana deb repository
+      apt_repository: repo='{{ grafana_repo }}' state=absent update_cache=yes
+
+  when: not grafana_enabled
   tags: [ 'grafana' ]
 
-- name: Install the grafana deb repository
-  apt_repository: repo='{{ grafana_repo }}' state=present update_cache=yes
-  tags: [ 'grafana' ]
+- block: 
+    - name: Install the grafana repo key
+      apt_key: url={{ grafana_repo_key }} state=present
 
-- name: Install the grafana deb packages
-  apt: name='{{ item }}' state=present
-  with_items: '{{ grafana_packages }}'
-  tags: [ 'grafana' ]
+    - name: Install the grafana deb repository
+      apt_repository: repo='{{ grafana_repo }}' state=present update_cache=yes
+
+    - name: Install the grafana deb packages
+      apt: name='{{ item }}' state={{ grafana_pkg_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ grafana_packages }}'
   
-- name: Ensure that grafana is enabled and running
-  service: name=grafana-server state=started enabled=yes
+    - name: Install the grafana configuration files
+      template: src={{ item }}.j2 dest=/etc/grafana/{{ item }} mode=0440 owner=root group=grafana
+      with_items: '{{ grafana_conf_files }}'
+      notify: Restart grafana
+
+    - name: Create the local dashboards directory
+      file: dest=/var/lib/grafana/dashboards state=directory mode=0755 owner=grafana group=grafana
+
+    - name: Install additional plugins, if any
+      command: grafana-cli plugins {{ item.cmd | default('install') }} {% if item.repo is defined %} --repo {{ item.repo }} {% endif %} {% if item.url is defined %} --pluginUrl {{ item.url }} {% else %} {{ item.name }} {% endif %}
+      with_items: '{{ grafana_additional_plugins }}'
+      when: grafana_additional_plugins is defined
+      tags: [ 'grafana', 'grafana_plugins' ] 
+
+    - name: Ensure that grafana is enabled and running
+      service: name=grafana-server state=started enabled=yes
+
   when: grafana_enabled
   tags: [ 'grafana' ]
-  

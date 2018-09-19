@@ -1,0 +1,12 @@
+---
+ovirt_engine_custom_tasks: True
+ovirt_engine_dest_tasks: '/etc/ovirt-engine/ansible/'
+
+ovirt_engine_daily_backup: True
+ovirt_engine_backup_dir: /var/engine-backups
+
+ovirt_engine_custom_firewall_rules: True
+ovirt_engine_firewall_admitted_sources:
+  - 192.168.100.0/24
+
+ovirt_engine_firewall_zone: drop

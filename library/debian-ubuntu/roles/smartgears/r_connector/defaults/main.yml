@@ -28,3 +28,6 @@ r_connector_ldap_map_common:
   - common-password
   - common-session
   - common-session-noninteractive
+
+r_connector_ssl: on 
+r_connector_tls_reqcert: demand 

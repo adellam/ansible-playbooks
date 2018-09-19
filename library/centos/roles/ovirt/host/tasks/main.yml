@@ -1,0 +1,28 @@
+---
+- block:
+    - name: Install the oVirt repository
+      yum: pkg={{ ovirt_repo_url }} state=present
+
+    - name: Install the packages needed by the hyperconverged installation
+      yum: pkg={{ item }} state=present
+      with_items: '{{ ovirt_hyperconverged_packages }}'
+      when: ovirt_hyperconverged
+
+    - name: Install the packages needed to install the self hosted engine
+      yum: pkg={{ item }} state=present
+      with_items: '{{ ovirt_self_hosted_engine_packages }}'
+      when: ovirt_self_hosted_engine
+
+    - name: Install the self hosted image on the hypervisor where we are going to run the configuration steps 
+      yum: pkg=ovirt-engine-appliance state=present
+      when: ovirt_self_hosted_engine_primary
+
+    - name: Ensure that the required services are enabled at boot 
+      service: name={{ item }} enabled=yes state=started
+      with_items: '{{ ovirt_enabled_services }}'
+
+    - name: Create a ssh key for root on every hypervisor node
+      user: name=root generate_ssh_key=yes ssh_key_bits=4096 ssh_key_comment='ovirt node'
+      tags: [ 'ovirt', 'ssh_key' ]
+      
+  tags: ovirt

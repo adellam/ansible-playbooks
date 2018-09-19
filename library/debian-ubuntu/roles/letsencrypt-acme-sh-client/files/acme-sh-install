@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ -f "/etc/default/acme_sh_request_env" ] ; then
+    . "/etc/default/acme_sh_request_env"
+else
+    exit 1
+fi
+
+cd "$ACME_SH_GIT_DIST_DIR"
+./acme.sh $ACME_SH_INSTALL_OPTS
+
+exit $?

@@ -1,0 +1,7 @@
+"{{ ovirt_engine_backup_dir }}"/engine-backup* {
+	daily
+	missingok
+	nocreate
+        nocopy
+        rotate 10
+}

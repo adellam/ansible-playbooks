@@ -72,6 +72,8 @@ rm_issue_todo_lists_plugin: False
 # IMPORTANT: these are mutually exclusive. One of the two needs to be set to True
 ruby_use_mod_passenger: True
 ruby_use_unicorn: False
+# Redmine 2.x only
+rm_involvement_plugin: False
 
 # Used by unicorn
 unicorn_listen_port: 4000

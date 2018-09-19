@@ -1,24 +1,40 @@
 ---
 - block:
     - name: Remove the old Sis geotk data transfer plugin 
-      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/lib/{{ sis_geotk_dt_plugin_name }}-*-jar-with-dependencies.jar
-
+      file: dest={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/lib/plugins/{{ sis_geotk_dt_plugin_name }} state=absent
+      
   become: True
   become_user: '{{ smartgears_user }}'
   when: not sis_geotk_dt_plugin_install
   tags: [ 'smartgears', 'sis_geotk', 'tomcat' ]
     
 - block:
-    - name: Get the Sis geotk data transfer plugin and install it inside the smart executor
-      maven_artifact: artifact_id={{ sis_geotk_dt_plugin_name }} version={{ sis_geotk_dt_plugin_version | default(omit) }} group_id={{ sis_geotk_dt_plugin_group_id }} extension={{ sis_geotk_dt_plugin_extension | default('war') }} repository_url={{ smartgears_global_base_url }} classifier={{ sis_geotk_dt_plugin_classifier }} dest={{ smartgears_downloads_dir }}/{{ sis_geotk_dt_plugin_file }}
-      register: sis_geotk_download
+    - name: Get the Sis geotk data transfer uber jar
+      maven_artifact: artifact_id={{ sis_geotk_dt_plugin_name }} version={{ sis_geotk_dt_plugin_version }} group_id={{ sis_geotk_dt_plugin_group_id }} extension={{ sis_geotk_dt_plugin_extension }} repository_url={{ smartgears_global_base_url }} classifier={{ sis_geotk_dt_plugin_classifier }} dest={{ smartgears_downloads_dir }}/{{ sis_geotk_dt_plugin_uber_file }}
+      register: sis_geotk_download 
 
     - name: Remove the old Sis geotk data transfer plugin 
-      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/lib/{{ sis_geotk_dt_plugin_name }}-*-jar-with-dependencies.jar
-      when: (sis_geotk_download | changed)
+      file: dest={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/lib/plugins/{{ sis_geotk_dt_plugin_name }} state=absent
+      when: sis_geotk_download is changed
 
-    - name: Copy the Sis geotk data transfer plugin to its final destination
-      copy: src={{ smartgears_downloads_dir }}/{{ sis_geotk_dt_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/lib/{{ sis_geotk_dt_plugin_file }} remote_src=yes force=yes
+    - name: Create the plugin directory inside data transfer
+      file: dest={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/lib/plugins/{{ sis_geotk_dt_plugin_name }} state=directory
+      register: sis_geotk_create_dir
+
+    - name: Unarchive the Sis geotk data transfer uber jar to expose its libraries
+      unarchive: src={{ smartgears_downloads_dir }}/{{ sis_geotk_dt_plugin_uber_file }} dest={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/lib/plugins/{{ sis_geotk_dt_plugin_name }}/ copy=no
+      when: sis_geotk_create_dir is changed
+      notify: Restart smartgears
+
+    - name: Get the Sis geotk data transfer jar
+      maven_artifact: artifact_id={{ sis_geotk_dt_plugin_name }} version={{ sis_geotk_dt_plugin_version }} group_id={{ sis_geotk_dt_plugin_group_id }} extension={{ sis_geotk_dt_plugin_extension }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/lib/plugins/{{ sis_geotk_dt_plugin_name }} keep_name=yes 
+      notify: Restart smartgears
+
+    - name: Remove the Sis geotk uber jar org and META-INF directories
+      file: dest={{ smartgears_instance_path }}/webapps/{{ data_trasfer_service_name }}/WEB-INF/lib/plugins/{{ sis_geotk_dt_plugin_name }}/{{ item }} state=absent
+      with_items:
+        - org
+        - 'META-INF'
       notify: Restart smartgears
 
   become: True

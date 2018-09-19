@@ -1,68 +1,46 @@
 ---
 - block:
     - name: Install the production gcube keys
-      get_url: url={{ item.url }} dest=/{{ gcube_tomcat_lib_dir }}/{{ item.name }} owner={{ smartgears_user }} group={{ d4science_user }} mode=0600
-      with_items:
-        - '{{ gcube_prod_key_1 }}'
-        - '{{ gcube_prod_key_2 }}'
-        - '{{ gcube_prod_key_3 }}'
-        - '{{ gcube_prod_key_4 }}'
-        - '{{ gcube_prod_key_5 }}'
-        - '{{ gcube_prod_key_6 }}'
-        - '{{ gcube_prod_key_7 }}'
-        - '{{ gcube_prod_key_8 }}'
-        - '{{ gcube_prod_key_9 }}'
+      get_url: url={{ item.url }} dest={{ gcube_tomcat_lib_dir }}/{{ item.name }} owner={{ smartgears_user }} group={{ d4science_user }} mode=0600
+      with_items: '{{ gcube_production_security_keys }}'
       notify: Restart smartgears 
       when: install_gcube_prod_key
 
     - name: Remove the production gcube keys
-      file: dest=/{{ gcube_tomcat_lib_dir }}/{{ item.name }} state=absent
-      with_items:
-        - '{{ gcube_prod_key_1 }}'
-        - '{{ gcube_prod_key_2 }}'
-        - '{{ gcube_prod_key_3 }}'
-        - '{{ gcube_prod_key_4 }}'
-        - '{{ gcube_prod_key_5 }}'
-        - '{{ gcube_prod_key_6 }}'
-        - '{{ gcube_prod_key_7 }}'
-        - '{{ gcube_prod_key_8 }}'
-        - '{{ gcube_prod_key_9 }}'
+      file: dest={{ gcube_tomcat_lib_dir }}/{{ item.name }} state=absent
+      with_items: '{{ gcube_production_security_keys }}'
       notify: Restart smartgears 
       when: not install_gcube_prod_key
 
     - name: Install the devel gcube keys
-      get_url: url={{ item.url }} dest=/{{ gcube_tomcat_lib_dir }}/{{ item.name }} owner={{ smartgears_user }} group={{ d4science_user }} mode=0600
-      with_items:
-        - '{{ gcube_dev_key_1 }}'
-        - '{{ gcube_dev_key_2 }}'
-        - '{{ gcube_dev_key_3 }}'
+      get_url: url={{ item.url }} dest={{ gcube_tomcat_lib_dir }}/{{ item.name }} owner={{ smartgears_user }} group={{ d4science_user }} mode=0600
+      with_items: '{{ gcube_dev_security_keys }}'
       notify: Restart smartgears 
       when: install_gcube_dev_key
 
     - name: Remove the devel gcube keys
-      file: dest=/{{ gcube_tomcat_lib_dir }}/{{ item.name }} state=absent
-      with_items:
-        - '{{ gcube_dev_key_1 }}'
-        - '{{ gcube_dev_key_2 }}'
-        - '{{ gcube_dev_key_3 }}'
+      file: dest={{ gcube_tomcat_lib_dir }}/{{ item.name }} state=absent
+      with_items: '{{ gcube_dev_security_keys }}'
       notify: Restart smartgears 
       when: not install_gcube_dev_key
 
     - name: Install the preprod gcube keys
-      get_url: url={{ item.url }} dest=/{{ gcube_tomcat_lib_dir }}/{{ item.name }} owner={{ smartgears_user }} group={{ smartgears_user }} mode=0600
-      with_items:
-        - '{{ gcube_pre_key_1 }}'
-        - '{{ gcube_dev_key_1 }}'
+      get_url: url={{ item.url }} dest={{ gcube_tomcat_lib_dir }}/{{ item.name }} owner={{ smartgears_user }} group={{ smartgears_user }} mode=0600
+      with_items: '{{ gcube_preprod_security_keys }}'
       notify: Restart smartgears 
       when: install_gcube_preprod_key
 
     - name: Remove the preprod gcube keys
-      file: dest=/{{ gcube_tomcat_lib_dir }}/{{ item.name }} state=absent
-      with_items:
-        - '{{ gcube_pre_key_1 }}'
+      file: dest={{ gcube_tomcat_lib_dir }}/{{ item.name }} state=absent
+      with_items: '{{ gcube_preprod_security_keys }}'
       notify: Restart smartgears 
       when: not install_gcube_preprod_key
 
-  become: True
-  become_user: '{{ smartgears_user }}'
+    - name: Remove the obsolete or expired gcube keys
+      file: dest={{ gcube_tomcat_lib_dir }}/{{ item.name }} state=absent
+      with_items: '{{ gcube_old_security_keys }}'
+      notify: Restart smartgears 
+
+  #become: True
+  #become_user: '{{ smartgears_user }}'
   tags: gcube_key

@@ -27,7 +27,11 @@ chown openldap $OPENLDAP_CERTDIR/privkey.pem
 chmod 400 $OPENLDAP_CERTDIR/privkey.pem
 
 echo "Restart the openldap service" >> $LE_LOG_DIR/openldap.log
-service slapd restart >/dev/null 2>&1
+if [ -x /bin/systemctl ] ; then
+    systemctl force-reload slapd >/dev/null 2>&1
+# else
+#     service slapd force-reload >/dev/null 2>&1
+fi
 echo "Done." >> $LE_LOG_DIR/openldap.log
 
 exit 0

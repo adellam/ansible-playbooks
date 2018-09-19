@@ -308,3 +308,9 @@
     - Bundle install and reconfigure redmine
   tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_issue_todo_lists' ]
 
+- name: Install the involvement filter plugin
+  git: repo=https://github.com/commandprompt/redmine_involvement_filter.git dest={{ redmine_glob_root_dir }}/{{ redmine_inst_dir }}/plugins/redmine_involvement_filter update=no
+  when: rm_involvement_plugin
+  notify:
+    - Bundle install and reconfigure redmine
+  tags: [ 'redmine', 'redmine_plugins', 'redmine_plugins_involvement_filter' ]

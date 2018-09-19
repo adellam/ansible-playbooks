@@ -1,0 +1,27 @@
+---
+ovirt_major: 4
+ovirt_minor: 2
+ovirt_version: '{{ ovirt_major }}.{{ ovirt_minor }}'
+ovirt_compact_ver: '{{ ovirt_major }}{{ ovirt_minor }}'
+ovirt_repo_url: 'http://resources.ovirt.org/pub/yum-repo/ovirt-release{{ ovirt_compact_ver }}.rpm'
+ovirt_hyperconverged: True
+ovirt_self_hosted_engine: True
+ovirt_self_hosted_engine_primary: False
+
+ovirt_hyperconverged_packages:
+  - ovirt-host
+  - glusterfs-server
+  - vdsm-gluster
+
+ovirt_self_hosted_engine_packages:
+  - ovirt-engine-appliance
+  - ovirt-hosted-engine-ha
+  - cockpit-ovirt-dashboard 
+  - gdeploy 
+
+ovirt_node_packages:
+  - ovirt-host
+  - vdsm-gluster
+
+ovirt_enabled_services:
+  - glusterd

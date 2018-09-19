@@ -1,11 +1,16 @@
 ---
 accounting_aggregator_se_plugin_install: False
+accounting_aggregator_se_plugin_upgrade: False
+accounting_aggregator_se_plugin_version: latest
+
+accounting_aggregator_se_plugin_group_id: 'org.gcube.accounting'
 accounting_aggregator_se_plugin_name: 'accounting-aggregator-se-plugin'
-
-accounting_aggregator_se_plugin_group_id : 'org.gcube.accounting'
-accounting_aggregator_se_plugin_artifact_id : 'accounting-aggregator-se-plugin'
-accounting_aggregator_se_plugin_version : '1.0.0-SNAPSHOT'
 accounting_aggregator_se_plugin_extension: 'jar'
-accounting_aggregator_se_plugin_classifier: 'jar-with-dependencies'
-accounting_aggregator_se_plugin_file: '{{ accounting_aggregator_se_plugin_name }}-{{ accounting_aggregator_se_plugin_version }}-jar-with-dependencies.{{ accounting_aggregator_se_plugin_extension }}'
+accounting_aggregator_se_plugin_classifier: 'uberjar'
+accounting_aggregator_se_plugin_uber_file: '{{ accounting_aggregator_se_plugin_name }}-{{ accounting_aggregator_se_plugin_version }}-{{ accounting_aggregator_se_plugin_classifier }}.{{ accounting_aggregator_se_plugin_extension }}'
+accounting_aggregator_se_plugin_file: '{{ accounting_aggregator_se_plugin_name }}-{{ accounting_aggregator_se_plugin_version }}.{{ accounting_aggregator_se_plugin_extension }}'
 
+catalina_apps_conf:
+  - { app_name: '{{ smart_executor_name }}', plugin_name: '{{ accounting_aggregator_se_plugin_name }}' }
+
+# Note: the deb package nco is required

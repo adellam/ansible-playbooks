@@ -26,7 +26,7 @@
 
 - name: Initialize the data directory
   shell: cp -rp /srv/gitblit-{{ gitblit_version }}/data/* {{ gitblit_data_dir }} ; chown -R {{ gitblit_user }}:{{ gitblit_user }} {{ gitblit_data_dir }}
-  when: ( gitblit_data_dir_setup | changed )
+  when: gitblit_data_dir_setup is changed
   tags: gitblit
 
 - name: Install the customized gitblit.properties file

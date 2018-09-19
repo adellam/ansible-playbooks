@@ -1,6 +1,7 @@
 ---
 dependencies:
   - role: '../../library/roles/deb-apt-setup'
+  - role: '../../library/roles/ubuntu-python-setup'
   - role: '../../library/roles/deb-set-hostname'
   - role: '../../library/roles/deb-set-locale'
   - role: '../../library/roles/timezone'

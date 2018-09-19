@@ -5,6 +5,7 @@
       with_items:
         - '{{ smartgears_instance_path }}/webapps/{{ resource_registry_name }}'
         - '{{ smartgears_instance_path }}/webapps/{{ resource_registry_name }}.{{ resource_registry_extension }}'
+      notify: Restart smartgears 
 
   become: True
   become_user: '{{ d4science_user }}'
@@ -17,16 +18,15 @@
       register: resource_registry_download
 
     - name: Remove the old resource-registry files
-      file: path={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }} state=absent
-      when: ( resource_registry_download | changed )
+      file: path={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ resource_registry_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ resource_registry_name }}.{{ resource_registry_extension }}'
+      when: resource_registry_download is changed
 
     - name: Create the resource-registry working directory
       file: path={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
-      when: ( resource_registry_download | changed )
-
-    - name: Copy the resource registry war file into the webapps directory
-      copy: src={{ smartgears_downloads_dir }}/{{ resource_registry_file }} dest={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }}.{{ resource_registry_extension }} remote_src=yes force=yes
-      notify: Restart smartgears
+      when: resource_registry_download is changed
 
     - name: Unarchive the resource registry war
       unarchive: copy=no src={{ smartgears_downloads_dir }}/{{ resource_registry_file }} dest={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }} creates={{ smartgears_instance_path }}/webapps/{{ resource_registry_name }}/WEB-INF/lib

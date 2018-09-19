@@ -1,0 +1,7 @@
+---
+- block:
+  - name: Install the haproxy configuration
+    template: src=hue-hive-impala_haproxy.cfg dest=/etc/haproxy/haproxy.cfg owner=root group=root
+    notify: Reload haproxy
+
+  tags: [ 'cdh', 'haproxy', 'impala', 'hue', 'hive' ]

@@ -1,10 +1,11 @@
 ---
 - block:
-    - name: Remove the installed R connector before upgrading
+    - name: Remove the installed R connector
       file: dest={{ item }} state=absent
       with_items:
         - '{{ smartgears_instance_path }}/webapps/{{ r_connector_name }}'
         - '{{ smartgears_instance_path }}/webapps/{{ r_connector_name }}.{{ r_connector_extension }}'
+      notify: Restart smartgears 
 
     - name: Remove the packages required to enable the LDAP PAM authentication
       become: False
@@ -32,20 +33,22 @@
       register: r_connector_download
 
     - name: Remove the installed R connector before upgrading
-      file: dest={{ smartgears_instance_path }}/webapps/{{ r_connector_name }} state=absent
-      when: ( r_connector_download | changed )
+      file: dest={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ r_connector_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ r_connector_name }}.{{ r_connector_extension }}'
+      notify: Restart smartgears 
+      when: r_connector_download is changed
 
     - name: Create the R connector webapp directory
       file: dest={{ smartgears_instance_path }}/webapps/{{ r_connector_name }} state=directory
-      when: ( r_connector_download | changed )
-
-    - name: Copy the R connector war file into the webapps directory
-      copy: src={{ smartgears_downloads_dir }}/{{ r_connector_filename }} dest={{ smartgears_instance_path }}/webapps/{{ r_connector_name }}.{{ r_connector_extension }} remote_src=yes force=yes
+      when: r_connector_download is changed
 
     - name: Unarchive the R connector war file
       unarchive: copy=no src={{ smartgears_downloads_dir }}/{{ r_connector_filename }} dest={{ smartgears_instance_path }}/webapps/{{ r_connector_name }}
       args:
         creates: '{{ smartgears_instance_path }}/webapps/{{ r_connector_name }}/WEB-INF/web.xml'
+      notify: Restart smartgears 
 
     - name: Obtain the permission to read the Rstudio secure cookie key
       become_user: root
@@ -109,6 +112,7 @@
       notify:
         - Restart the NSLCD service
         - Restart the NSCD service
+      tags: [ 'smartgears', 'r_connector', 'tomcat', 'r_connector_nslcd_conf' ]
 
   when:
     - r_connector_install

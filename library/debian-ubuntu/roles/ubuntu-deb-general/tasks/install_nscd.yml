@@ -1,0 +1,13 @@
+---
+- block:
+
+  - name: Install the nscd service to work around dns timeouts
+    become_user: root
+    apt: pkg=nscd state=present update_cache=yes cache_valid_time=1800
+
+  - name: Ensure thad the nscd service is enabled and running
+    become_user: root
+    service: name=nscd state=restarted enabled=yes
+
+  when: install_nscd
+  tags: [ 'nscd' ]

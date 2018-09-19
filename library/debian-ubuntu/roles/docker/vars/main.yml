@@ -1,0 +1,6 @@
+---
+py_env_install: True
+py_env_pip_pkgs:
+  - docker-compose
+  - docker
+

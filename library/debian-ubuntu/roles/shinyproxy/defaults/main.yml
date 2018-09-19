@@ -1,6 +1,6 @@
 ---
 shinyproxy_install: False
-shinyproxy_version: 1.0.0
+shinyproxy_version: 1.1.1
 shinyproxy_file_name: 'shinyproxy-{{ shinyproxy_version }}.jar'
 shinyproxy_url: 'https://www.shinyproxy.io/downloads/{{ shinyproxy_file_name }}'
 shinyproxy_app_name: shinyproxy.jar

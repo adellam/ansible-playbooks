@@ -10,13 +10,23 @@
   apt: pkg={{ item }} state={{ nginx_package_state }} update_cache=yes cache_valid_time=1800
   with_items:
     - nginx-full
-  when: not nginx_use_ldap_pam_auth
+  when:
+    - not nginx_use_ldap_pam_auth
+    - ansible_distribution_major_version <= '14'
   tags: nginx
 
 - name: Install the nginx web server if we need ldap auth via pam
   apt: pkg={{ item }} state={{ nginx_package_state }} update_cache=yes cache_valid_time=1800
   with_items: 
     - nginx-extras
-  when: nginx_use_ldap_pam_auth
+  when:
+    - nginx_use_ldap_pam_auth
+    - ansible_distribution_major_version <= '14'
   tags: nginx
 
+- name: Install the nginx web server on Ubuntu >= 16.04
+  apt: pkg={{ item }} state={{ nginx_package_state }} update_cache=yes cache_valid_time=1800
+  with_items:
+    - nginx
+  when: ansible_distribution_major_version >= '16'
+  tags: nginx

@@ -1,0 +1,20 @@
+---
+- block:
+  - name: Install the ldif that activates the accesslog db 
+    template: src=syncprov.ldif.j2 dest=/etc/ldap/schema/syncprov.ldif
+
+  - name: Create the accesslog directory
+    file: dest=/var/lib/ldap/accesslog state=directory owner=openldap group=openldap
+
+  - name: Install the DB_CONFIG settings into the accesslog directory
+    template: src=DB_CONFIG.j2 dest=/var/lib/ldap/accesslog/DB_CONFIG owner=openldap group=openldap mode=0644
+
+  - name: Install the accesslog and syncprov configuration
+    shell: ldapadd -Q -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/{{ item }} ; touch /etc/ldap/schema/.{{ item }}.installed
+    args:
+      creates: '/etc/ldap/schema/{{ item }}.installed'
+    with_items: syncprov.ldif
+
+  tags: [ 'ldap', 'openldap', 'ldap_master', 'ldap_conf' ]
+  when: openldap_master
+  

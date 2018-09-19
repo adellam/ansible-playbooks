@@ -1,6 +1,6 @@
 ---
 - name: Install the vsftpd package
-  apt: pkg=vsftpd state=installed
+  apt: pkg=vsftpd state=present update_cache=yes cache_valid_time=3600
   tags: [ 'vsftpd', 'ftp' ] 
 
 - name: Install the vsftpd configuration file

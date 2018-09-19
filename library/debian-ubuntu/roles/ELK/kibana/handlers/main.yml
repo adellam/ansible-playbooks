@@ -1,0 +1,5 @@
+---
+- name: Restart elasticsearch
+  service: name=elasticsearch state=restarted enabled=yes
+  when: elasticsearch_enabled
+

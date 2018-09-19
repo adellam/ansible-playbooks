@@ -1,15 +1,15 @@
 ---
 - name: Install the duplicity package
-  yum: name=duplicity state=installed
+  yum: name=duplicity state=present
   tags: [ 'duplicity', 'duplicity_backup' ]
 
 - name: Install the duply wrapper
-  yum: name=duply state=installed
+  yum: name=duply state=present
   when: duplicity_install_duply
   tags: [ 'duplicity', 'duply', 'duplicity_backup' ]
 
 - name: Install lftp if we want use ftps
-  yum: name=lftp state=installed
+  yum: name=lftp state=present
   when: duplicity_use_ftps
   tags: [ 'duplicity', 'duply', 'duplicity_backup' ]
 

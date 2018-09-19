@@ -1,7 +1,7 @@
 ---
 - name: Create a directory where to store all the smartgears related downloads to avoid cluttering the home directory
   file: dest={{ smartgears_downloads_dir }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
-  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'smartgears_download_dir', 'smartgears_downloads_dir' ]
+  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'smartgears_download_dir', 'smartgears_downloads_dir', 'smartgears_conf' ]
   
 - name: Remove the old smartgears-distribution files under the smartgears user home directory.
   shell: rm -fr {{ smartgears_user_home }}/smartgears-distribution-* ; touch {{ smartgears_user_home }}/.smartgears_distribution_cleaned
@@ -16,12 +16,13 @@
   with_items: '{{ tomcat_m_instances }}'
   register: smartgears_download 
   when: not item.skip_smartgears
-  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat' ]
+  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat']
 
 - name: Remove the smartgears-distribution files
-  shell: find . -type d -name {{ smartgears_downloads_dir }}/smartgears-distribution-\* -exec rm -fr {} \;
-  when: ( smartgears_download | changed )
-  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat' ]
+  shell: find {{ smartgears_downloads_dir }} -maxdepth 1 -type d -name smartgears-distribution-* -exec rm -fr {} \;
+  ignore_errors: yes
+  when: smartgears_download is changed
+  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat']
 
 - name: Unarchive the smartgears distribution
   become: True
@@ -30,23 +31,23 @@
   with_items: '{{ tomcat_m_instances }}'
   when:
     - not item.skip_smartgears
-    - ( smartgears_download | changed )
+    - smartgears_download is changed
   tags: [ 'smartgears', 'smartgears_distribution', 'tomcat' ]
 
 - name: Check if the smartgears stop script exists
   become: True
   become_user: '{{ smartgears_user }}'
-  stat: path=/home/{{ smartgears_user }}/stopContainer.sh
-  when: smartgears_upgrade or ( smartgears_download | changed )
+  stat: path={{ smartgears_user_home }}/stopContainer.sh
+  when: smartgears_upgrade or ( smartgears_download is changed )
   register: smartgears_stop_script
   tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'stop_smartgears_service' ]
 
 - name: Stop the smartgears container before launching the upgrade script
   become: True
   become_user: '{{ smartgears_user }}'
-  shell: /home/{{ smartgears_user }}/stopContainer.sh
+  shell: '{{ smartgears_user_home }}/stopContainer.sh'
   when:
-    - smartgears_upgrade or ( smartgears_download | changed )
+    - smartgears_upgrade or ( smartgears_download is changed )
     - smartgears_stop_script.stat.exists
   tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'stop_smartgears_service' ]
 
@@ -71,20 +72,11 @@
   shell: cd {{ smartgears_downloads_dir }} ; dest_dir=$( find . -type d -name smartgears-distribution-\* | tail -1 ) ; cd $dest_dir ; . /{{ item.user_home }}/.bashrc  ; ./install -s tomcat
   with_items: '{{ tomcat_m_instances }}'
   when:
-    - ( smartgears_download | changed )
+    - smartgears_download is changed
     - not item.skip_smartgears
   register: install_smartgears_app
   notify: Restart smartgears
   tags: [ 'smartgears', 'smartgears_distribution', 'tomcat' ]
-
-- name: Get the real smartgears version from the exploded distribution filename
-  shell: /bin/ls -1 {{ smartgears_downloads_dir }} | grep smartgears-distribution | grep -v tar.gz | sed -e 's/smartgears-distribution-//g'
-  register: smartgears_real_version
-  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'smartgears_conf' ]
-
-- name: Set the real smartgears distribution version
-  set_fact: smartgears_real_distribution_version="{{ smartgears_real_version.stdout }}"
-  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'smartgears_conf' ]
 
 - name: Create the directory where we put the smartgears configuration snippets
   become: True
@@ -96,25 +88,11 @@
   copy: src=TokenGenerator.class dest=/usr/local/lib/TokenGenerator.class owner=root group=root mode=0644
   tags: [ 'smartgears', 'smartgears_distribution', 'smartgears_conf', 'tomcat' ]
 
-- name: Install the script that manages the smartgears loglevel
-  template: src=change-logback-loglevel.sh.j2 dest=/usr/local/bin/change-logback-loglevel owner=root group=root mode=0755
-  with_items: '{{ tomcat_m_instances }}'
-  when: not item.skip_smartgears 
-  tags: [ 'smartgears', 'smartgears_distribution', 'smartgears_loglevel', 'tomcat', 'logback_conf' ]
-
-- name: Change the smartgears log level
-  become: True
-  become_user: '{{ smartgears_user }}'
-  shell: /usr/local/bin/change-logback-loglevel
-  when: not smartgears_logback_template
-  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'smartgears_loglevel', 'logback_conf' ]
-
 - name: Install the smartgears logback configuration
   become: True
   become_user: '{{ smartgears_user }}'
   template: src=logback.xml.j2 dest={{ smartgears_instance_path }}/lib/logback.xml
   when: smartgears_logback_template
-  notify: Restart smartgears
   tags: [ 'smartgears', 'smartgears_distribution', 'smartgears_conf', 'tomcat', 'logback_conf' ]
 
 - name: Remove some wrong symbolic links created by the install/upgrade script
@@ -132,6 +110,25 @@
 - name: Install the file containing the scopes list
   template: src=scopes.list.j2 dest=/usr/local/etc/scopes.list owner=root group={{ smartgears_user }} mode=0444
   tags: [ 'smartgears', 'smartgears_distribution', 'smartgears_conf', 'tomcat' ]
+
+- name: Get the real smartgears version from the container.xml file contained inside the distribution
+  shell: dest_dir=$( find {{ smartgears_downloads_dir }} -type d -name smartgears-distribution-\* | tail -1 ) ; cd $dest_dir ; grep "'SmartGearsDistribution' " container.xml | awk -F "'" '{print $4}'
+  register: smartgears_real_version
+  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'smartgears_conf' ]
+
+- name: Print the smartgears version
+  debug:
+    msg: "The smartgears version is: {{ smartgears_real_version.stdout }}"
+  when: smartgears_real_version is defined
+  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'smartgears_conf' ]
+
+- name: Set the real smartgears distribution version
+  set_fact: smartgears_real_distribution_version="{{ smartgears_real_version.stdout }}"
+  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'smartgears_conf' ]
+
+- name: Put the smartgears version into a file
+  copy: content={{ smartgears_real_distribution_version }} dest={{ smartgears_user_home }}/SMARTGEARS_VERSION
+  tags: [ 'smartgears', 'smartgears_distribution', 'tomcat', 'smartgears_conf' ]
 
 - name: Install the smartgears template configuration. First part
   become: True
@@ -151,15 +148,14 @@
   become: True
   become_user: '{{ smartgears_user }}'
   shell: /usr/local/bin/get-scopes {{ gcube_admin_token | default('') }}
-  when: gcube_admin_token is defined or ( smartgears_download | changed )
   notify: Restart smartgears
   tags: [ 'smartgears', 'smartgears_distribution', 'smartgears_conf', 'tomcat' ]
 
 - name: Remove the smartgears application state if requested
   become: True
   become_user: '{{ smartgears_user }}'
-  shell: . {{ smartgears_user_home }}/.bashrc ; cd {{ smartgears_user_home }}/SmartGears/scripts ; ./clean-container-state -s old_saved_scopes.xml
-  when: smartgears_remove_state and not smartgears_upgrade
+  file: dest={{ smartgears_install_path }}/state state=absent
+  when: smartgears_force_remove_state
   notify: Restart smartgears
   tags: [ 'smartgears', 'smartgears_distribution', 'smartgears_conf', 'tomcat' ]
 

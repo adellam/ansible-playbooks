@@ -7,7 +7,7 @@
   become: True
   become_user: '{{ smartgears_user }}'
   when: not gcube_geoserver_connector_install
-  tags: [ 'smartgears', 'ckan', 'gcube_geoserver_connector', 'tomcat' ]
+  tags: [ 'smartgears', 'geoserver', 'gcube_geoserver_connector', 'tomcat' ]
 
 - block:
     - name: Get the gcube connector 
@@ -16,7 +16,7 @@
 
     - name: Remove the installed gcube geoserver connector before upgrading
       shell: rm -f {{ smartgears_instance_path }}/webapps/{{ geoserver_app_name | lower }}/WEB-INF/lib/{{ gcube_geoserver_connector_name }}*.jar
-      when: ( gcube_conn_download | changed )
+      when: gcube_conn_download is changed
       notify: Restart smartgears 
 
     - name: Copy the gcube geoserver connector to its destination
@@ -26,4 +26,4 @@
   become: True
   become_user: '{{ smartgears_user }}'
   when: gcube_geoserver_connector_install
-  tags: [ 'smartgears', 'ckan', 'gcube_geoserver_connector', 'tomcat' ]
+  tags: [ 'smartgears', 'geoserver', 'gcube_geoserver_connector', 'tomcat' ]

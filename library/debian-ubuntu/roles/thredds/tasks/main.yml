@@ -17,12 +17,23 @@
       file: path={{ thredds_data_content_dir }} state=directory owner={{ item.user }} group={{ item.user }}
       with_items: '{{ tomcat_m_instances }}'
 
+    - name: Check if the configuration files were already initialized with our versions
+      stat: path={{ thredds_data_content_dir }}/thredds/.conf_initialized
+      register: thredds_skip_conf
+      tags: [ 'thredds', 'tomcat', 'thredds_conf' ]
+
     - name: Install the Thredds configuration files
-      template: src={{ item }}.j2 dest={{ thredds_data_content_dir }}/thredds/{{ item }} mode=444
-      with_items:
-        - threddsConfig.xml
-        - catalog.xml
+      template: src={{ item[1] }}.j2 dest={{ thredds_data_content_dir }}/thredds/{{ item[1] }} owner={{ item.0.user }} group={{ item.0.user }} mode=644
+      with_nested: 
+        - '{{ tomcat_m_instances }}'      
+        - ['threddsConfig.xml','catalog.xml']        
       notify: tomcat instances restart
+      when: not thredds_skip_conf.stat.exists
+      tags: [ 'thredds', 'tomcat', 'thredds_conf' ]
+
+    - name: Create the file that states that the thredds instance has been configured
+      copy: content="initialized by ansible" dest={{ thredds_data_content_dir }}/thredds/.conf_initialized mode=0400
+      register: thredds_skip_conf
       tags: [ 'thredds', 'tomcat', 'thredds_conf' ]
 
     - name: Get the thredds war file
@@ -39,6 +50,12 @@
       unarchive: copy=no src={{ thredds_download_directory }}/{{ thredds_file }} dest={{ item.instance_path }}/webapps/{{ thredds_app_name | lower }} creates={{ item.instance_path }}/webapps/{{ thredds_app_name | lower }}/WEB-INF/lib owner={{ item.user }} group={{ item.user }}
       with_items: '{{ tomcat_m_instances }}'
       notify: tomcat instances restart
+
+    - name: Install the Thredds configuration files
+      template: src=web.xml.j2 dest={{ item.instance_path }}/webapps/{{ thredds_app_name | lower }}/WEB-INF/web.xml owner={{ item.user }} group={{ item.user }} mode=644
+      with_items: '{{ tomcat_m_instances }}'      
+      notify: tomcat instances restart
+      tags: [ 'thredds', 'tomcat', 'thredds_conf', 'thredds_webxml' ]
 
   when: thredds_install 
   tags: [ 'thredds', 'tomcat' ]

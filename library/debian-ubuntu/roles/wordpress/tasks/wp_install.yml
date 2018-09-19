@@ -1,0 +1,34 @@
+---
+- block:
+  - name: Download and install the WordPress distribution 
+    command: wp core download --path={{ wordpress_doc_root }} --locale={{ wordpress_lang }} --version={{ wordpress_version }}
+    args:
+      creates: '{{ wordpress_doc_root }}/index.php'
+
+  - name: Get the WordPress salt keys
+    command: curl http://api.wordpress.org/secret-key/1.1/salt/
+    register: wordpress_salt
+
+  - name: Install the initial WordPress configuration file
+    template: src=wp-config.php dest={{ wordpress_doc_root }}/wp-config.php mode=0640 force=no
+
+  - name: Install the WP DB tables 
+    command: wp core install --url={{ wordpress_servername }} --title="{{ wordpress_title }}" --admin_user={{ wordpress_admin_user }} --admin_password='{{ wordpress_admin_pwd }}' --admin_email={{ wordpress_admin_email }}
+    args:
+      chdir: '{{ wordpress_doc_root }}'
+
+  - name: Check if we have to remove all the DB data 
+    stat: path={{ wordpress_doc_root }}/.htemptied
+    register: wp_wipe
+
+  - name: Remove the example data from the database
+    shell: wp site empty --yes ; touch {{ wordpress_doc_root }}/.htemptied
+    args:
+      chdir: '{{ wordpress_doc_root }}'
+    when: not wp_wipe.stat.exists
+
+  become: True
+  become_user: '{{ wordpress_system_user }}'
+  tags: wordpress
+  
+  

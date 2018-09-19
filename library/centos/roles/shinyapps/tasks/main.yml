@@ -1,0 +1,29 @@
+- name: ensure that the unarchive utils tar relies upon for file extraction are available (CentOS/RHEL)
+  yum: name={{ item }} state=latest
+  with_items:
+  - bzip2
+  - unzip
+  when: ansible_os_family == "RedHat"
+
+- name: ensure that the unarchive utils tar relies upon for file extraction are available (Debian/Ubuntu)
+  apt: name={{ item }} state=latest
+  with_items:
+  - bzip2
+  - unzip
+  when: ansible_os_family == "Debian"
+
+- name: create temporary build directory
+  shell: mktemp -d
+  register: tempdir
+
+- name: copy and extract the app archive
+  unarchive: src={{ app_archive }} dest="{{ tempdir.stdout }}" remote_src=no #creates=dlm.zip
+ 
+- name: Build the docker image
+  docker_image:
+    path: "{{ tempdir.stdout }}"
+    name: "{{ image_name }}"
+    tag: latest
+
+- name: remove the temporary build directory
+  file: path="{{ tempdir.stdout }}" state=absent

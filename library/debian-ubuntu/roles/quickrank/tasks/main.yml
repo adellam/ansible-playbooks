@@ -31,12 +31,12 @@
 
     - name: Configure the sources and compile them
       shell: cd /home/{{ d4science_user }}/quickrank ; rm -fr build ; mkdir build ; cd /home/{{ d4science_user }}/quickrank/build ; cmake .. -DCMAKE_CXX_COMPILER=g++-5 -DCMAKE_BUILD_TYPE=Release ; make
-      when: ( quickrank_src | changed )
+      when: quickrank_src is changed
 
     - name: Install the quickrank binaries
       become_user: "{{ d4science_ansible_become_user | default('root') }}"
       shell: cd /home/{{ d4science_user }}/quickrank/bin ; install -m 755 quicklearn /usr/local/bin
-      when: ( quickrank_src | changed )
+      when: quickrank_src is changed
 
   become: True
   become_user: '{{ d4science_user }}'

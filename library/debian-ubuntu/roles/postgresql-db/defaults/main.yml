@@ -1,0 +1,17 @@
+---
+psql_db_port: 5432
+psql_version: 9.6
+psql_conf_dir: '/etc/postgresql/{{ psql_version }}/main'
+psql_force_ssl_client_connection: False
+
+#psql_db_data:
+  # Example of line needed to create a db, create the user that owns the db, manage the db accesses (used by iptables too). All the fields are mandatory.
+  #- { name: '{{ psql_db_name }}', encoding: 'UTF8', user: '{{ psql_db_user }}', pwd: '{{ psql_db_pwd }}', roles: 'NOCREATEDB,NOSUPERUSER', extensions: [ 'postgis', 'pgpool_regclass', 'pgpool_recovery' ], allowed_hosts: [ 'xxx.xxx.xxx.xxx/32', 'yyy.yyy.yyy.yyy/32' ], managedb: True }
+  # Example of line needed to manage the db accesses (used by iptables too), without creating the db and the user. Useful, for example, to give someone access to the postgresql db
+  #- { name: '{{ psql_db_name }}', user: '{{ psql_db_user }}', allowed_hosts: [ 'xxx.xxx.xxx.xxx/32', 'yyy.yyy.yyy.yyy/32' ], managedb: False }
+  # Example of line needed to remove a db, create the user that owns the db, manage the db accesses (used by iptables too). All the fields are mandatory.
+  #- { name: '{{ psql_db_name }}', encoding: 'UTF8', user: '{{ psql_db_user }}', pwd: '{{ psql_db_pwd }}', managedb: True, roles: 'NOCREATEDB,NOSUPERUSER', extensions: [ 'postgis', 'pgpool_regclass', 'pgpool_recovery' ], allowed_hosts: [ 'xxx.xxx.xxx.xxx/32', 'yyy.yyy.yyy.yyy/32' ], state=absent }
+
+#psql_db_extensions:
+  #- { name: '{{ psql_db_name }}', extensions: [ 'postgis', 'pgpool_regclass', 'pgpool_recovery' ] }
+

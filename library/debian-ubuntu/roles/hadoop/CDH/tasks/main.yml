@@ -1,0 +1,12 @@
+---
+- import_tasks: cdm.yml
+  when: cdh_manager_install
+- import_tasks: spark2.yml
+  when: cdh_manager_install
+- import_tasks: oozie.yml
+  when: cdh_oozie_server
+- import_tasks: zeppelin.yml
+  when: cdh_zeppelin_node
+- import_tasks: services-haproxy.yml
+  when: cdh_impala_load_balancer
+

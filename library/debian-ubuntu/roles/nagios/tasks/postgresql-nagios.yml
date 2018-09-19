@@ -12,7 +12,7 @@
     - nagios
 
 - name: Install the packages needed to check postgres via nagios
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present
   with_items:
     - check-postgres
   tags:

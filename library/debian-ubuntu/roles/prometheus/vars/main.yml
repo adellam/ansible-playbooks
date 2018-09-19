@@ -1,0 +1,20 @@
+---
+nginx_letsencrypt_managed: True
+nginx_use_common_virthost: True
+nginx_virthosts:
+  - virthost_name: '{{ ansible_fqdn }}'
+    listen: '{{ http_port }}'
+    server_name: '{{ ansible_fqdn }}'
+    server_aliases: ''
+    index: index.html
+    ssl_enabled: True
+    ssl_only: True
+    ssl_letsencrypt_certs: '{{ nginx_letsencrypt_managed }}'
+    root: '{{ nginx_webroot }}'
+    server_tokens: 'off'
+    proxy_standard_setup: True
+    locations:
+      - location: /
+        target: http://localhost:{{ prometheus_http_port }}
+
+

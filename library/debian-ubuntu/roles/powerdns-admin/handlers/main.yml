@@ -1,0 +1,4 @@
+---
+- name: Restart pdns_admin
+  service: name=powerdns-admin state=restarted
+

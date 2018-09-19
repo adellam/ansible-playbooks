@@ -83,5 +83,5 @@
   service: name=postgresql state=restarted
   when:
     - postgresql_enabled
-    - ( restart_postgresql is defined ) and ( restart_postgresql | changed )
+    - ( restart_postgresql is defined ) and ( restart_postgresql is changed )
   tags: [ 'postgresql', 'postgres', 'pg_hba', 'pg_conf' ]

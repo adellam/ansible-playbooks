@@ -1,0 +1,31 @@
+---
+- name: Give access to the remote postgresql client
+  lineinfile: name={{ psql_conf_dir }}/pg_hba.conf regexp="^host.* {{ item.0.name }} {{ item.0.user }} {{ item.1 }}.*$" line="host {{ item.0.name }} {{ item.0.user }} {{ item.1 }} md5"
+  with_subelements: 
+    - '{{ psql_db_data | default([]) }}'
+    - allowed_hosts
+  when:
+    - psql_db_data is defined
+    - item.1 is defined
+    - not psql_force_ssl_client_connection
+  notify: Reload postgresql
+  tags: [ 'postgresql', 'postgres', 'pg_hba', 'pg_db' ]
+
+- name: Give access to the remote postgresql client, force ssl
+  lineinfile: name={{ psql_conf_dir }}/pg_hba.conf regexp="^host.* {{ item.0.name }} {{ item.0.user }} {{ item.1 }}.*$" line="hostssl {{ item.0.name }} {{ item.0.user }} {{ item.1 }} md5"
+  with_subelements: 
+    - '{{ psql_db_data | default([]) }}'
+    - allowed_hosts
+  when:
+    - psql_db_data is defined
+    - item.1 is defined
+    - psql_force_ssl_client_connection
+  notify: Reload postgresql
+  tags: [ 'postgresql', 'postgres', 'pg_hba', 'pg_db' ]
+
+- name: Set the correct permissions to the pg_hba.conf file
+  file: dest={{ psql_conf_dir }}/{{ item }} owner=root group=postgres mode=0640
+  with_items:
+    - pg_hba.conf
+  tags: [ 'postgresql', 'postgres', 'pg_hba', 'pg_conf' ]
+

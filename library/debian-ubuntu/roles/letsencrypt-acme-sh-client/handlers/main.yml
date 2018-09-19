@@ -1,0 +1,7 @@
+---
+- name: Install the requested certificates
+  shell: /usr/local/bin/acme-sh-install-certs
+  when:
+    - letsencrypt_acme_sh_explicitly_install_certs
+    - acme_sh_certificate_issued is changed
+

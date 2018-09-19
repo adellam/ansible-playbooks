@@ -1,0 +1,45 @@
+---
+- block:
+  - name: Create a user that will run the zeppelin service
+    user: name={{ cdh_zeppelin_user }} home={{ cdh_zeppelin_home }} createhome=no shell=/usr/sbin/nologin system=yes
+
+  - name: Create the zeppelin home directory
+    file: dest={{ cdh_zeppelin_home }} state=directory mode=0755
+
+  - name: Create the zeppelin data directories
+    file: dest={{ item }} state=directory owner={{ cdh_zeppelin_user }} group={{ cdh_zeppelin_group }}
+    with_items: '{{ cdh_zeppelin_work_dirs }}'
+
+  - name: Download zeppelin
+    get_url: url={{ cdh_zeppelin_download_url }} dest=/srv/{{ chd_zeppelin_archive }}
+
+  - name: Unpack the zeppelin distribution
+    unarchive: remote_src=yes src=/srv/{{ chd_zeppelin_archive }} dest={{ cdh_zeppelin_home }} owner=root group=root
+    args:
+      creates: '{{ cdh_zeppelin_home }}/{{ cdh_zeppelin_dir }}'
+
+  - name: zeppelin wants to write into the conf directory
+    file: dest={{ cdh_zeppelin_home }}/{{ cdh_zeppelin_dir }}/conf  owner={{ cdh_zeppelin_user }} group={{ cdh_zeppelin_group }}
+
+  - name: Install the zeppelin configuration files
+    template: src={{ item }} dest={{ cdh_zeppelin_home }}/{{ cdh_zeppelin_dir }}/conf/{{ item }} owner=root group={{ cdh_zeppelin_group }} mode=0440
+    with_items: '{{ cdh_zeppelin_conf_files }}'
+    notify: Restart zeppelin
+    tags: [ 'cdh', 'zeppelin', 'zeppelin_conf' ]
+
+  - name: Install the zeppelin upstart startup script
+    template: src=zeppelin_upstart.conf dest=/etc/init/zeppelin.conf
+    when: ansible_service_mgr != 'systemd'
+
+  - name: Install the zeppelin systemd startup script
+    template: src=zeppelin_systemd.service dest=/etc/systemd/system/zeppelin.service
+    when: ansible_service_mgr == 'systemd'
+
+  - name: Ensure that the zeppelin service is enabled and running
+    service: name=zeppelin state=started enabled=yes
+
+  - name: Ensure that apache2 installed by CDM is stopped and disabled
+    service: name=apache2 state=stopped enabled=no
+    notify: Restart nginx
+
+  tags: [ 'cdh', 'zeppelin' ]

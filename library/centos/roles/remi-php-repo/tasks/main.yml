@@ -1,6 +1,6 @@
 ---
 - name: "*** Install the Remi PHP repo ***"
-  yum: name={{ php_remi_repo_url }} state=installed
+  yum: name={{ php_remi_repo_url }} state=present
   when: php_remi_repo_install
   tags: [ 'php', 'remi' ]
   

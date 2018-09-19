@@ -1,0 +1,13 @@
+---
+dependencies:
+  - role: '../../library/roles/ubuntu-deb-general'
+  - { role: '../../library/roles/cloud-init', when:  ansible_product_name == "oVirt Node" }
+  - role: '../../library/roles/iptables'
+  - { role: '../../library/roles/data_disk', when: additional_disks is defined and additional_disks }
+  - role: '../../library/roles/sshd_config'
+  - { role: '../library/roles/letsencrypt-acmetool-client', when: letsencrypt_acme_install is defined and letsencrypt_acme_install }
+  - { role: '../library/roles/letsencrypt-acme-sh-client', when: letsencrypt_acme_sh_install is defined and letsencrypt_acme_sh_install }
+  - { role: '../../library/roles/ganglia', when: ganglia_enabled is defined }
+  - { role: '../../library/roles/nagios', when: nagios_enabled is defined }
+  - { role: '../../library/roles/prometheus-node-exporter', when: prometheus_enabled }
+

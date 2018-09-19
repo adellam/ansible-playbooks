@@ -1,25 +1,12 @@
 ---
 - name: Install the nagios packages
-  apt: pkg={{ item }} state=installed update_cache=yes
+  apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
   with_items: '{{ nagios_plugins_base_pkgs }}'
   tags: nagios
 
 - name: Additional nagios plugins when available
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
   with_items: '{{ nagios_plugins_contrib }}'
-  when: is_debian7
-  tags: [ 'nagios', 'nagios_plug_contrib' ]
-
-- name: Additional nagios plugins when available
-  apt: pkg={{ item }} state=installed
-  with_items: '{{ nagios_plugins_contrib }}'
-  when: is_debian8
-  tags: [ 'nagios', 'nagios_plug_contrib' ]
-
-- name: Additional nagios plugins when available
-  apt: pkg={{ item }} state=installed
-  with_items: '{{ nagios_plugins_contrib }}'
-  when: is_trusty
   tags: [ 'nagios', 'nagios_plug_contrib' ]
 
 - name: Create the directory where our local plugins are installed
@@ -38,9 +25,16 @@
     - check_netint.pl
   tags: nagios
 
+- name: Install a fixed check_memory on Ubuntu 16.04
+  copy: src={{ item }} dest={{ nagios_plugins_dir }}/{{ item }} owner=root group=nagios mode=0755
+  with_items:
+    - check_memory.xenial
+  when: ansible_distribution_release == 'xenial'
+  tags: nagios
+
 - name: Install the global nrpe commands file
   template: src=common-nrpe.cfg.j2 dest=/etc/nagios/nrpe.d/common.cfg owner=root group=root mode=444
-  notify: Reload NRPE server
+  notify: Restart NRPE server
   tags: [ 'nagios', 'nrpe', 'nrpe_cfg' ]
 
 - name: set the NRPE ACL

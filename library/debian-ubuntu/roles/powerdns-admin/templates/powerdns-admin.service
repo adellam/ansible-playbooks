@@ -1,0 +1,14 @@
+[Unit]
+Description=PowerDNS-Admin
+After=network.target
+
+[Service]
+Type=simple
+User={{ pdns_admin_user }}
+Group={{ pdns_admin_user }}
+ExecStart={{ pdns_admin_home }}/flask/bin/python ./run.py
+WorkingDirectory={{ pdns_admin_home }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

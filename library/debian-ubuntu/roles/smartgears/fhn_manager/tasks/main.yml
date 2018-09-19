@@ -21,7 +21,7 @@
  
     - name: Remove the old fhn-manager files
       file: path={{ smartgears_instance_path }}/webapps/{{ fhn_manager_name }} state=absent
-      when: ( fhn_mgr_download | changed )
+      when: fhn_mgr_download is changed
       notify: Restart smartgears
 
     - name: Copy the fhn_manager war file to its destination place

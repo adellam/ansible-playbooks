@@ -1,0 +1,8 @@
+---
+textpro_ita_repo_url: 'https://ashtoash@bitbucket.org/qwaider/textpro-ita.git'
+textpro_ita_required_packages:
+  - git
+  - tcsh
+  - make
+  - g++
+

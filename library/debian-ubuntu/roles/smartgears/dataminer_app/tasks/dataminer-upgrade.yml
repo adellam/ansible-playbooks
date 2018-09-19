@@ -6,5 +6,7 @@
     - name: If it is an upgrade, brutally remove the wps installation
       file: dest={{ smartgears_instance_path }}/webapps/{{ dataminer_wps_name }} state=absent
 
-  when: dataminer_app_upgrade
-  tags: [ 'tomcat', 'dataminer', 'dataminer_upgrade', 'wps' ]
+  when:
+    - dataminer_app_install
+    - dataminer_app_upgrade
+  tags: [ dataminer', 'dataminer_upgrade', 'wps' ]

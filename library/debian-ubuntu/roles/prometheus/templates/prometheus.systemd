@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus - Prometheus metrics collector.
+Documentation=https://prometheus.io/docs/introduction/overview/
+After=network.target
+
+[Service]
+Type=simple
+User={{ prometheus_user }}
+Group={{ prometheus_user }}
+EnvironmentFile=/etc/default/prometheus
+ExecStart={{ prometheus_cmd }} $PROMETHEUS_STARTUP_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

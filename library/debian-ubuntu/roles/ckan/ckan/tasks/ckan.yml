@@ -28,8 +28,8 @@
   tags: ckan
 
 - name: authorization file for the psql command, if the database is on a remote server
-  template: src=pgpass.j2 dest={{ pg_backup_pass_file }} owner=root mode=0600
-  when: "'{{ psql_db_host }}' != 'localhost'"
+  template: src=pgpass.j2 dest=/root/.pgpass owner=root mode=0600
+  when: psql_db_host != 'localhost'
   tags: [ 'pg_backup', 'postgresql', 'postgres' ]
 
 - name: Initialize the CKAN databases

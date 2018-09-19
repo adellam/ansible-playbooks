@@ -2,7 +2,7 @@
 accounting_insert_rstudio_se_plugin_install: False
 accounting_insert_rstudio_se_plugin_name: accounting-insert-rstudio-se-plugin
 
-accounting_insert_rstudio_se_plugin_version: '1.0.0-4.4.0-142716'
+accounting_insert_rstudio_se_plugin_version: 'latest'
 accounting_insert_rstudio_se_plugin_group_id: 'org.gcube.accounting'
 accounting_insert_rstudio_se_plugin_artifact_id: accounting-insert-rstudio-se-plugin
 accounting_insert_rstudio_se_plugin_extension: jar

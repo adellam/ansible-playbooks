@@ -1,0 +1,7 @@
+---
+grsf_services_updater_install: False
+grsf_services_updater_ver: latest
+grsf_services_updater_group_id: gr.forth.ics.isl
+grsf_services_updater_name: grsf-services-updater
+grsf_services_updater_extension: war
+grsf_services_updater_file: '{{ grsf_services_updater_name }}-{{ grsf_services_updater_ver }}.{{ grsf_services_updater_extension }}'

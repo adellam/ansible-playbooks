@@ -1,0 +1,8 @@
+---
+dependencies:
+  - role: '../../library/centos/roles/centos-bootstrap'
+  - role: '../../library/centos/roles/firewalld'
+  - role: '../../library/centos/roles/fail2ban'
+  - role: '../../library/centos/roles/ssh-keys'
+  - { role: '../library/centos/roles/letsencrypt-acmetool-client', when: letsencrypt_acme_install }
+  - { role: '../../library/centos/roles/prometheus-node-exporter', when: prometheus_enabled }

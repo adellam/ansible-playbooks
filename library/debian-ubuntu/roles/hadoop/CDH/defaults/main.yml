@@ -1,0 +1,82 @@
+---
+cdh_manager_install: False
+cdh_version: 5.9.3
+#cdh_manager_repo: 'deb https://archive.cloudera.com/cm5/ubuntu/trusty/amd64/cm/dists/trusty-cm{{ cdh_version }}/'
+cdh_packages_repo: 'deb [arch=amd64] http://archive.cloudera.com/cm5/ubuntu/trusty/amd64/cm trusty-cm5 contrib'
+cdh_manager_repo_url: 'https://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/cloudera.list'
+#cdh_manager_download_url: 'http://archive.cloudera.com/cm5/installer/5.9.3/cloudera-manager-installer.bin'
+cdh_csd_directory: /opt/cloudera/csd
+
+# Set it to true on the oozie server nodes
+cdh_oozie_server: False
+cdh_oozie_ext_libs_url: 'https://archive.cloudera.com/gplextras/misc/ext-2.2.zip'
+
+cdh_use_separate_postgres_db: True
+cdh_postgres_db_host: localhost
+cdh_postgres_db_name: cdh
+cdh_postgres_db_user: cdh
+cdh_postgres_db_schema: cdh
+cdh_postgresql_version: 9.4
+postgresql_jdbc_driver_version: 42.1.4
+
+###
+# Spark2: the installation is completely manual, see
+#  https://www.cloudera.com/documentation/spark2/latest/topics/spark2_installing.html
+#
+# To integrate spark2 and oozie:
+# https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.0/bk_spark-component-guide/content/ch_oozie-spark-action.html#spark-config-oozie-spark2
+# https://community.cloudera.com/t5/Advanced-Analytics-Apache-Spark/Spark2-classpath-issues-with-Oozie/td-p/59782
+
+cdh_spark2_enabled: True
+cdh_spark2_jar: SPARK2_ON_YARN-2.2.0.cloudera2.jar
+cdh_spark2_csd_url: 'http://archive.cloudera.com/spark2/csd/{{ cdh_spark2_jar }}'
+
+cdh_zeppelin_node: False
+cdh_zeppelin_version: 0.7.3
+cdh_zeppelin_dir: 'zeppelin-{{ cdh_zeppelin_version }}-bin-all'
+chd_zeppelin_archive: '{{ cdh_zeppelin_dir }}.tgz'
+cdh_zeppelin_download_url: 'http://mirror.nohup.it/apache/zeppelin/zeppelin-{{ cdh_zeppelin_version }}/{{ chd_zeppelin_archive }}'
+cdh_zeppelin_user: zeppelin
+cdh_zeppelin_group: '{{ cdh_zeppelin_user }}'
+cdh_zeppelin_http_port: 8080
+cdh_zeppelin_home: /srv/zeppelin
+cdh_zeppelin_work_dirs:
+  - '{{ cdh_zeppelin_home }}/notebook'
+  - '{{ cdh_zeppelin_home }}/log'
+  - '{{ cdh_zeppelin_home }}/run'
+  - '{{ cdh_zeppelin_home }}/base_tmp/tmp'
+
+cdh_zeppelin_conf_files:
+  - zeppelin-env.sh
+  - shiro.ini
+  - zeppelin-site.xml
+cdh_zeppelin_ldap_auth: True
+cdh_zeppelin_notebook_public: 'false'
+cdh_zeppelin_dedicated_node: False
+cdh_zeppelin_use_spark2: '{{ cdh_spark2_enabled }}'
+
+cdh_impala_load_balancer: False
+
+cdh_zeppelin_ldap_enabled: False
+cdh_zeppelin_ldap_advanced_config: True
+cdh_zeppelin_ldap_starttls: 'true'
+cdh_zeppelin_search_bind_authentication: 'false'
+cdh_zeppelin_username_pattern: "uid={0},ou=People,dc=mycompany,dc=com"
+cdh_zeppelin_ldap_search_base: "dc=mycompany,dc=com"
+cdh_zeppelin_ldap_users_base: "ou=People,dc=mycompany,dc=com"
+cdh_zeppelin_user_objectclass: posixUser
+cdh_zeppelin_ldap_group_base: "ou=Groups,dc=mycompany,dc=com"
+cdh_zeppelin_ldap_group_obj_class: groupofnames
+cdh_zeppelin_group_template: "cn={0},ou=Groups,dc=mycompany,dc=com"
+cdh_zeppelin_group_search_filter: '(memberUid={0})'
+cdh_zeppelin_ldap_nested_groups: 'false'
+cdh_zeppelin_ldap_roles_by_group: 'cdh_hadoop: userrole, cdh_admin: adminrole'
+cdh_zeppelin_ldap_bind_u: zeppelin
+#cdh_zeppelin_ldap_bind_pwd: "use a vault file"
+
+cdh_zeppelin_ldap_user_attr: uid
+cdh_zeppelin_ldap_member_attr: member
+cdh_zeppelin_ldap_group: zeppelin_hadoop
+cdh_zeppelin_ldap_url: 'ldap://ldap.test.com:389'
+cdh_zeppelin_secure_urls: True
+cdh_zeppelin_secure_roles: 'authc, roles[adminrole]'

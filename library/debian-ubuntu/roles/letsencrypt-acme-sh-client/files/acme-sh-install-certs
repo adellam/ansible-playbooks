@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ -f "/etc/default/acme_sh_request_env" ] ; then
+    . "/etc/default/acme_sh_request_env"
+else
+    exit 1
+fi
+
+if [ -f "$ACME_SH_ENV_FILE" ] ; then
+    . "$ACME_SH_ENV_FILE"
+else
+    exit 1
+fi
+
+if [ -d "$ACME_SH_HOME/keys/fakeselfsignedcert" -a -d "$ACME_SH_HOME/certs/fakeselfsignedcert" ] ; then
+    rm -fr "$ACME_SH_HOME/keys"
+    rm -fr "$ACME_SH_HOME/certs"
+fi
+
+$ACME_SH_BIN $ACME_SH_INSTALL_CERT_REQUEST > "$ACME_SH_INSTALL_LOG_FILE" 2>&1
+chown -R acme:acme "$ACME_SH_HOME"
+
+exit $?

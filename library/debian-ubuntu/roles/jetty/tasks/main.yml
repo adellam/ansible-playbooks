@@ -1,2 +1,2 @@
 ---
-- include: jetty.yml
+- import_tasks: jetty.yml

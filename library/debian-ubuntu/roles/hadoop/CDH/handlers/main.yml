@@ -1,0 +1,6 @@
+---
+- name: Restart cloudera-scm-server
+  service: name=cloudera-scm-server state=restarted
+
+- name: Restart zeppelin
+  service: name=zeppelin state=restarted

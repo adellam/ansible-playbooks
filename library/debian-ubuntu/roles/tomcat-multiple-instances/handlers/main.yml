@@ -2,13 +2,13 @@
 - name: tomcat restart instances with changed configs
   service: name='tomcat-instance-{{ item.item.http_port }}' state=restarted sleep=20
   with_items: '{{ restart_needed.results }}'
-  when: item.changed
+  when: item is changed
   ignore_errors: True
 
 - name: tomcat restart instances with changed jmx config
   service: name='tomcat-instance-{{ item.item.http_port }}' state=restarted sleep=20
   with_items: '{{ jmx_restart_needed.results }}'
-  when: item.changed
+  when: item is changed
   ignore_errors: True
 
 - name: tomcat instances restart

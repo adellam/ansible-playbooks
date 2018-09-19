@@ -1,0 +1,5 @@
+---
+dependencies:
+  - { role: ../../library/roles/smartgears/smartgears-service }
+  - { role: ../../library/roles/conda, when: dataminer_conda_install }
+  - { role: ../../library/roles/hdf5, when: dataminer_hdf5 }

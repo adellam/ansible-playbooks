@@ -1,0 +1,12 @@
+[Unit]
+Description=haproxy_exporter - Prometheus exporter for haproxy metrics and stats.
+After=network.target
+
+[Service]
+Type=simple
+
+User={{ prometheus_user }}
+Group={{ prometheus_user }}
+
+ExecStart={{ prometheus_h_e_cmd }}  {{ prometheus_h_e_opts }} {{ prometheus_h_e_additional_opts }} --collector.systemd
+

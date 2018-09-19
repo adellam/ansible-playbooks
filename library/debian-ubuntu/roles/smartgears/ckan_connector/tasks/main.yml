@@ -1,29 +1,53 @@
 ---
 - block:
+    - name: Remove the installed CKAN connector
+      file: dest={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ ckan_connector_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ ckan_connector_name }}.{{ ckan_connector_extension }}'
+      notify: Restart smartgears 
+
+    - name: Remove the CKAN connector fixer script
+      become_user: root
+      file: dest=/usr/local/bin/ckan-connector-fixer state=absent
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: not ckan_connector_plugin_install
+  tags: [ 'smartgears', 'ckan', 'ckan_connector', 'tomcat' ]
+
+- block:
+    - name: Get the CKAN connector war file
+      maven_artifact: artifact_id={{ ckan_connector_name }} version={{ ckan_connector_ver }} group_id={{ ckan_connector_group_id }} extension={{ ckan_connector_extension }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ ckan_connector_filename }}
+      register: ckan_connector_download
+
     - name: Remove the installed CKAN connector before upgrading
       file: dest={{ item }} state=absent
       with_items:
-        - '{{ smartgears_instance_path }}/webapps/ckan-connector'
-        - '{{ smartgears_instance_path }}/webapps/ckan-connector.war'
-      when: smartgears_upgrade
+        - '{{ smartgears_instance_path }}/webapps/{{ ckan_connector_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ ckan_connector_name }}.{{ ckan_connector_extension }}'
+      when: ckan_connector_download is changed
+      notify: Restart smartgears 
 
-    - name: Get the CKAN connector war file
-      get_url: url={{ ckan_connector_url }} dest={{ smartgears_instance_path }}/webapps/{{ ckan_connector_war_file }}
+    - name: Create the CKAN connector webapp directory
+      file: dest={{ smartgears_instance_path }}/webapps/{{ ckan_connector_name }} state=directory
+      when: ckan_connector_download is changed
       
-    - name: Unpack the CKAN connector war file
-      shell: mkdir {{ smartgears_instance_path }}/webapps/ckan-connector ; cd {{ smartgears_instance_path }}/webapps/ckan-connector ; jar xf {{ smartgears_instance_path }}/webapps/{{ ckan_connector_war_file }}
+    - name: Unarchive the CKAN connector war file
+      unarchive: copy=no src={{ smartgears_downloads_dir }}/{{ ckan_connector_filename }} dest={{ smartgears_instance_path }}/webapps/{{ ckan_connector_name }}
       args:
-        creates: '{{ smartgears_instance_path }}/webapps/ckan-connector/WEB-INF/web.xml'
+        creates: '{{ smartgears_instance_path }}/webapps/{{ ckan_connector_name }}/WEB-INF/web.xml'
+      notify: Restart smartgears 
 
     - name: Install the CKAN connector web.xml template
       template: src=ckan-web.xml.j2 dest={{ smartgears_instance_path }}/webapps/ckan-connector/WEB-INF/.web.xml.tpl mode=0440
 
     - name: Install the CKAN connector fixer script
-      become: False
+      become_user: root
       template: src=ckan-connector-fixer.sh.j2 dest=/usr/local/bin/ckan-connector-fixer owner=root group=root mode=0550
       
     - name: Fix the CKAN connector web.xml
-      become: False
+      become_user: root
       shell: /usr/local/bin/ckan-connector-fixer init
       args:
         creates: '{{ smartgears_instance_path }}/webapps/ckan-connector/WEB-INF/.web.xml.configured'

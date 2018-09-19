@@ -1,0 +1,99 @@
+---
+storage_hub_install: False
+storage_hub_upgrade: False
+storage_hub_version: latest
+storage_hub_name: storagehub  
+
+storage_hub_group_id: org.gcube.data.access
+storage_hub_extension: war
+storage_hub_file: '{{ storage_hub_name }}-{{ storage_hub_version }}.{{ storage_hub_extension }}'
+
+
+# storagehub.xml context mapping
+storagehub_config_file_path: '{{ smartgears_instance_path }}/{{ jackrabbit_repository_config }}'
+storagehub_rep_home_dir: '{{ smartgears_instance_path }}/jackrabbit/workspaces'
+
+
+admin_pwd: "{{ vault_admin_pass }}"
+
+# Standard jackrabbit configuration
+#
+jackrabbit_data_dir: /data/jackrabbit
+
+jackrabbit_config_files:
+  - bootstrap.properties
+  - repository.xml
+
+jackrabbit_rmi_enabled: 'true'
+jackrabbit_rmi_host: 'localhost'
+jackrabbit_rmi_port: 0
+jackrabbit_repository_config: 'jackrabbit/repository.xml'
+jackrabbit_repository_name: 'jackrabbit.repository'
+jackrabbit_jndi_enabled: 'true'
+
+jackrabbit_db_type: 'postgresql'
+jackrabbit_db_driver: 'org.postgresql.Driver'
+jackrabbit_db_host: 'localhost'
+
+jackrabbit_virt_fs_db_type: '{{ jackrabbit_db_type }}'
+jackrabbit_virt_fs_db_schema: '{{ jackrabbit_db_type }}'
+jackrabbit_virt_fs_db_driver: '{{ jackrabbit_db_driver }}'
+jackrabbit_virt_fs_db_host: '{{ jackrabbit_db_host }}'
+jackrabbit_virt_fs_db_name: 'workspace-db'
+jackrabbit_virt_fs_db_user: 'workspace-db-user'
+#jackrabbit_virt_fs_db_password: ''
+jackrabbit_virt_fs_db_url: 'jdbc:{{ jackrabbit_virt_fs_db_type }}://{{ jackrabbit_virt_fs_db_host }}/{{ jackrabbit_virt_fs_db_name }}'
+
+# By default the data store uses the same database of the virtual filesystem
+jackrabbit_data_store_db_type: '{{ jackrabbit_db_type }}'
+jackrabbit_data_store_db_schema: '{{ jackrabbit_db_type }}'
+jackrabbit_data_store_db_driver: '{{ jackrabbit_db_driver }}'
+jackrabbit_data_store_db_host: '{{ jackrabbit_db_host }}'
+jackrabbit_data_store_db_name: '{{ jackrabbit_virt_fs_db_name }}'
+jackrabbit_data_store_db_user: '{{ jackrabbit_virt_fs_db_user }}'
+jackrabbit_data_store_db_password: '{{ jackrabbit_virt_fs_db_password }}'
+jackrabbit_data_store_db_url: 'jdbc:{{ jackrabbit_data_store_db_type }}://{{ jackrabbit_data_store_db_host }}/{{ jackrabbit_data_store_db_name }}'
+jackrabbit_data_store_db_tableprefix: 'datastore_'
+
+jackrabbit_security_adminid: 'jr_admin'
+#jackrabbit_security_admin_pwd: ''
+
+jackrabbit_ws_default_workspace: 'default'
+
+jackrabbit_ws_persistence_manager: 'org.apache.jackrabbit.core.persistence.pool.PostgreSQLPersistenceManager'
+jackrabbit_ws_persistence_manager_db_type: '{{ jackrabbit_db_type }}'
+jackrabbit_ws_persistence_manager_db_schema: '{{ jackrabbit_db_type }}'
+jackrabbit_ws_persistence_manager_db_driver: '{{ jackrabbit_db_driver }}'
+jackrabbit_ws_persistence_manager_db_host: '{{ jackrabbit_db_host }}'
+jackrabbit_ws_persistence_manager_db_name: '{{ jackrabbit_virt_fs_db_name }}'
+jackrabbit_ws_persistence_manager_db_user: '{{ jackrabbit_virt_fs_db_user }}'
+jackrabbit_ws_persistence_manager_db_password: '{{ jackrabbit_virt_fs_db_password }}'
+jackrabbit_ws_persistence_manager_db_url: 'jdbc:{{ jackrabbit_ws_persistence_manager_db_type }}://{{ jackrabbit_ws_persistence_manager_db_host }}/{{ jackrabbit_ws_persistence_manager_db_name }}'
+jackrabbit_ws_persistence_manager_db_tableprefix: 'pm_${wsp.name}_'
+
+jackrabbit_ver_persistence_manager: 'org.apache.jackrabbit.core.persistence.pool.PostgreSQLPersistenceManager'
+jackrabbit_ver_persistence_manager_db_type: '{{ jackrabbit_db_type }}'
+jackrabbit_ver_persistence_manager_db_schema: '{{ jackrabbit_db_type }}'
+jackrabbit_ver_persistence_manager_db_driver: '{{ jackrabbit_db_driver }}'
+jackrabbit_ver_persistence_manager_db_host: '{{ jackrabbit_db_host }}'
+jackrabbit_ver_persistence_manager_db_name: '{{ jackrabbit_virt_fs_db_name }}'
+jackrabbit_ver_persistence_manager_db_user: '{{ jackrabbit_virt_fs_db_user }}'
+jackrabbit_ver_persistence_manager_db_password: '{{ jackrabbit_virt_fs_db_password }}'
+jackrabbit_ver_persistence_manager_db_url: 'jdbc:{{ jackrabbit_ver_persistence_manager_db_type }}://{{ jackrabbit_ver_persistence_manager_db_host }}/{{ jackrabbit_ver_persistence_manager_db_name }}'
+jackrabbit_ver_persistence_manager_db_tableprefix: 'pm_version_'
+
+# Cluster configuration. Same db host by default, different DB
+jackrabbit_cluster_db_host: '{{ jackrabbit_db_host }}'
+jackrabbit_cluster_db_type: '{{ jackrabbit_db_type }}'
+jackrabbit_cluster_db_schema: '{{ jackrabbit_db_type }}'
+jackrabbit_cluster_db_driver: '{{ jackrabbit_db_driver }}'
+jackrabbit_cluster_db_name: 'ws-db-cluster-journal'
+jackrabbit_cluster_db_user: 'ws-db-journal-user'
+# jackrabbit_cluster_db_password: ''
+jackrabbit_cluster_db_url: 'jdbc:{{ jackrabbit_cluster_db_type }}://{{ jackrabbit_cluster_db_host }}/{{ jackrabbit_cluster_db_name }}'
+jackrabbit_cluster_db_tableprefix: 'journal_'
+jackrabbit_cluster_node_id: '{{ ansible_fqdn }}'
+# Set it to true if we want to clean the journal daily
+jackrabbit_cluster_janitor_enabled: 'false'
+
+

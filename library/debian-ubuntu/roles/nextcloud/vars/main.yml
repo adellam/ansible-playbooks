@@ -1,0 +1,54 @@
+---
+nginx_use_common_virthost: False
+phpfpm_default_user: '{{ nextcloud_user }}'
+phpfpm_default_pool_name: nextcloud
+redis_install: True
+http_port: 80
+https_port: 443
+
+php_version: 7.0
+phpfpm_base_dir: '/etc/php/{{ php_version }}/fpm'
+phpfpm_cli_dir: '/etc/php/{{ php_version }}/cli'
+
+php_fpm_packages:
+  - 'php{{ php_version }}-fpm'
+  - 'php{{ php_version }}-gd'
+  - 'php{{ php_version }}-json'
+  - 'php{{ php_version }}-ldap'
+  - 'php{{ php_version }}-{{ nextcloud_db }}'
+  - 'php{{ php_version }}-mcrypt'
+  - 'php{{ php_version }}-xml'
+  - 'php{{ php_version }}-mbstring'
+  - 'php{{ php_version }}-intl'
+  - 'php{{ php_version }}-curl'
+  - 'php{{ php_version }}-zip'
+  - 'php{{ php_version }}-bz2'
+  - 'php{{ php_version }}-gmp'
+  - 'php-imagick'
+  - 'php-redis'
+  - 'php-apcu'
+
+phpfpm_default_memory_limit: "384M"
+
+php_global_settings:
+  - { option: 'always_populate_raw_post_data', value: '-1' }
+  - { option: 'allow_url_fopen', value: 'off' }
+  - { option: 'max_execution_time', value: '240' }
+  - { option: 'memory_limit', value: '{{ phpfpm_default_memory_limit }}' }
+  - { option: 'max_input_vars', value: '1400' }
+  - { option: 'post_max_size', value: '32M' }
+  - { option: 'upload_max_filesize', value: '32M' }
+  - { option: 'opcache.enable', value: '1' }
+  - { option: 'opcache.enable_cli', value: '1' }
+  - { option: 'opcache.interned_strings_buffer', value: '8' }
+  - { option: 'opcache.max_accelerated_files', value: '10000' }
+  - { option: 'opcache.memory_consumption', value: '128' }
+  - { option: 'opcache.save_comments', value: '1' }
+  - { option: 'opcache.revalidate_freq', value: '1' }
+
+php_cli_global_settings: '{{ php_global_settings }}'
+
+
+phpfpm_pools:
+  - { pool_name: '{{ phpfpm_default_pool_name }}', app_context: '{{ phpfpm_default_context }}', user: '{{ phpfpm_default_user }}', group: '{{ phpfpm_default_group }}', listen: '{{ phpfpm_default_listen }}', allowed_clients: '{{ phpfpm_default_allowed_clients }}', pm: '{{ phpfpm_default_pm }}', pm_max_children: '{{ phpfpm_default_pm_max_children }}', pm_start_servers: '{{ phpfpm_default_pm_start_servers }}', pm_min_spare: '{{ phpfpm_default_pm_min_spare_servers }}', pm_max_spare: '{{ phpfpm_default_pm_max_spare_servers }}', pm_max_requests: '{{ phpfpm_default_pm_max_requests }}', pm_status_enabled: '{{ phpfpm_default_pm_status_enabled }}', pm_status_path: '{{ phpfpm_default_pm_status_path }}', ping_enabled: '{{ phpfpm_default_ping_enabled }}', ping_path: '{{ phpfpm_default_ping_path }}', ping_response: '{{ phpfpm_default_ping_response }}', display_errors: '{{ phpfpm_default_display_errors }}', log_errors: '{{ phpfpm_default_log_errors }}', memory_limit: '{{ phpfpm_default_memory_limit }}', slowlog_timeout: '{{ phpfpm_default_slowlog_timeout }}', rlimit_files: '{{ phpfpm_default_rlimit_files }}', php_extensions: '{{ phpfpm_default_extensions }}', define_custom_variables: '{{ phpfpm_default_define_custom_variables }}', doc_root: '{{ nextcloud_web_root }}', req_term_timeout: '240s', virthost: '{{ nextcloud_servername }}', nginx_servername: '{{ nextcloud_servername }}' }
+

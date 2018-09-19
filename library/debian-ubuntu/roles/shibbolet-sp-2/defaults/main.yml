@@ -1,0 +1,10 @@
+---
+shibbolet_pkg_state: latest
+shibbolet_pkg_list:
+  - shibboleth-sp2-common
+  - shibboleth-sp2-schemas
+  - shibboleth-sp2-utils
+  - curl
+
+shibbolet_apache_module_pkg:
+  - libapache2-mod-shib2

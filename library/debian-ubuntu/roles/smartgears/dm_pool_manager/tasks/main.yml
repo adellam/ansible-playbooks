@@ -19,7 +19,7 @@
   
     - name: Remove the old dm_pool_manager files
       file: path={{ smartgears_instance_path }}/webapps/{{ dm_pool_manager_name }} state=absent
-      when: ( dm_pool_manager_download | changed )
+      when: dm_pool_manager_download is changed
 
     - name: Create the dm_pool_manager working directory
       file: path={{ smartgears_instance_path }}/webapps/{{ dm_pool_manager_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
@@ -39,10 +39,10 @@
     - name: create user key
       user: name='{{ smartgears_user }}' generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
 
-    - name: Install the additional service default file
-      template: src=service.properties.j2 dest={{ item.user_home }}/dataminer-pool-manager/dpmConfig/service.properties mode=0444
-      with_items: '{{ tomcat_m_instances }}' 
-      notify: Restart smartgears
+#    - name: Install the additional service default file
+#      template: src=service.properties.j2 dest={{ item.user_home }}/dataminer-pool-manager/dpmConfig/service.properties mode=0444
+#      with_items: '{{ tomcat_m_instances }}' 
+#      notify: Restart smartgears
 
     - name: Install the packages required to dm-pool-manager-service
       become_user: root 

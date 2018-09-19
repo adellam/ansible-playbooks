@@ -8,7 +8,7 @@
   when: openldap_cleaner_cron_job
   tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'ldap_db_cleaner' ]
 
-- name: Install the cron job that runs the ldap cleaner
+- name: Remove the cron job that runs the ldap cleaner when it is not needed. When DB_LOG_AUTOREMOVE is set, for instance
   cron: name="LDAP transaction logs cleaner" state=absent
   when: not openldap_cleaner_cron_job
   tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'ldap_db_cleaner' ]

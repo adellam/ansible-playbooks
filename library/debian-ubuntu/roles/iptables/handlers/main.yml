@@ -20,7 +20,6 @@
   command: /etc/init.d/iptables-persistent stop
   ignore_errors: true
 
-- name: Restart fail2ban
+- name: Restart fail2ban after an iptables restart
   service: name=fail2ban state=restarted enabled=yes
   when: has_fail2ban
-

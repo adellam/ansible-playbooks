@@ -44,7 +44,7 @@ phpfpm_remove_default_pool: True
 phpfpm_use_default_template: True
 phpfpm_create_users: True
 phpfpm_default_user: php-fpm
-phpfpm_default_group: php-fpm
+phpfpm_default_group: '{{ phpfpm_default_user }}'
 phpfpm_default_listen: "127.0.0.1:9000"
 phpfpm_default_allowed_clients: "127.0.0.1"
 phpfpm_default_pm: "dynamic"

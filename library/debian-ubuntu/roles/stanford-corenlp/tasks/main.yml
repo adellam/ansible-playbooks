@@ -1,0 +1,18 @@
+---
+- block:
+    - name: Create the CoreNLP logs directory
+      file: dest={{ stanford_corenlp_log_dir }} state=directory owner={{ stanford_corenlp_user }}
+
+    - name: Install the CoreNLP startup script
+      template: src=stanford-corenlp.upstart.j2 dest=/etc/init/stanford-corenlp.conf owner=root group=root mode=0644
+
+    - name: Ensure that CoreNLP is enabled and running
+      service: name=stanford-corenlp state=started enabled=yes
+
+    - name: Install the tint service startup script
+      template: src=tint.upstart.j2 dest=/etc/init/tint.conf owner=root group=root mode=0644
+
+    - name: Ensure that the tint service is enabled and running
+      service: name=tint state=started enabled=yes
+
+  tags: [ 'corenlp', 'stanford_corenlp' ]

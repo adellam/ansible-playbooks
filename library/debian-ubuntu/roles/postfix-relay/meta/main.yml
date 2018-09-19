@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: '../../library/roles/nagios', when: nagios_enabled is defined and nagios_enabled }

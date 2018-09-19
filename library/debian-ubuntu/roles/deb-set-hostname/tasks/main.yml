@@ -2,9 +2,11 @@
 - name: Set the hostname
   hostname: name={{ hostname }}
   when: hostname is defined
-  tags: bootstrap
+  tags: [ 'bootstrap', 'set_hostname' ]
 
 - name: Add the hostname to /etc/hosts
   shell: grep -v {{ ansible_default_ipv4.address }} /etc/hosts > /etc/hosts.tmp ; echo "{{ ansible_default_ipv4.address }} {{ hostname }} {{ ansible_hostname }}" >> /etc/hosts.tmp ; /bin/mv /etc/hosts.tmp /etc/hosts
-  when: hostname is defined
-  tags: bootstrap
+  when:
+    - hostname is defined
+    - ansible_virtualization_type == 'xen'
+  tags: [ 'bootstrap', 'set_hostname' ]

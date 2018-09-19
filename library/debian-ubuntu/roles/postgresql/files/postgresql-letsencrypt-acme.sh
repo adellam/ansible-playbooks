@@ -26,10 +26,8 @@ chgrp postgres ${POSTGRESQL_KEYFILE}
 
 echo "Restart the postgresql service" >> $LE_LOG_DIR/postgresql.log
 if [ -x /bin/systemctl ] ; then
-    sleep $RANDOM
     systemctl restart postgresql >> $LE_LOG_DIR/postgresql.log 2>&1
 else
-    sleep $RANDOM
     service postgresql restart >> $LE_LOG_DIR/postgresql.log 2>&1
 fi
 

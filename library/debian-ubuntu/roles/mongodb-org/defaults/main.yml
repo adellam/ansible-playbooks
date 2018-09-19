@@ -1,12 +1,36 @@
 ---
 mongodb_install_from_external_repo: True
+mongodb_repo_keys:
+  - 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+  - EA312927
+  - 0C49F3730359A14518585931BC711F9BA15703C6
+mongodb_apt_repository: "deb http://repo.mongodb.org/apt/ubuntu {{ ansible_distribution_release }}/mongodb-org/{{ mongodb_version }} multiverse"
+
+mongodb_old_repositories:
+  - "deb http://repo.mongodb.org/apt/ubuntu {{ ansible_distribution_release }}/mongodb-org/3.0 multiverse"
+  - "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen"
+
 mongodb_install_packages: True
+mongodb_install_server: True
 mongodb_install_conf: True
+mongodb_upgrade_from_older_version: False
+mongodb_version: 3.6
 # Set to 'latest' if you want to get the latest available package
-mongodb_pkg_state: installed
-mongodb_start_server: 'no'
+mongodb_pkg_state: present
+mongodb_server_pkgs:
+  - mongodb-org
+  - mongodb-org-mongos
+  - mongodb-org-server
+  - mongodb-org-shell
+  - mongodb-org-tools
+
+mongodb_client_pkgs:
+  - mongodb-org-shell
+
+mongodb_start_server: 'yes'
 mongodb_tcp_port: 27017
-mongodb_http_interface: False
+mongo_bind_ip: 0.0.0.0
+mongodb_http_interface: 'false'
 mongodb_http_port: 28017
 mongodb_user: mongodb
 mongodb_group: mongodb
@@ -14,16 +38,38 @@ mongodb_logdir: /var/log/mongodb
 mongodb_log_file: mongod.log
 mongodb_logpath: '{{ mongodb_logdir }}/{{ mongodb_log_file }}'
 mongodb_dbpath: /var/lib/mongodb
-mongodb_log_retain_days: 7
-mongodb_directoryperdb: False
+mongodb_directoryperdb: 'false'
 mongodb_conf_file: /etc/mongod.conf
 mongodb_daemon: /usr/bin/mongod
-# --setParameter newCollectionsUsePowerOf2Sizes=false is useful if there are disk space constraints.
 mongod_additional_options: ""
 mongodb_allowed_hosts:
   - 127.0.0.1/8
   - '{{ ansible_default_ipv4.address }}/32'
 
+mongodb_storage_engine: wiredTiger
+
+mongodb_ssl_enabled: False
+mongodb_ssl_letsencrypt_managed: True
+# Options: disabled, requireSSL, allowSSL, preferSSL
+mongodb_ssl_mode: requireSSL
+mongodb_ssl_certkey_file: /etc/pki/mongodb/mongodb.pem
+mongodb_ssl_CA_file: /etc/ssl/certs/ca-certificates.crt
+mongodb_ssl_allowConnectionsWithoutCertificates: 'true'
+mongodb_ssl_disabled_protocols: 'TLS1_0,TLS1_1'
+
+# Do not change the default. We do not manage a logrotate configuration yet
+mongodb_systemlog_external_logrotate: False
+mongodb_systemlog_destination: file
+mongodb_log_retain_days: 7
+# Not used anymore inside the template. Now we use different values based on mongodb_systemlog_external_logrotate
+mongodb_systemlog_logappend: 'true'
+mongodb_systemlog_logrotate: reopen
+
 mongodb_cluster_enabled: False
 mongodb_replicaset: storagedev
 mongodb_replica_keyfile: '{{ mongodb_dbpath }}/replica_keyfile'
+
+mongodb_ganglia_auth_enabled: False
+mongodb_ganglia_db: admin
+mongodb_ganglia_auth_mechanism: MONGODB-CR
+# User and password are stored in the variables mongo_monitoring_u and mongo_monitoring_pwd

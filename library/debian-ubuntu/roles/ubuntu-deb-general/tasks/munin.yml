@@ -1,6 +1,6 @@
 ---
 - name: install munin-node
-  apt: pkg=munin-node state=installed
+  apt: pkg=munin-node state=present
   when: has_apt
   tags:
     - packages
@@ -13,12 +13,10 @@
     - 'allow ^146\.48\.122\.15$'
     - 'allow ^146\.48\.123\.23$'
   register: munin_config
-  tags:
-    - munin
+  tags: munin
 
 - name: reload munin-node
   service: name=munin-node state=restarted
-  when: munin_config.changed == True
-  tags:
-    - munin
+  when: munin_config is changed
+  tags: munin
 

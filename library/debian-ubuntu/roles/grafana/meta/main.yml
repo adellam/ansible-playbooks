@@ -1,0 +1,5 @@
+---
+dependencies:
+  - { role: '../../library/roles/nginx', when: grafana_require_nginx }
+  - { role: '../../library/roles/redis', when: grafana_require_redis }
+

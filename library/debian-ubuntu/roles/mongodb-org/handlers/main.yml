@@ -2,3 +2,4 @@
 - name: Restart mongodb
   service: name=mongod state=restarted
   when: "'{{ mongodb_start_server }}' == 'yes'"
+ 

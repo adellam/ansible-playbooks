@@ -1,5 +1,5 @@
 ---
-- include: fail2ban.yml
+- import_tasks: fail2ban.yml
   when: has_fail2ban
-- include: fail2ban-rules.yml
+- import_tasks: fail2ban-rules.yml
   when: has_fail2ban

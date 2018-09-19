@@ -1,0 +1,57 @@
+#
+# Globals
+#
+ACME_SH_HOME={{ letsencrypt_acme_sh_user_home }}
+ACME_SH_BINDIR={{ letsencrypt_acme_sh_user_home }}/bin
+ACME_SH_BIN="{{ letsencrypt_acme_sh_user_home }}/bin/acme.sh --config-home {{ letsencrypt_acme_sh_base_data_dir }}/data"
+ACME_SH_CONFIG_HOME={{ letsencrypt_acme_sh_base_data_dir }}/data
+ACME_SH_ENV_FILE=${ACME_SH_BINDIR}/acme.sh.env
+ACME_SH_ISSUE_LOG_FILE={{ letsencrypt_acme_sh_base_data_dir }}/logs/cert_issue.log
+ACME_SH_CRON_LOG_FILE={{ letsencrypt_acme_sh_base_data_dir }}/logs/cron.log
+ACME_SH_INSTALL_LOG_FILE={{ letsencrypt_acme_sh_log_dir }}/cert_install.log
+ACME_SH_GIT_DIST_DIR={{ letsencrypt_acme_git_dest_dir }}
+
+ACME_SH_INSTALL_CERTS={{ letsencrypt_acme_sh_explicitly_install_certs }}
+
+#
+# Install options
+#
+ACME_SH_INSTALL_OPTS="{{ letsencrypt_acme_sh_install_options }}"
+{% if not letsencrypt_acme_sh_install_cron %}
+ACME_SH_INSTALL_OPTS="$ACME_SH_INSTALL_OPTS --nocron"
+{% endif %}
+ACME_SH_INSTALL_OPTS="$ACME_SH_INSTALL_OPTS --home {{ letsencrypt_acme_sh_user_home }}/bin --config-home {{ letsencrypt_acme_sh_base_data_dir }}/data --certhome {{ letsencrypt_acme_sh_base_data_dir }}/certs --log {{ letsencrypt_acme_sh_base_data_dir }}/logs/acme.sh.log"
+
+#
+# Certificate issue options
+#
+ACME_SH_ISSUE_CERT_REQUEST="--issue -k {{ letsencrypt_acme_sh_key_lenght }} --log {{ letsencrypt_acme_sh_base_data_dir }}/logs/acme.sh.log"
+{% if letsencrypt_acme_sh_ocsp_must_staple %}
+ACME_SH_ISSUE_CERT_REQUEST="$ACME_SH_ISSUE_CERT_REQUEST --ocsp"
+{% endif %}
+{% if letsencrypt_acme_sh_use_syslog %}
+ACME_SH_ISSUE_CERT_REQUEST="$ACME_SH_ISSUE_CERT_REQUEST --syslog {{ letsencrypt_acme_sh_syslog_level }}"
+{% endif %}
+{% if letsencrypt_acme_sh_test_request %}
+ACME_SH_ISSUE_CERT_REQUEST="$ACME_SH_ISSUE_CERT_REQUEST --test"
+{% endif %}
+
+ACME_SH_ISSUE_CERT_DOMAINS="{% for dom in letsencrypt_acme_sh_domains %} -d {{ dom.domain }} {% if dom.dns_provider is defined %} --dns {{ dom.dns_provider }} {% if dom.dns_alias_challenge is defined %} --challenge-alias {{ dom.dns_alias_challenge }} {% endif %} {% endif %} {% if dom.standalone is defined %} --standalone --httpport {{ letsencrypt_acme_standalone_port }} {% endif %} {% endfor %}"
+
+# The complete command line to issue a certificate
+ACME_SH_ISSUE_CERT_REQUEST="$ACME_SH_ISSUE_CERT_REQUEST $ACME_SH_ISSUE_CERT_DOMAINS"
+
+#
+# Certificate install options
+#
+ACME_SH_INSTALL_CERT_REQUEST="--install-cert"
+{% if letsencrypt_acme_sh_use_ecc %}
+ACME_SH_INSTALL_CERT_REQUEST="$ACME_SH_INSTALL_CERT_REQUEST --ecc"
+{% endif %}
+{% if letsencrypt_acme_sh_use_syslog %}
+ACME_SH_INSTALL_CERT_DOMAINS="$ACME_SH_INSTALL_CERT_DOMAINS --syslog {{ letsencrypt_acme_sh_syslog_level }}"
+{% endif %}
+ACME_SH_INSTALL_CERT_DOMAINS="{% for dom in letsencrypt_acme_sh_domains_install %} -d {{ dom.domain }} --cert-file {{ dom.cert_file }} --key-file {{ dom.key_file }} --fullchain-file {{ dom.fullchain_file }} --reloadcmd {{ dom.reloadcmd }} {% endfor %}"
+
+# The complete command line to install a certificate. Run as root
+ACME_SH_INSTALL_CERT_REQUEST="$ACME_SH_INSTALL_CERT_REQUEST $ACME_SH_INSTALL_CERT_DOMAINS"

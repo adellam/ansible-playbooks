@@ -1,29 +1,50 @@
 ---
 - block:
-    - name: Remove the old accounting aggregator plugin 
-      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/accounting-aggregator-se-plugin-*-jar-with-dependencies.jar
+    - name: Remove the accounting_aggregator smart executor plugin
+      file: dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/plugins/{{ accounting_aggregator_se_plugin_name }} state=absent
       notify: Restart smartgears
-
+    
   become: True
   become_user: '{{ smartgears_user }}'
   when: not accounting_aggregator_se_plugin_install
   tags: [ 'smartgears', 'accounting_aggregator_se', 'tomcat' ]
 
+
 - block:
-    - name: Get the accounting aggregator plugin and install it inside the smart executor
-      maven_artifact: artifact_id={{ accounting_aggregator_se_plugin_name }} version={{ accounting_aggregator_se_plugin_version | default(omit) }} group_id={{ accounting_aggregator_se_plugin_group_id }} extension={{ accounting_aggregator_se_plugin_extension | default('war') }} repository_url={{ smartgears_global_base_url }} classifier={{ accounting_aggregator_se_plugin_classifier }} dest={{ smartgears_downloads_dir }}/{{ accounting_aggregator_se_plugin_file }}
+    - name: Download the accounting_aggregator plugin uber jar
+      maven_artifact: artifact_id={{ accounting_aggregator_se_plugin_name }} version={{ accounting_aggregator_se_plugin_version | default('latest') }} group_id={{ accounting_aggregator_se_plugin_group_id }} extension={{ accounting_aggregator_se_plugin_extension }} repository_url={{ smartgears_global_base_url }} classifier={{ accounting_aggregator_se_plugin_classifier }} dest={{ smartgears_downloads_dir }}/{{ accounting_aggregator_se_plugin_uber_file }}
       register: accounting_aggregator_download
 
-    - name: Remove the old accounting aggregator plugin 
-      shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/accounting-aggregator-se-plugin-*-jar-with-dependencies.jar
-      when: (accounting_aggregator_download | changed)
-
-    - name: Copy the accounting aggregator plugin to its final destination
-      copy: src={{ smartgears_downloads_dir }}/{{ accounting_aggregator_se_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ accounting_aggregator_se_plugin_file }} remote_src=yes force=yes
+    - name: Remove the old accounting_aggregator smart executor plugin
+      file: dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/plugins/{{ accounting_aggregator_se_plugin_name }} state=absent
+      when: accounting_aggregator_download is changed
       notify: Restart smartgears
+
+    - name: Create the plugin directory inside the smart executor
+      file: dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/plugins/{{ accounting_aggregator_se_plugin_name }} state=directory
+      register: accounting_aggregator_create_dir
+
+    - name: Unarchive the accounting_aggregator uber jar to expose its libraries
+      unarchive: src={{ smartgears_downloads_dir }}/{{ accounting_aggregator_se_plugin_uber_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/plugins/{{ accounting_aggregator_se_plugin_name }}/ copy=no
+      when: accounting_aggregator_create_dir is changed
+      notify: Restart smartgears
+
+    - name: Download the accounting_aggregator plugin jar file
+      maven_artifact: artifact_id={{ accounting_aggregator_se_plugin_name }} version={{ accounting_aggregator_se_plugin_version }} group_id={{ accounting_aggregator_se_plugin_group_id }} extension={{ accounting_aggregator_se_plugin_extension }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/plugins/{{ accounting_aggregator_se_plugin_name }} keep_name=yes
+      notify: Restart smartgears
+
+    - name: Remove the Sis geotk uber jar org and META-INF directories
+      file: dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/plugins/{{ accounting_aggregator_se_plugin_name }}/{{ item }} state=absent
+      with_items:
+        - org
+        - 'META-INF'
+      notify: Restart smartgears
+ 
+    - name: Install the nco package
+      become_user: root
+      apt: pkg=nco state=present update_cache=yes cache_valid_time=1800
 
   become: True
   become_user: '{{ smartgears_user }}'
   when: accounting_aggregator_se_plugin_install
   tags: [ 'smartgears', 'accounting_aggregator_se', 'tomcat' ]
-

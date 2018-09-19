@@ -1,24 +1,24 @@
 ---
-- include: haproxy-service.yml
-- include: haproxy-letsencrypt.yml
+- import_tasks: haproxy-service.yml
+- import_tasks: haproxy-letsencrypt-acme-sh.yml
   when:
     - haproxy_letsencrypt_managed
-    - letsencrypt_install is defined
-- include: haproxy-letsencrypt-acmetool.yml
+    - letsencrypt_acme_sh_install
+- import_tasks: haproxy-letsencrypt-acmetool.yml
   when:
     - haproxy_letsencrypt_managed
-    - letsencrypt_acme_install is defined
-- include: haproxy-ssl.yml
+    - letsencrypt_acme_install
+- import_tasks: haproxy-ssl.yml
   when:
     - haproxy_letsencrypt_managed
 
-- include: haproxy-nagios.yml
+- import_tasks: haproxy-nagios.yml
   when:
     - nagios_enabled is defined
     - nagios_enabled
 
 - name: Ensure that haproxy is enabled and started
-  service: name=haproxy state=started enabled=yes
+  service: name=haproxy state=restarted enabled=yes
   when: haproxy_enabled
   ignore_errors: True
   tags: haproxy
@@ -27,7 +27,7 @@
   service: name=rsyslog state=restarted
   when:
     - haproxy_enabled
-    - ( install_haproxy | changed )
+    - install_haproxy is changed
   tags: haproxy
 
 - name: Ensure that haproxy is stopped and disabled if needed

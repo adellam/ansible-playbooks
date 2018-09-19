@@ -19,7 +19,7 @@
 
     - name: Remove the old catalogue ws files
       file: path={{ smartgears_instance_path }}/webapps/{{ catalogue_ws_name }} state=absent
-      when: ( catalogue_ws_download | changed )
+      when: catalogue_ws_download is changed
   
     - name: Copy the catalogue ws war into the tomcat webapps directory
       copy: src={{ smartgears_downloads_dir }}/{{ catalogue_ws_file }} dest={{ smartgears_instance_path }}/webapps/{{ catalogue_ws_name }}.{{ catalogue_ws_extension }} remote_src=yes force=yes

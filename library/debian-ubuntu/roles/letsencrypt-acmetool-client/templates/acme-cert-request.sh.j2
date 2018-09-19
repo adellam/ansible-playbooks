@@ -8,7 +8,7 @@ if [ -d $BASE_DIR/keys/fakeselfsignedcert -a -d $BASE_DIR/certs/fakeselfsignedce
     mkdir -p $TMP_DIR/{keys,certs}
     mv $BASE_DIR/keys/fakeselfsignedcert $TMP_DIR/keys
     mv $BASE_DIR/certs/fakeselfsignedcert $TMP_DIR/certs
-    /bin/rm live/{{ ansible_fqdn }}
+    /bin/rm $BASE_DIR/live/{{ ansible_fqdn }}
     {{ letsencrypt_acme_command }} {{ letsencrypt_acme_command_opts }} quickstart
 fi
 

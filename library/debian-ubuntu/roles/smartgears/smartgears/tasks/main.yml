@@ -1,6 +1,6 @@
 ---
-- include: smartgears-app.yml
-- include: data-transfer-service.yml
+- import_tasks: smartgears-app.yml
+- import_tasks: data-transfer-service.yml
   when: data_transfer_service_install
-- include: install-gcube-keys.yml
+- import_tasks: install-gcube-keys.yml
 

@@ -1,0 +1,6 @@
+---
+- block:
+  - name: Install the catalina configuration needed by smaph
+    template: src=catalina-smaph.xml.j2 dest={{ smartgears_instance_path }}/conf/Catalina/localhost/smaph.xml 
+
+  tags: [ 'smaph', 'tomcat' ]

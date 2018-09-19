@@ -1,7 +1,7 @@
 ---
 # Postgresql JDBC
 - name: Install the jdbc package if needed
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present
   with_items:
     - libpostgresql-jdbc-java
   when: tomcat_install_pg_jdbc

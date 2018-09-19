@@ -4,8 +4,8 @@ authorization_service_upgrade: False
 authorization_service_name: authorization-service  
 #authorization_service_file: '{{ authorization_service_name }}-2.0.0-20160927.120833-1.war'
 #authorization_service_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/gcube-snapshots/org/gcube/common/authorization-service/2.0.0-SNAPSHOT/{{ authorization_service_file }}'
-authorization_service_file: '{{ authorization_service_name }}-2.0.1-4.2.0-134808.war'
-authorization_service_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/gcube-staging/org/gcube/common/authorization-service/2.0.1-4.2.0-134808/{{ authorization_service_file }}'
+authorization_service_file: '{{ authorization_service_name }}-2.0.2-4.11.0-164657.war'
+authorization_service_url: 'http://maven.research-infrastructures.eu/nexus/content/repositories/gcube-staging/org/gcube/common/authorization-service/2.0.2-4.11.0-164657/{{ authorization_service_file }}'
 authorization_service_persistence_dest: WEB-INF/classes/META-INF/persistence.xml
 authorization_service_config_dest: WEB-INF/AuthorizationConfiguration.xml
 auth_user: '{{ d4science_user }}'

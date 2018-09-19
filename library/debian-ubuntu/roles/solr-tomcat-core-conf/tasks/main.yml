@@ -1,0 +1,25 @@
+---
+- block:
+  - name: Create the solr cores data directories
+    file: dest={{ solr_collections_base_dir }}/{{ item }} state=directory owner={{ solr_user }} group={{ solr_user }}
+    with_items: '{{ solr_cores }}'
+    
+  - name: Install the solr cores data on a multicore system
+    unarchive: src={{ solr_data_dir }}/collection_data/solr_core_base.tar.gz dest={{ solr_data_dir }}/data/solr/{{ item }} copy=no
+    args:
+      creates: '{{ solr_data_dir }}/data/solr/{{ item }}/conf/solrconfig.xml'
+    with_items: '{{ solr_global_cores }}'
+    notify: tomcat solr restart
+
+  - name: Install the solr.xml file
+    template: src={{ item }}.j2 dest={{ solr_data_dir }}/data/solr/{{ item }} owner=root group={{ solr_user }} mode=0440
+    with_items:
+      - solr.xml
+    notify: tomcat solr restart
+
+  - name: Fix the cores permissions
+    file: path={{ solr_collections_base_dir }} owner={{ solr_user }} group={{ solr_user }} recurse=yes
+
+  when: solr_multicore is defined and solr_multicore
+  tags: [ solr, tomcat, solr_core ]
+

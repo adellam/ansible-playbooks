@@ -7,5 +7,5 @@
 
 - name: Update SASL hash
   shell: postmap hash:/etc/postfix/sasl_passwd
-  when: ( update_sasl_hash | changed )
+  when: update_sasl_hash is changed
   tags: postfix-relay

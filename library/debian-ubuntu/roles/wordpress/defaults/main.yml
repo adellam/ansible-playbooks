@@ -1,0 +1,49 @@
+---
+wordpress_dist_name: wordpress
+wordpress_major: 4
+wordpress_minor: 9
+wordpress_fix: 5
+wordpress_version: '{{ wordpress_major }}.{{ wordpress_minor }}.{{ wordpress_fix }} '
+wordpress_cli_url: 'https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar'
+wordpress_cli_bin: /usr/local/bin/wp
+wordpress_system_user: wp
+
+wordpress_servername: '{{ ansible_fqdn }}'
+wordpress_url: 'https://{{ wordpress_servername }}'
+wordpress_title: 'Wordpress {{ wordpress_servername }} site'
+wordpress_admin_user: wp_admin
+# wordpress_admin_pwd: 'use a vault file'
+wordpress_admin_email: 'wordpress@example.org'
+wordpress_lang: 'en_US'
+wordpress_debug: 'false'
+
+# wordpress_plugins_install_list:
+
+# wordpress_plugins_delete_list:
+  
+wordpress_php_prereq:
+  - 'php{{ php_version }}-json'
+  - 'php{{ php_version }}-intl'
+  - 'php{{ php_version }}-cli'
+  - 'php{{ php_version }}-gd'
+  - 'php{{ php_version }}-memcached'
+  - 'php{{ php_version }}-zip'
+  - 'php{{ php_version }}-curl'
+  - php-pear
+  - php-date
+  - php-xml-serializer
+  - imagemagick
+  - 'php{{ php_version }}-mysqlnd'
+
+wordpress_local_mysql: True
+
+wordpress_db_name: wp_db
+wordpress_db_user: wp_user
+# If you change that, you must set the wordpress_local_mysql variable to False
+wordpress_db_host: localhost
+wordpress_db_table_prefix: 'mywp_'
+# wordpress_db_pwd: 'use a vault file'
+
+wordpress_local_nginx: True
+wordpress_local_nginx_virtualhost: '{{ wordpress_local_nginx }}'
+wordpress_doc_root: /var/www/html/wordpress

@@ -1,16 +1,17 @@
 #!/bin/bash
 
-RETVAL=
+ORIENTDB_ENABLED="{{ orientdb_enabled }}"
+RETVAL=0
 
 # Add the CA certificate if it's not already present
 keytool -list -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt | grep {{ java_keyring_letsencrypt_trusted_ca }}
 RETVAL=$?
 
 if [ $RETVAL -ne 0 ] ; then
-    keytool -trustcacerts -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt -importcert -alias {{ java_keyring_letsencrypt_trusted_ca }} -dname "CN={{ ansible_fqdn }}" -file {{ letsencrypt_acme_certs_dir }}/chain
+    keytool -trustcacerts -keystore "{{ java_keyring_file }}" -storepass {{ java_keyring_pwd }} -noprompt -importcert -alias "{{ java_keyring_letsencrypt_trusted_ca }}" -dname "CN={{ ansible_fqdn }}" -file "{{ letsencrypt_acme_certs_dir }}/chain"
 fi
 # Remove the old certificate
-keytool -storepass {{ java_keyring_pwd }} -keystore {{ java_keyring_file }} -delete -alias {{ ansible_fqdn }}
+keytool -storepass {{ java_keyring_pwd }} -keystore "{{ java_keyring_file }}" -delete -alias "{{ ansible_fqdn }}"
 
 # Check if the old certificate is still present. If so, we have a problem. Otherwise, import the new one
 keytool -list -keystore {{ java_keyring_file }} -storepass {{ java_keyring_pwd }} -noprompt | grep {{ ansible_fqdn }}
@@ -24,13 +25,18 @@ else
     exit 1
 fi
 
-chmod 440 {{ java_keyring_file }}
-chgrp {{ orientdb_user }} {{ java_keyring_file }}
-logger "orientdb letsencrypt hook: shut down orientdb."
-/etc/init.d/orientdb stop
-sleep 30
-/etc/init.d/orientdb start
-logger "orientdb letsencrypt hook: start orientdb."
+chmod 440 "{{ java_keyring_file }}"
+chgrp {{ orientdb_user }} "{{ java_keyring_file }}"
+
+if [ "$ORIENTDB_ENABLED" == "True" ] ; then
+    logger "orientdb letsencrypt hook: shut down orientdb."
+    /etc/init.d/orientdb stop
+    sleep 30
+    /etc/init.d/orientdb start
+    logger "orientdb letsencrypt hook: start orientdb."
+else
+    logger "orientdb letsencrypt hook: the service is disabled, we do not restart it."
+fi
 logger "orientdb letsencrypt hook: the keystore has been updated with the renewed certificate."
 
-exit 0
+exit $RETVAL

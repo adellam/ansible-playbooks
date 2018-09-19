@@ -1,7 +1,7 @@
 ---
 resource_checker_se_plugin_install: False
 resource_checker_se_plugin_upgrade: False  
-resource_checker_se_plugin_version: 1.0.0-4.6.0-147153
+resource_checker_se_plugin_version: 1.1.0-4.10.0-150530
 # resource_checker_se_plugin_version: 1.0.0-SNAPSHOT
 resource_checker_se_plugin_group_id: 'org.gcube.information-system'
 resource_checker_se_plugin_name: 'resource-checker-se-plugin'

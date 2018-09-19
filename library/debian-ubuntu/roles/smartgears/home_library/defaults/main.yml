@@ -1,7 +1,7 @@
 ---
 home_library_install: False
 home_library_upgrade: False
-home_library_version: 1.9.0-4.6.0-151192
+home_library_version: latest
 home_library_name: home-library-webapp  
 
 home_library_group_id: org.gcube.data.access

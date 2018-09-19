@@ -2,7 +2,7 @@
 gcube_repository: gcube-staging
 tabular_data_install: False
 tabular_data_upgrade: False
-tabular_data_version: 1.8.1-4.6.1-149110
+tabular_data_version: 1.8.2-4.12.0-160583
 tabular_data_name: tabular-data-manager
 
 tabular_group_id: org.gcube.data.analysis.tabulardata

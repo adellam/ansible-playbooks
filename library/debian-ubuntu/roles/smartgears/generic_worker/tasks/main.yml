@@ -16,7 +16,7 @@
 
     - name: Remove the old accounting aggregator plugin 
       shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ smart_generic_worker_plugin_name }}-*-jar-with-dependencies.jar
-      when: (generic_worker_download | changed)
+      when: generic_worker_download is changed
 
     - name: Copy the accounting aggregator plugin to its final destination
       copy: src={{ smartgears_downloads_dir }}/{{ smart_generic_worker_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ smart_generic_worker_plugin_file }} remote_src=yes force=yes

@@ -5,7 +5,7 @@
   postgresql_user: user={{ item.user }} password={{ item.pwd }} role_attr_flags={{ item.roles }} port={{ psql_db_port }} state={{ item.userstate | default('present') }}
   with_items: '{{ psql_db_data | default(omit) }}'
   when: item.roles is defined
-  tags: [ 'postgresql', 'postgres', 'pg_db' ]
+  tags: [ 'postgresql', 'postgres', 'pg_db', 'pg_user' ]
 
 - name: Add the databases with the correct owner. Or remove them, if not used anymore
   become: True
@@ -14,6 +14,27 @@
   with_items: '{{ psql_db_data | default(omit) }}'
   when: item.managedb | default(True)
   tags: [ 'postgresql', 'postgres', 'pg_db' ]
+
+- name: Manage users privileges
+  become: True
+  become_user: postgres
+  postgresql_privs: db={{ item.name }} privs={{ item.privs }} type=database roles={{ item.roles }} port={{ psql_db_port }} state={{ item.userstate | default('present') }}
+  with_items: '{{ psql_db_privs | default(omit) }}'
+  when: psql_db_privs is defined
+  tags: [ 'postgresql', 'postgres', 'pg_db', 'pg_user' ]
+
+# - name: Add schemas to a database.
+#   become: True
+#   become_user: postgres
+#   postgresql_schema: database={{ item.0.name }} port={{ psql_db_port }} name={{ item.1 }} owner={{ item.0.user }} state={{ item.0.schemastate | default('present') }}
+#   with_subelements:
+#     - '{{ psql_db_data | default([]) }}'
+#     - schema
+#   when:
+#     - item.0.manageschema | default(False)
+#     - item.1 is defined
+#   ignore_errors: True
+#   tags: [ 'postgresql', 'postgres', 'pg_db', 'pg_schema' ]
 
 - name: Define a user with password, with no associated DBs
   become: True

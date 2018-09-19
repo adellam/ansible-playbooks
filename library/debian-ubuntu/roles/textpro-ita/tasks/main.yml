@@ -1,0 +1,38 @@
+---
+- block:
+  - name: Install the TextPro ITA deb dependencies
+    apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
+    with_items: '{{ textpro_ita_required_packages }}'
+
+  - name: Create the TextPro ITA dest directory
+    file: dest=/srv/textpro-ita state=directory 
+
+  - name: Get the TextPro ITA distribution 
+    git: repo={{ textpro_ita_repo_url }} dest=/srv/textpro-ita update=no
+
+  - name: Create the required subdirectories
+    file: dest=/srv/textpro-ita/{{ item }} state=directory
+    with_items:
+      - TextPro2.0/modules/MaltParser/model/ITA 
+      - TextPro2.0/modules/TimePro/models
+      - TextPro2.0/modules/TempRelPro/models
+      - TextPro2.0/modules/EventPro/models
+
+  - name: Copy the modules files on the correct directories 
+    shell: cp -rp /srv/textpro-ita/textpro-models/DepParser/* /srv/textpro-ita/TextPro2.0/modules/MaltParser/model/ITA/ ; cp -rp /srv/textpro-ita/textpro-models/TimePro/* /srv/textpro-ita/TextPro2.0/modules/TimePro/models/ ; cp -rp /srv/textpro-ita/textpro-models/TempRelPro/* /srv/textpro-ita/TextPro2.0/modules/TempRelPro/models/ ; cp -rp /srv/textpro-ita/textpro-models/EventPro/* /srv/textpro-ita/TextPro2.0/modules/EventPro/models/
+    args:
+      creates: /srv/textpro-ita/TextPro2.0/modules/MaltParser/model/ITA/tut-tagpro-fulltrain.mco
+
+  - name: Compile and install the TextPro ITA distribution
+    shell: cd /srv/textpro-ita/TextPro2.0 ; export JAVA_HOME=/usr/lib/jvm/java-8-oracle ; ./INSTALL.sh > /srv/textpro_ita_install.log 2>&1
+    args:
+      creates: /srv/textpro-ita/TextPro2.0/textpro.sh 
+
+  - name: Give the ownership of the files to the gcube user (WTF?)     
+    file: dest=/srv/textpro-ita state=directory owner=gcube group=gcube recurse=yes
+
+  - name: Create a link to the executable in the standard path 
+    file: src=/srv/textpro-ita/TextPro2.0/textpro.sh dest=/usr/local/bin/textpro state=link 
+
+  tags: [ 'textpro_ita', 'dataminer' ]
+

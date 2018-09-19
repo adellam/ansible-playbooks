@@ -6,4 +6,9 @@ smartgears_install_generic_virthost: True
 #smartgears_nginx_serveraliases:
 smartgears_nginx_cors_enabled: False
 nginx_cors_acl_origin: ''
+smartgears_tomcat_manager_exposed: False
+smartgears_tomcat_manager_access_acls:
+  - { policy: 'allow', address: '0.0.0.0/0' }
+
 smartgears_nginx_expose_tomcat_logs: False
+smartgears_nginx_rw_html_root: False

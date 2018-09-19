@@ -6,6 +6,9 @@ sis_geotk_dt_plugin_group_id : org.gcube.data.transfer
 sis_geotk_dt_plugin_artifact_id : '{{ sis_geotk_dt_plugin_name }}'
 sis_geotk_dt_plugin_version : latest
 sis_geotk_dt_plugin_extension: jar
-sis_geotk_dt_plugin_classifier: jar-with-dependencies
-sis_geotk_dt_plugin_file: '{{ sis_geotk_dt_plugin_name }}-{{ sis_geotk_dt_plugin_version }}-jar-with-dependencies.{{ sis_geotk_dt_plugin_extension }}'
+sis_geotk_dt_plugin_classifier: uberjar
+sis_geotk_dt_plugin_uber_file: '{{ sis_geotk_dt_plugin_name }}-{{ sis_geotk_dt_plugin_version }}-{{ sis_geotk_dt_plugin_classifier }}.{{ sis_geotk_dt_plugin_extension }}'
+sis_geotk_dt_plugin_file: '{{ sis_geotk_dt_plugin_name }}-{{ sis_geotk_dt_plugin_version }}.{{ sis_geotk_dt_plugin_extension }}'
 
+catalina_apps_conf:
+  - { app_name: '{{ data_trasfer_service_name }}', plugin_name: '{{ sis_geotk_dt_plugin_name }}' }

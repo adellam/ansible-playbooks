@@ -1,0 +1,13 @@
+description "TINT service"
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+respawn
+respawn limit 10 5
+setuid {{ stanford_corenlp_user }}
+setgid {{ stanford_corenlp_user }}
+chdir {{ stanford_corenlp_dist_dir }}/tint
+
+script
+  exec {{ tint_service_cmd }}  > {{ stanford_corenlp_log_dir }}/tint.log 2>&1
+end script

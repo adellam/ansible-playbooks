@@ -1,0 +1,18 @@
+---
+unbound_pkgs:
+  - unbound
+  - unbound-anchor
+  - unbound-host
+  - dnsutils
+
+unbound_interfaces:
+  - '0.0.0.0'
+  - '::0'
+
+unbound_allowed_clients:
+  - { cidr: '0.0.0.0/0', policy: 'allow' }
+  
+unbound_verbosity: 1
+unbound_threads: '{{ ansible_processor_count }}'
+
+unbound_remote_control: 'no'

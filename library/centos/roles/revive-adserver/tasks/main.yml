@@ -17,14 +17,14 @@
 
 - name: Unpack the revive adserver distribution file
   unarchive: src={{ revive_ad_install_dir }}/revive-adserver-{{ revive_ad_version }}.tar.gz dest={{ revive_ad_dest_dir }} copy=no
-  when: ( ad_download | changed )
+  when: ad_download is changed
   tags:
     - revive
     - revive_adserver
 
 - name: Fix the global permissions on the revive adserver directory
   command: chown -R root:root {{ revive_ad_dest_dir }}/revive-adserver-{{ revive_ad_version }}
-  when: ( ad_download | changed )
+  when: ad_download is changed
   tags:
     - revive
     - revive_adserver
@@ -48,14 +48,12 @@
 - name: Give the revive user the permission to write inside a list of directories
   command: chown -R {{ revive_ad_user }} {{ revive_ad_dest_dir }}/{{ item }}
   with_items: revive_writable_dirs
-  #when: ( ad_download | changed )
   tags:
     - revive
     - revive_adserver
 
 - name: Give the revive user the permission to write inside the images directories
   command: chown -R {{ revive_ad_user }} {{ revive_ad_images_dest_dir }}
-  #when: ( ad_download | changed )
   tags:
     - revive
     - revive_adserver

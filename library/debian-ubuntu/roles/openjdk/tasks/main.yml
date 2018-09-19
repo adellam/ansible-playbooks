@@ -3,15 +3,21 @@
     - name: Add the openjdk ppa. To have openjdk 8/9 on precise and trusty
       apt_repository: repo='{{ openjdk_ppa }}' update_cache=yes
       
-    - name: install OpenJDK JRE
+    - name: Install OpenJDK 
       apt: pkg=openjdk-{{ item.0 }}-{{ item[1] }} state={{ openjdk_pkg_state }} update_cache=yes cache_valid_time=3600
       with_nested:
         - '{{ openjdk_version }}'
         - '{{ openjdk_pkgs }}'
-        #    - [ 'jre', 'jre-headless', 'jdk' ]
       notify: Set the default OpenJDK
+      register: openjdk_installed
 
-    - name: Set fact jdk_installed
-      set_fact: jdk_installed=true
+    - name: Rebuild the Ubuntu keystore
+      command: update-ca-certificates --fresh
+      when: openjdk_installed is changed
+
+    - name: Set the default OpenJDK
+      shell: update-java-alternatives -s java-1.{{ item }}.0-openjdk-amd64
+      with_items: '{{ openjdk_default }}'
+      when: openjdk_installed is changed
 
   tags: [ 'jdk', 'openjdk' ]

@@ -45,10 +45,19 @@
   with_items:
     - net.ipv4.ip_nonlocal_bind
   when: haproxy_k_bind_non_local_ip
+  tags: [ 'haproxy', 'haproxy_sysctl' ]
 
 - name: Disable kernel binding non local IP addresses
   sysctl: name={{ item }} value=0 reload=yes state=present
   with_items:
     - net.ipv4.ip_nonlocal_bind
   when: not haproxy_k_bind_non_local_ip
+  tags: [ 'haproxy', 'haproxy_sysctl' ]
+
+- name: Increase the connection tracking table capacity
+  sysctl: name={{ item }} value={{ haproxy_sysctl_conntrack_max }} reload=yes state=present
+  with_items:
+    - net.nf_conntrack_max
+  when: is_not_debian9
+  tags: [ 'haproxy', 'haproxy_sysctl' ]
 

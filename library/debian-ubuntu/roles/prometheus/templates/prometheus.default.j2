@@ -1,0 +1,9 @@
+GOMAXPROCS={{ ansible_processor_vcpus }}
+PROMETHEUS_CMD={{ prometheus_cmd }}
+PROMETHEUS_LOGDIR={{ prometheus_home }}/logs
+PROMETHEUS_DATADIR={{ prometheus_home }}/data
+PROMETHEUS_LOGLEVEL={{ prometheus_loglevel }}
+PROMETHEUS_CONF={{ prometheus_confdir }}/prometheus.yml
+PROMETHEUS_OPTS="{{ prometheus_opts }}"
+PROMETHEUS_STARTUP_OPTS="--config.file={{ prometheus_confdir }}/prometheus.yml --storage.tsdb.path={{ prometheus_home }}/data {{ prometheus_opts }} --log.level={{ prometheus_loglevel }}"
+

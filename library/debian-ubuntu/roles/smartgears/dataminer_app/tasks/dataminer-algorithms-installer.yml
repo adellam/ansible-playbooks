@@ -1,0 +1,85 @@
+---
+- block:
+  - name: Install the subversion packages 
+    become_user: root 
+    apt: pkg=subversion state=present update_cache=yes cache_valid_time=1800
+
+  - name: Create a directory where to install the algorithms directory
+    file: path={{ smartgears_user_home }}/wps_algorithms/algorithms state=directory
+    tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_svn' ]
+
+  - name: Download the WPS algorithms from subversion
+    subversion: repo={{ dataminer_wps_algorithms_svn }} dest={{ smartgears_user_home }}/wps_algorithms/algorithms/{{ dataminer_infra_reference }} checkout=yes force=yes update=yes
+    tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_svn' ]
+  
+  become: True
+  become_user: '{{ smartgears_user }}'
+  tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_installer' ]
+
+
+# This is only needed to force an upgrade of the algorithm importer script and libraries
+- block:
+  - name: Remove the old dataminer algorithm installer to force an upgrade
+    file: path={{ smartgears_user_home }}/algorithmInstaller state=absent
+
+  - name: Remove the old dataminer algorithm installer distributions from the downloads directory
+    shell: rm -fr {{ smartgears_user_home }}/downloads/dataminer-algorithms-importer*.tar.gz
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when:
+    - dataminer_algorithms_installer
+    - dataminer_algorithms_upgrade
+  tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_installer' ]
+  
+  
+- block:
+  - name: Get the algorithms installer via maven_artifact
+    maven_artifact: artifact_id={{ dataminer_algorithms_name }} version={{ dataminer_algorithms_version | default(omit) }} group_id={{ dataminer_algorithms_group_id }} extension={{ dataminer_algorithms_extension | default('war') }} repository_url={{ dataminer_algorithms_base_url }} dest={{ smartgears_downloads_dir }}/{{ dataminer_algorithms_file }}
+    register: algorithms_installer_downloaded
+    tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_installer' ]
+
+  - name: Remove the old dataminer algorithm installer
+    file: path={{ smartgears_user_home }}/algorithmInstaller state=absent
+    when: algorithms_installer_downloaded is changed
+    tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_installer' ]
+
+  - name: Unarchive the algorithms installer
+    unarchive: copy=no src={{ smartgears_downloads_dir }}/{{ dataminer_algorithms_file }} dest={{ smartgears_user_home }} creates='{{ smartgears_user_home }}/algorithmInstaller/addAlgorithm.sh'
+    tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_installer' ]
+
+  - name: Create a directory where to install the algorithms updater logs and data
+    file: path={{ smartgears_user_home }}/wps_algorithms_install_log state=directory
+    tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_script' ]
+
+  - name: Install a script that updates the algorithms repository and adds the missing algorithms configurations
+    become_user: "{{ d4science_ansible_become_user | default('root') }}"
+    template: src=algorithms-updater.j2 dest=/usr/local/bin/algorithms-updater mode=0755
+    tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_script' ]
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: dataminer_algorithms_installer
+  tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_installer' ]
+  
+- block:
+  - name: Cron job that updates the algorithms repository and adds the missing algorithms configurations
+    cron: name="SVN update the algorithms repository" minute="{{ dataminer_algorithms_updater_minute_frequency }}" hour="{{ dataminer_algorithms_updater_hour_frequency }}" job="/usr/local/bin/algorithms-updater > {{ smartgears_user_home }}/wps_algorithms_install_log/algorithms_updater_cron.log 2>&1" user='{{ smartgears_user }}' state={{ dataminer_algorithms_updater_cron }}
+    tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_cron' ]
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: dataminer_algorithms_updater
+  tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_installer' ]
+  
+- block:
+    - name: Remove the cron job that updates the algorithms repository and adds the missing algorithms configurations
+      cron: name="SVN update the algorithms repository" minute="{{ dataminer_algorithms_updater_minute_frequency }}" hour="{{ dataminer_algorithms_updater_hour_frequency }}" job="/usr/local/bin/algorithms-updater > {{ smartgears_user_home }}/wps_algorithms_install_log/algorithms_updater_cron.log 2>&1" user='{{ smartgears_user }}' state={{ dataminer_algorithms_updater_cron }} state=absent
+      tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_cron' ]
+  
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: not dataminer_algorithms_updater
+  tags: [ 'tomcat', 'dataminer', 'wps', 'dataminer_algorithms', 'dataminer_algorithms_installer' ]
+    
+  

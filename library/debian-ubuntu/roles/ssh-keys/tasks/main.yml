@@ -1,8 +1,8 @@
 ---
-- include: root-ssh-keys.yml
+- import_tasks: root-ssh-keys.yml
   when:
     - user_ssh_key is defined
     - manage_root_ssh_keys
-- include: non-root-ssh-keys.yml
+- import_tasks: non-root-ssh-keys.yml
   when: non_root_users
 

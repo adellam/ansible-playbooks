@@ -4,19 +4,25 @@
   when:
     - openldap_letsencrypt_managed
     - letsencrypt_acme_install
+  register: openldap_letsencrypt_hook
   tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'letsencrypt' ]
 
 - name: Copy the SSL ldif on the ldap server
-  copy: src=olcSSL.ldif dest=/etc/ldap/olcSSL.ldif
+  copy: src=olcSSL.ldif dest=/etc/ldap/schema/olcSSL.ldif
   when:
     - openldap_letsencrypt_managed
     - letsencrypt_acme_install
   tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'letsencrypt' ]
 
+- name: Run the letsencrypt hook una tantum to create the correct environment
+  shell: '{{ letsencrypt_acme_services_scripts_dir }}/openldap'
+  when: openldap_letsencrypt_hook is changed
+  tags: [ 'ldap_server', 'ldap', 'ldap_conf', 'letsencrypt' ]
+
 - name: Enable the openldap ssl configuration
-  shell: ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /etc/ldap/olcSSL.ldif ; touch /etc/ldap/.olcSSL.ldif.installed
+  shell: ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/olcSSL.ldif ; touch /etc/ldap/schema/.olcSSL.ldif.installed
   args:
-    creates: /etc/ldap/.olcSSL.ldif.installed
+    creates: /etc/ldap/schema/.olcSSL.ldif.installed
   notify: Restart openldap 
   when:
     - openldap_letsencrypt_managed

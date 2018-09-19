@@ -2,7 +2,7 @@
 nginx_enabled: True
 nginx_use_ppa: False
 nginx_ppa_repo: ppa:nginx/stable
-nginx_package_state: installed
+nginx_package_state: present
 # See https://mozilla.github.io/server-side-tls/ssl-config-generator/
 nginx_ssl_level: intermediate
 
@@ -60,9 +60,17 @@ nginx_proxy_temp_file_write_size: '{{ nginx_proxy_buffer_size }}'
 nginx_client_max_body_size: 100M
 nginx_client_body_timeout: 240s
 
+nginx_cors_enabled: False
+nginx_cors_global: True
 nginx_cors_limit_origin: True
 nginx_cors_extended_rules: False
 nginx_cors_acl_origin: 'http?://(localhost)'
+# Possible methods:
+# CONNECT, DEBUG, DELETE, DONE, GET, HEAD, HTTP, HTTP/0.9, HTTP/1.0, HTTP/1.1, HTTP/2, OPTIONS, ORIGIN, ORIGINS, PATCH, POST, PUT, QUIC, REST, SESSION, SHOULD, SPDY, TRACE, TRACK
+nginx_cors_allowed_methods: 'GET, POST, OPTIONS'
+# Possible headers:
+# 'Accept, Accept-CH, Accept-Charset, Accept-Datetime, Accept-Encoding, Accept-Ext, Accept-Features, Accept-Language, Accept-Params, Accept-Ranges, Access-Control-Allow-Credentials, Access-Control-Allow-Headers, Access-Control-Allow-Methods, Access-Control-Allow-Origin, Access-Control-Expose-Headers, Access-Control-Max-Age, Access-Control-Request-Headers, Access-Control-Request-Method, Age, Allow, Alternates, Authentication-Info, Authorization, C-Ext, C-Man, C-Opt, C-PEP, C-PEP-Info, CONNECT, Cache-Control, Compliance, Connection, Content-Base, Content-Disposition, Content-Encoding, Content-ID, Content-Language, Content-Length, Content-Location, Content-MD5, Content-Range, Content-Script-Type, Content-Security-Policy, Content-Style-Type, Content-Transfer-Encoding, Content-Type, Content-Version, Cookie, Cost, DAV, DELETE, DNT, DPR, Date, Default-Style, Delta-Base, Depth, Derived-From, Destination, Differential-ID, Digest, ETag, Expect, Expires, Ext, From, GET, GetProfile, HEAD, HTTP-date, Host, IM, If, If-Match, If-Modified-Since, If-None-Match, If-Range, If-Unmodified-Since, Keep-Alive, Label, Last-Event-ID, Last-Modified, Link, Location, Lock-Token, MIME-Version, Man, Max-Forwards, Media-Range, Message-ID, Meter, Negotiate, Non-Compliance, OPTION, OPTIONS, OWS, Opt, Optional, Ordering-Type, Origin, Overwrite, P3P, PEP, PICS-Label, POST, PUT, Pep-Info, Permanent, Position, Pragma, ProfileObject, Protocol, Protocol-Query, Protocol-Request, Proxy-Authenticate, Proxy-Authentication-Info, Proxy-Authorization, Proxy-Features, Proxy-Instruction, Public, RWS, Range, Referer, Refresh, Resolution-Hint, Resolver-Location, Retry-After, Safe, Sec-Websocket-Extensions, Sec-Websocket-Key, Sec-Websocket-Origin, Sec-Websocket-Protocol, Sec-Websocket-Version, Security-Scheme, Server, Set-Cookie, Set-Cookie2, SetProfile, SoapAction, Status, Status-URI, Strict-Transport-Security, SubOK, Subst, Surrogate-Capability, Surrogate-Control, TCN, TE, TRACE, Timeout, Title, Trailer, Transfer-Encoding, UA-Color, UA-Media, UA-Pixels, UA-Resolution, UA-Windowpixels, URI, Upgrade, User-Agent, Variant-Vary, Vary, Version, Via, Viewport-Width, WWW-Authenticate, Want-Digest, Warning, Width, X-Content-Duration, X-Content-Security-Policy, X-Content-Type-Options, X-CustomHeader, X-DNSPrefetch-Control, X-Forwarded-For, X-Forwarded-Port, X-Forwarded-Proto, X-Frame-Options, X-Modified, X-OTHER, X-PING, X-PINGOTHER, X-Powered-By, X-Requested-With'
+nginx_cors_allowed_headers: 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range'
 
 # Find a set of acceptable defaults for the cache setup
 nginx_cache_enabled: False
@@ -102,9 +110,9 @@ nginx_ssl_type: ssl
 #     proxy_standard_setup: True
 #     proxy_additional_options:
 #       - 'proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache:30m max_size=250m;'
-#     proxies:
+#     locations:
 #       - location: /
-#         target: http://localhost:{{ local_http_port }};
+#         target: http://localhost:{{ local_http_port }}
 #
 #     extra_parameters: |
 # location ~ \.php$ {

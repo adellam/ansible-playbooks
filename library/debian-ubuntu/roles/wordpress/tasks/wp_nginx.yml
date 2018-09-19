@@ -1,0 +1,14 @@
+---
+- block:
+  - name: Install the nginx virtualhost
+    template: src=nginx_wordpress.conf dest=/etc/nginx/sites-available/wordpress mode=0444
+    with_items: '{{ phpfpm_pools }}'
+    notify: Reload nginx
+
+  - name: Enable the nginx virtualhost
+    file: src=/etc/nginx/sites-available/wordpress dest=/etc/nginx/sites-enabled/wordpress state=link
+    notify: Reload nginx
+  
+  when: wordpress_local_nginx_virtualhost
+  tags: [ 'wordpress', 'nginx', 'virtualhost' ]
+  

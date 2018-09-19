@@ -1,0 +1,14 @@
+---
+- block:
+    - name: Manage a list of elasticsearch plugins
+      elasticsearch_plugin: name="{{ item.name }}" state={{ item.state }} plugin_bin={{ elasticsearch_plugin_bin }} url={{ item.url|default(omit) }} version={{ item.version|default(omit) }}
+      with_items: '{{ elasticsearch_plugins | default ([]) }}'
+
+    - name: Install the elasticsearch HQ plugin
+      elasticsearch_plugin: name="{{ item.name }}" state={{ item.state }} plugin_bin={{ elasticsearch_plugin_bin }} url={{ item.url|default(omit) }} version={{ item.version|default(omit) }}
+      with_items: '{{ elasticsearch_hq_plugin | default ([]) }}'
+      when: elasticsearch_hq_install
+
+  when: elasticsearch_plugins is defined
+  tags: [ 'elasticsearch', 'es_plugins' ]
+    

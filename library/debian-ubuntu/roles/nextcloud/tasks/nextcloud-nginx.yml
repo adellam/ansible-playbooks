@@ -1,0 +1,17 @@
+---
+- block:
+  - name: Install the nginx virtualhosts
+    template: src=nginx-virthost.conf dest=/etc/nginx/sites-available/{{ item.virthost }} owner=root group=root mode=0444
+    with_items: '{{ phpfpm_pools }}'
+    notify: Reload nginx
+
+  - name: Enable the nginx virtualhosts
+    file: src=/etc/nginx/sites-available/{{ item.virthost }} dest=/etc/nginx/sites-enabled/{{ item.virthost }} state=link
+    with_items: '{{ phpfpm_pools }}'
+    notify: Reload nginx
+
+  - name: Create the nginx body temp directory
+    file: dest={{ nginx_client_body_temp_dir }} state=directory owner=www-data group=www-data mode=1700
+    when: nginx_client_body_temp_dir is defined
+
+  tags: [ 'nginx', 'virtualhost', 'nextcloud' ]

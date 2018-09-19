@@ -1,2 +1,2 @@
 ---
-- include: geoserver.yml
+- import_tasks: geoserver.yml

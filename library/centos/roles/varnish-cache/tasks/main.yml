@@ -17,7 +17,7 @@
   shell: checkmodule -M -m -o /usr/local/etc/varnish-sepol.mod /usr/local/etc/varnish-sepol.te ; semodule_package -o /usr/local/etc/varnish-sepol.pp -m /usr/local/etc/varnish-sepol.mod ; semodule -i /usr/local/etc/varnish-sepol.pp
   args:
     creates: /usr/local/etc/varnish-sepol.pp
-  when: ( varnish_selinux_policy | changed )
+  when: varnish_selinux_policy is changed
   tags: [ 'varnish', 'selinux' ]
 
 - name: Configure some kernel parameters via sysctl

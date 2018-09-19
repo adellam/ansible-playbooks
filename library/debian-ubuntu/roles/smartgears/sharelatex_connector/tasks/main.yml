@@ -18,7 +18,7 @@
 
     - name: Remove the old sharelatex-connector files
       file: path={{ smartgears_instance_path }}/webapps/{{ sharelatex_connector_name }} state=absent
-      when: ( sharelatex_connector_download | changed )
+      when: sharelatex_connector_download is changed
   
     - name: Create the sharelatex connector webapp directory
       file: path={{ smartgears_instance_path }}/webapps/{{ sharelatex_connector_name }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}

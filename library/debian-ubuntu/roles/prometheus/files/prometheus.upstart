@@ -1,0 +1,21 @@
+description "Prometheus"
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+respawn
+respawn limit 10 5
+setuid prometheus
+setgid prometheus
+
+script
+  . /etc/default/prometheus
+  export GOMAXPROCS
+  export PROMETHEUS_CMD
+  export PROMETHEUS_LOGDIR
+  export PROMETHEUS_DATADIR
+  export PROMETHEUS_LOGLEVEL
+  export PROMETHEUS_CONF
+  export PROMETHEUS_OPTS
+  exec $PROMETHEUS_CMD --config.file=$PROMETHEUS_CONF --storage.tsdb.path="$PROMETHEUS_DATADIR" --log.level=$PROMETHEUS_LOGLEVEL $PROMETHEUS_OPTS > $PROMETHEUS_LOGDIR/prometheus.log 2>&1
+end script
+ 

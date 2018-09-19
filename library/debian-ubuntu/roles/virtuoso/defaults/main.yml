@@ -15,7 +15,7 @@ virtuoso_ssl_server_port: 2111
 virtuoso_http_server: 8890
 virtuoso_http_server_root: '/var/lib/virtuoso-opensource-{{ virtuoso_version }}/vsp'
 virtuoso_vad_install_dir: '/usr/share/virtuoso-opensource-{{ virtuoso_version }}/vad'
-virtuoso_dirsallowed: "'., {{ virtuoso_vad_install_dir }}/, {{ virtuoso_log_dir }}/'"
+virtuoso_dirsallowed: '., {{ virtuoso_vad_install_dir }}/, {{ virtuoso_log_dir }}/'
 virtuoso_isql: /usr/bin/isql-vt
 
 #virtuoso_dba_pwd: set it in a vault file
@@ -31,6 +31,7 @@ virtuoso_ini_opts:
   - { section: 'Database', option: 'TransactionFile', value: '{{ virtuoso_db_dir }}/virtuoso.trx' }
   - { section: 'Database', option: 'xa_persistent_file', value: '{{ virtuoso_db_dir }}/virtuoso.pxa' }
   - { section: 'Database', option: 'ErrorLogFile', value: '{{ virtuoso_error_log }}' }
+  - { section: 'Database', option: 'Syslog', value: '1' }
   - { section: 'TempDatabase', option: 'DatabaseFile', value: '{{ virtuoso_db_dir }}/virtuoso-temp.db' }
   - { section: 'TempDatabase', option: 'TransactionFile', value: '{{ virtuoso_db_dir }}/virtuoso-temp.trx' }
   - { section: 'HTTPServer', option: 'ServerRoot', value: '{{ virtuoso_http_server_root }}' }

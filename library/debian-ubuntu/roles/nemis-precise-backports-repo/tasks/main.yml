@@ -2,23 +2,11 @@
 - name: apt key for the internal precise-backports repository
   apt_key: url=http://ppa.research-infrastructures.eu/precise-backports/keys/precise-backports.asc state=present
   when: is_precise
-  register: update_apt_cache
-  tags:
-    - apt
+  tags: apt
 
 - name: Install the precise backports apt repository
-  apt_repository: repo='{{ item }}'
+  apt_repository: repo='{{ item }}' update_cache=yes
   with_items:
     - deb http://ppa.research-infrastructures.eu/precise-backports precise main
   when: is_precise
-  register: update_apt_cache
-  tags:
-    - apt
-
-- name: Update the apt cache
-  apt: update_cache=yes
-  when: ( update_apt_cache | changed )
-  ignore_errors: True
-  tags:
-    - apt
-
+  tags: apt

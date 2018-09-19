@@ -1,0 +1,44 @@
+---
+- block:
+  - name: When we are going to install letsencrypt acmetool certificates, create a preliminary path and a self signed cert. Check if a certificate already exists. If so, skip all the related tasks
+    stat: path={{ letsencrypt_acme_user_home }}/live/{{ ansible_fqdn }}
+    register: true_cert
+
+  tags: [ 'pki', 'ssl', 'letsencrypt' ]
+  when: letsencrypt_acme_install is defined and letsencrypt_acme_install
+
+- block:
+  - name: When we are going to install letsencrypt acmetool certificates, create a preliminary path and a self signed cert. Now the physical paths
+    file: path={{ item }} mode=0755 state=directory
+    with_items:
+      - '{{ letsencrypt_acme_user_home }}/live'
+      - '{{ letsencrypt_acme_user_home }}/certs/fakeselfsignedcert' 
+
+  - name: When we are going to install letsencrypt acmetool certificates, create a preliminary path and a self signed cert. Now the physical path for the key file
+    file: path={{ item }} mode=0700 state=directory
+    with_items:
+      - '{{ letsencrypt_acme_user_home }}/keys/fakeselfsignedcert'
+
+  - name: When we are going to install letsencrypt acmetool certificates, create a preliminary path and a self signed cert. Now the certificate and private key
+    command: openssl req -x509 -newkey rsa:2048 -keyout {{ letsencrypt_acme_user_home }}/keys/fakeselfsignedcert/privkey -out {{ letsencrypt_acme_user_home }}/certs/fakeselfsignedcert/cert -days 365 -nodes -subj '/CN={{ ansible_fqdn }} self signed'
+    args:
+      creates: '{{ letsencrypt_acme_user_home }}/certs/fakeselfsignedcert/cert'
+
+  - name: When we are going to install letsencrypt acmetool certificates, create a preliminary path and a self signed cert. Now the symbolic links for the private key
+    file: src=../../keys/fakeselfsignedcert/privkey dest={{ letsencrypt_acme_user_home }}/certs/fakeselfsignedcert/privkey state=link
+    
+  - name: When we are going to install letsencrypt acmetool certificates, create a preliminary path and a self signed cert. Now the symbolic links for the chain file
+    file: src=cert dest={{ letsencrypt_acme_user_home }}/certs/fakeselfsignedcert/chain state=link
+    
+  - name: When we are going to install letsencrypt acmetool certificates, create a preliminary path and a self signed cert. Now the symbolic links for the fullchain file
+    file: src=cert dest={{ letsencrypt_acme_user_home  }}/certs/fakeselfsignedcert/fullchain state=link
+    
+  - name: When we are going to install letsencrypt acmetool certificates, create a preliminary path and a self signed cert. Now the symbolic links for the certificate if there is not one
+    file: src=../certs/fakeselfsignedcert dest={{ letsencrypt_acme_user_home }}/live/{{ ansible_fqdn }} state=link
+
+  tags: [ 'pki', 'ssl', 'letsencrypt' ]
+  when:
+    - letsencrypt_acme_install is defined and letsencrypt_acme_install
+    - true_cert is defined
+    - true_cert.stat is defined
+    - true_cert.stat.islnk is not defined

@@ -1,0 +1,3 @@
+  /etc/pki/openldap/ r,
+  /etc/pki/openldap/* r,
+  

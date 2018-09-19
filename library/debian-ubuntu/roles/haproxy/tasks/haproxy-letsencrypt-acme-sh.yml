@@ -1,0 +1,16 @@
+---
+- block:
+  - name: Create the acme hooks directory if it does not yet exist
+    file: dest={{ letsencrypt_acme_sh_services_scripts_dir }} state=directory owner=root group=root
+
+  - name: Install a script that fix the letsencrypt certificate for haproxy and then reload the service
+    template: src=haproxy-letsencrypt-acme.sh.j2 dest={{ letsencrypt_acme_sh_services_scripts_dir }}/haproxy owner=root group=root mode=4555
+
+  - name: When we are going to install letsencrypt certificates, create a preliminary path and a self signed cert. Now handle the haproxy special case
+    shell: mkdir {{ pki_dir }}/haproxy ; cat {{ letsencrypt_acme_user_home | default(omit) }}/live/{{ ansible_fqdn }}/privkey {{ letsencrypt_acme_user_home | default(omit) }}/live/{{ ansible_fqdn }}/cert > {{ pki_dir }}/haproxy/haproxy.pem
+    args:
+      creates: '{{ pki_dir }}/haproxy/haproxy.pem'
+    tags: [ 'pki', 'ssl', 'letsencrypt', 'haproxy', 'letsencrypt_acme_sh' ]
+
+  when: letsencrypt_acme_sh_install
+  tags: [ 'haproxy', 'letsencrypt', 'letsencrypt_acme_sh' ]

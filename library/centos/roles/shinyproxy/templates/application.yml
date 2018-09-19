@@ -1,0 +1,44 @@
+shiny:
+  proxy:
+    title: ICES Shiny Proxy
+    logo-url: http://www.ices.dk/SiteCollectionImages/ICES%20logos/ICES-logo%20full%20text%20.PNG%20format.png
+    landing-page: /
+    heartbeat-rate: 10000
+    heartbeat-timeout: 60000
+    port: 8080
+    authentication: none
+#    admin-groups: scientists
+    # Simple auth configuration
+ #   users:
+  #  - name: scott
+   #   password: password
+    #  groups: scientists
+    # Docker configuration
+    docker:
+      cert-path: /home/none
+      url: http://localhost:2375
+      host: 127.0.0.1
+      port-range-start: 20000
+  apps:
+  - name: Euler
+    display-name: Euler
+    description: Application which demonstrates the basics of a Shiny app
+    docker-cmd: ["R", "-e shiny::runApp('/root/euler')"]
+    docker-image: euler
+ #   groups: scientists
+  - name: StockTrends
+    display-name: StockTrends
+    description: Application which explores ICES Stock Trends
+    docker-cmd: ["R", "-e shiny::runApp('/root/stocktrends')"]
+    docker-image: stocktrends
+  #  groups: scientists
+  - name: dlm
+    display-name: dlm
+    description: Application for Data Limited Method tools
+    docker-cmd: ["R", "-e shiny::runApp('/root/dlm')"]
+    docker-image: dlm
+  #  groups: scientists
+
+logging:
+  file:
+    shinyproxy.log

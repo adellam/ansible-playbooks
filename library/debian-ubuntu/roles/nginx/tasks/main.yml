@@ -1,12 +1,12 @@
 ---
-- include: nginx.yml
-- include: nginx-config.yml
-- include: nginx-virtualhosts.yml
+- import_tasks: nginx.yml
+- import_tasks: nginx-config.yml
+- import_tasks: nginx-virtualhosts.yml
   when: nginx_use_common_virthost
-- include: nginx-letsencrypt.yml
+- import_tasks: nginx-letsencrypt.yml
   when: letsencrypt_acme_install is defined and letsencrypt_acme_install
-- include: basic-auth.yml
-- include: pam-ldap.yml
+- import_tasks: basic-auth.yml
+- import_tasks: pam-ldap.yml
 
 - name: Ensure that the webserver is running and enabled at boot time
   service: name=nginx state=started enabled=yes

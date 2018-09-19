@@ -59,27 +59,30 @@ GSSAPIAuthentication {{ sshd_gssapi_authentication }}
 GSSAPICleanupCredentials {{ sshd_gssapi_credentials }}
 
 PermitTunnel {{ sshd_permit_tunnel }}
+{% if sshd_enable_sftp_subsystem and sshd_enable_sftp_jail %}
+X11Forwarding no
+{% else %}
 X11Forwarding {{ sshd_x11_forwarding }}
+{% endif %}
 X11DisplayOffset 10
 PrintMotd no
 PrintLastLog yes
 TCPKeepAlive yes
 UseLogin {{ sshd_use_login }}
 AllowAgentForwarding {{ sshd_agent_forwarding }}
+{% if sshd_enable_sftp_subsystem and sshd_enable_sftp_jail %}
+AllowTcpForwarding no
+{% else %}
 AllowTcpForwarding {{ sshd_tcp_forwarding }}
+{% endif %}
 PermitUserEnvironment {{ sshd_permit_user_environment }}
 # ShowPatchLevel {{ sshd_show_patchlevel }}
 
 #MaxStartups 10:30:60
 Banner {{ sshd_banner_path }}
 
-
 # Allow client to pass locale environment variables
 AcceptEnv LANG LC_*
-
-{% if sshd_enable_sftp_subsystem %}
-Subsystem sftp /usr/lib/openssh/sftp-server
-{% endif %}
 
 # Set this to 'yes' to enable PAM authentication, account processing,
 # and session processing. If this is enabled, PAM authentication will
@@ -91,3 +94,13 @@ Subsystem sftp /usr/lib/openssh/sftp-server
 # PAM authentication, then enable this but set PasswordAuthentication
 # and ChallengeResponseAuthentication to 'no'.
 UsePAM {{ sshd_use_pam }}
+
+{% if sshd_enable_sftp_subsystem %}
+Subsystem sftp /usr/lib/openssh/sftp-server
+{% if sshd_enable_sftp_jail %}
+Match Group {{ sshd_sftp_chroot_match_group }}
+ChrootDirectory {{ sshd_sftp_chroot_directory }}
+ForceCommand {{ sshd_sftp_force_command }}
+{% endif %}
+{% endif %}
+

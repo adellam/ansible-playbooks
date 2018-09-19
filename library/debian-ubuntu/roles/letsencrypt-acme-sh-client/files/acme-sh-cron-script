@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ -f "/etc/default/acme_sh_request_env" ] ; then
+    . "/etc/default/acme_sh_request_env"
+else
+    exit 1
+fi
+
+if [ -f "$ACME_SH_ENV_FILE" ] ; then
+    . "$ACME_SH_ENV_FILE"
+else
+    exit 1
+fi
+
+chown -R acme:acme "$ACME_SH_HOME"
+sudo -u acme -s /bin/bash /usr/local/bin/acme-sh-cron-command
+
+if [ "$ACME_SH_INSTALL_CERTS" == "True" ] ; then
+    $ACME_SH_BIN $ACME_SH_INSTALL_CERT_REQUEST > "$ACME_SH_INSTALL_LOG_FILE" 2>&1
+    chown -R acme:acme "$ACME_SH_HOME"
+fi
+
+exit $?

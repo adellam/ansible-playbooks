@@ -6,14 +6,14 @@
   tags: mongodb
 
 - name: Install the mongodb repository
-  ansible_repository: repo="deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" update_cache=yes state=present
+  apt_repository: repo="deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" update_cache=yes state=present
   when: mongodb_install_from_external_repo
   register: external_repo
   tags: mongodb
 
 - name: Update the apt cache
   apt: update_cache=yes
-  when: ( external_repo | changed )
+  when: external_repo is changed
   ignore_errors: True
   tags: mongodb
 
@@ -35,26 +35,10 @@
     - mongodb_install_from_external_repo
     - mongodb_install_packages
     - not mongodb_latest_version
-#    - not mongodb-org_version
   tags: mongodb
 
-#- name: Install the mongodb-org server
-#  apt: pkg={{ item }}={{ mongodb_specific_version }} state=present
-#  with_items:
-#    - mongodb-org
-#    - mongodb-org-server
-#    - mongodb-org-shell
-#    - mongodb-org-mongos
-#    - mongodb-org-tools
-#  when:
-#    - mongodb_install_from_external_repo
-#    - mongodb_install_packages
-#    - not mongodb_latest_version
-#    - mongodb-org_version
-#  tags: mongodb
-
 - name: Install the mongodb server
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present
   with_items:
     - mongodb-server
   when:

@@ -1,13 +1,13 @@
 ---
 - name: Install the postgresql command line client
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present
   with_items:
     - postgresql-client
   when: tomcat_install_jdbc is defined and tomcat_install_jdbc
   tags: [ 'postgres', 'postgresql', 'tomcat' ]
 
 - name: Install the mongodb client
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=present
   with_items:
     - mongodb-clients
   when:

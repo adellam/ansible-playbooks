@@ -1,0 +1,9 @@
+---
+hdf5_install: True 
+hdf5_pkg_state: latest 
+
+hdf5_pkgs_list:
+  - hdf5-tools
+  - hdf5-helpers
+  - libhdf5-10
+  - libhdf5-dev

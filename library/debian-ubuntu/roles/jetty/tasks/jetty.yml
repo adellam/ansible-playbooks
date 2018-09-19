@@ -1,6 +1,6 @@
 ---
 - name: Install the jetty packages
-  apt: pkg={{ item }} state=installed force=yes
+  apt: pkg={{ item }} state=present force=yes
   with_items:
     - jetty
   tags:
@@ -13,7 +13,7 @@
     - jetty
 
 - name: Install the apache mod_jk module, if needed
-  apt: pkg={{ item }} state=installed force=yes
+  apt: pkg={{ item }} state=present force=yes
   with_items:
     - libapache2-mod-jk
   when: jetty_use_apache is defined and jetty_use_apache

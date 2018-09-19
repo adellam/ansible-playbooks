@@ -1,0 +1,11 @@
+---
+quota_se_plugin_install: False
+quota_se_plugin_upgrade: False
+
+quota_se_plugin_name: accounting-insert-storage-se-plugin
+quota_se_plugin_group_id: org.gcube.accounting
+quota_se_plugin_version : 1.0.1-4.12.0-148393  
+quota_se_plugin_artifact_id: accounting-insert-storage-se-plugin
+quota_se_plugin_extension: jar
+quota_se_plugin_classifier: jar-with-dependencies
+quota_se_plugin_file: '{{ quota_se_plugin_name }}-{{ quota_se_plugin_version }}-{{ quota_se_plugin_classifier }}.{{ quota_se_plugin_extension }}'

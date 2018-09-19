@@ -6,6 +6,29 @@ tomcat_service_enabled: False
 
 tomcat_m_instances_install: True
 
+tomcat_m_host_manager_install: False
+tomcat_m_manager_install: False
+# Users and roles for the manager
+tomcat_m_manager_gui_user_enabled: False
+tomcat_m_manager_gui_user: guiadmin
+tomcat_m_manager_gui_r: "manager-gui"
+#tomcat_m_manager_gui_pwd: *Use a vault file*
+tomcat_m_manager_script_user_enabled: True
+tomcat_m_manager_script_user: scriptadmin
+tomcat_m_manager_script_r: "manager-script"
+#tomcat_m_manager_script_pwd: *Use a vault file*
+tomcat_m_manager_jmx_user_enabled: False
+tomcat_m_manager_jmx_user: jmxadmin
+tomcat_m_manager_jmx_r: "manager-jmx"
+#tomcat_m_manager_jmx_pwd: *Use a vault file*
+tomcat_m_manager_status_user_enabled: False
+tomcat_m_manager_status_user: statusadmin
+tomcat_m_manager_status_r: "manager-status"
+#tomcat_m_manager_status_pwd: *Use a vault file*
+
+#tomcat_m_manager_other_roles:
+#  - { role: '', user: '', password: '', user_roles: '' }
+
 tomcat_m_instances_base_path: '/var/lib/tomcat_instances'
 tomcat_m_instances_logdir_base: '/var/log/tomcat_instances'
 tomcat_m_cache_base: '/var/cache/tomcat-instances'
@@ -20,6 +43,7 @@ tomcat_m_max_threads: 200
 tomcat_m_min_heap_size: 2048m
 tomcat_m_heap_size: '{{ tomcat_m_min_heap_size }}'
 tomcat_m_permgen_size: 512m
+tomcat_m_file_encoding: 'UTF-8'
 tomcat_m_restart_timeout: 300
 # -server -Djava.awt.headless=true are always used. No need to specify them
 tomcat_m_java_opts_heap: "-Xms{{ tomcat_m_min_heap_size }} -Xmx{{ tomcat_m_heap_size }}"
@@ -31,6 +55,10 @@ tomcat_m_java_gc_opts: "-XX:+UseConcMarkSweepGC"
 # exactly one CPU chip that contains one or two cores, you should also add
 # the "-XX:+CMSIncrementalMode" option.
 #tomcat_m_other_java_opts: "-Djsse.enableSNIExtension=false"
+tomcat_m_reverse_proxy_name_enabled: False
+tomcat_m_reverse_proxy_name: '{{ ansible_fqdn }}'
+tomcat_m_reverse_proxy_port: '{{ http_port | default(80) }}'
+
 tomcat_m_other_java_opts: ""
 tomcat_m_webapps_autodeploy: False
 tomcat_m_webapps_unpack: False
@@ -49,6 +77,7 @@ tomcat_m_jmx_port: 8186
 # The following works with jdk >= 7.0.25 only
 tomcat_m_jmx_disable_additional_ports: True
 tomcat_m_jmx_localhost_only: False
+tomcat_m_jmx_ip_address: '{{ ansible_default_ipv4.address }}'
 
 #tomcat_m_jmx_auth_dir: '{{ tomcat_m_instances_base_path }}'
 # tomcat_m_jmx_monitorpass: define_in_a_vault_file

@@ -1,9 +1,9 @@
-<configuration>
+<configuration scan="{{ smartgears_logback_conf_autoscan }}" debug="{{ smartgears_logback_conf_debug }}">
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>{{ smartgears_log_dir }}/ghn.log</file>
     <append>true</append>
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+      <pattern>%date [%thread] %-5level %logger{0}: %msg%n</pattern>
     </encoder>
 {% if smartgears_log_use_timesize_appender %}
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -24,7 +24,7 @@
     <file>{{ smartgears_log_dir }}/accounting.log</file>
     <append>true</append>
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+      <pattern>%date [%thread] %-5level %logger{0}: %msg%n</pattern>
     </encoder>
 {% if smartgears_log_use_timesize_appender %}
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -45,7 +45,7 @@
     <file>{{ smartgears_log_dir }}/access.log</file>
     <append>true</append>
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+      <pattern>%date [%thread] %-5level %logger{0}: %msg%n</pattern>
     </encoder>
 {% if smartgears_log_use_timesize_appender %}
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -67,12 +67,12 @@
     <file>{{ smartgears_log_dir }}/analysis.log</file>
     <append>true</append>
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+      <pattern>%date [%thread] %-5level %logger{0}: %msg%n</pattern>
     </encoder>
 {% if smartgears_log_use_timesize_appender %}
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
       <fileNamePattern>{{ smartgears_log_dir }}/analysis.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+      <maxHistory>{{ smartgears_dataanalysis_log_max_history }}</maxHistory>
       <maxFileSize>{{ smartgears_log_max_file_size }}</maxFileSize>
       <totalSizeCap>{{ smartgears_log_total_file_cap }}</totalSizeCap>
     </rollingPolicy>
@@ -80,7 +80,7 @@
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <maxFileSize>{{ smartgears_log_max_file_size }}</maxFileSize>
       <fileNamePattern>{{ smartgears_log_dir }}/analysis.%d{yyyy-MM-dd}.log</fileNamePattern>
-      <maxHistory>{{ smartgears_log_max_history }}</maxHistory>
+      <maxHistory>{{ smartgears_dataanalysis_log_max_history }}</maxHistory>
     </rollingPolicy>
 {% endif %}
   </appender>
@@ -99,7 +99,7 @@
     <file>/home/gcube/tomcat/logs/{{ obj.appender_file_name }}.log</file>
     <append>true</append>
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0}: %msg%n</pattern>
+      <pattern>%date [%thread] %-5level %logger{0}: %msg%n</pattern>
     </encoder>
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
       <fileNamePattern>/home/gcube/tomcat/logs/{{ obj.appender_file_name | default('custom') }}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
@@ -114,24 +114,20 @@
 {% endfor %}
 {% endif %}
 
-
-  <logger name="org.gcube.data.publishing" level="FATAL">
+  <logger name="org.gcube.data.publishing" level="{{ smartgears_accounting_log_level }}">
     <appender-ref ref="ACCOUNT_FILE" />
   </logger>
-  <logger name="org.gcube.documentstore" level="FATAL">
+  <logger name="org.gcube.documentstore" level="{{ smartgears_accounting_log_level }}">
     <appender-ref ref="ACCOUNT_FILE" />
   </logger>
 
-  <logger name="org.gcube.smartgears.handlers.application.request"
-          level="INFO">
+  <logger name="org.gcube.smartgears.handlers.application.request" level="INFO">
     <appender-ref ref="ACCESS_FILE" />
   </logger>
 
   <logger name="org.gcube" level="{{ smartgears_loglevel }}" />
   <logger name="org.gcube.smartgears" level="{{ smartgears_loglevel }}" />
   <logger name="org.gcube.common.events" level="{{ smartgears_loglevel }}" />
-  <logger name="org.gcube.data.publishing" level="FATAL" />
-  <logger name="org.gcube.documentstore" level="FATAL" />
 
   <root level="{{ smartgears_loglevel }}">
     <appender-ref ref="FILE" />

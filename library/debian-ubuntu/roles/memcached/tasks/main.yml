@@ -13,7 +13,7 @@
   tags: [ 'memcache', 'memcached' ]
 
 - name: Enable memcached
-  action: configfile path=/etc/default/memcached key=ENABLE_MEMCACHED value='yes' syntax=shell
+  copy: content="ENABLE_MEMCACHED='yes'" dest=/etc/default/memcached
   when: mc_enabled
   tags: [ 'memcache', 'memcached' ]
 

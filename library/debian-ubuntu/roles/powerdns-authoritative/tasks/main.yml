@@ -1,0 +1,29 @@
+---
+- block:
+  - name: Get the Powerdns repo key
+    apt_key: url={{ powerdns_auth_repo_key }} state=present
+
+  - name: Define the Powerdns package repository
+    apt_repository: repo='{{ powerdns_auth_repo_data }}' state=present update_cache=yes
+
+  - name: Install the powerdns packages
+    apt: pkg={{ item }} state=present
+    with_items: '{{ powerdns_auth_pkgs }}'
+
+  - name: Install the powerdns DB backend packages
+    apt: pkg={{ item }} state=present
+    with_items: '{{ powerdns_auth_db_pkgs }}'
+    when: powerdns_auth_use_db_backend
+
+  - name: Install the powerdns main configuration file
+    template: src=pdns.conf dest=/etc/powerdns/pdns.conf owner=root group=root mode=0600
+    notify: Restart powerdns
+
+  - name: Install the powerdns local configuration file
+    template: src=pdns.local.conf dest=/etc/powerdns/pdns.d/pdns.local.conf owner=root group=root mode=0600
+    notify: Restart powerdns
+    
+  - name: Ensure that powerdns is running and enabled
+    service: name=pdns state=started enabled=yes
+
+  tags: [ 'dns', 'powerdns' ]

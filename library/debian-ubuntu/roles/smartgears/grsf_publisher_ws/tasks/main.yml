@@ -20,10 +20,10 @@
     - name: Remove the old grsf-publisher-ws files
       file: path={{ smartgears_instance_path }}/webapps/{{ grsf_publisher_ws_name }} state=absent
       notify: Restart smartgears
-      when: ( grsf_publisher_download | changed )
+      when: grsf_publisher_download is changed
   
-    - name: Unarchive the grsf_publisher_ws war
-      copy: src={{ smartgears_downloads_dir }}/{{ grsf_publisher_ws_file }} dest={{ smartgears_instance_path }}/webapps/{{ grsf_publisher_ws_name }}. {{ grsf_publisher_ws_extension }} remote_src=yes force=yes
+    - name: Copy the GRSF publisher under the webapps directory
+      copy: src={{ smartgears_downloads_dir }}/{{ grsf_publisher_ws_file }} dest={{ smartgears_instance_path }}/webapps/{{ grsf_publisher_ws_name }}.{{ grsf_publisher_ws_extension }} remote_src=yes force=yes
       notify: Restart smartgears
 
   become: True

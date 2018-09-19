@@ -1,0 +1,12 @@
+---
+elastic_hq_repo_url: https://github.com/ElasticHQ/elasticsearch-HQ.git
+elastic_hq_user: elastichq
+elastic_hq_home: /srv/elastichq
+elastic_hq_http_port: 5000
+elastic_hq_use_nginx_proxy: True 
+
+elastic_hq_python_pkgs:
+  - python3
+  - python3-pip
+
+elastic_hq_start_cmd: '/usr/bin/python3 {{ elastic_hq_home }}/application.py'

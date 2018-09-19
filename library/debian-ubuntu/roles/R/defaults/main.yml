@@ -16,9 +16,10 @@ r_install_cran_repo: absent
 r_cran_set_default_mirror: True
 r_cran_mirror_site: https://cran.mirror.garr.it/mirrors/CRAN/
 r_base_specific_version: False
-r_base_pkg_version: 2.14.1
+r_base_pkg_version: 3.4.3
 r_packages_main_state: present
 r_packages_state: '{{ r_packages_main_state }}'
+r_sitelib_path: '/usr/local/lib/R/site-library'
 r_plugins_from_deb: True
 r_packages_cleanup: False
 #

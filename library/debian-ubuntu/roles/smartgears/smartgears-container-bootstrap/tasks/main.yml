@@ -1,0 +1,20 @@
+#### runs/replaces a smartgears container with the provided params
+- name: run a smartgears container based on the "{{ smartgears_image }}" image
+  docker_container:
+    name: "{{ smartgears_container_name }}"
+    state: started
+    image: "{{ smartgears_image }}:{{ image_version }}"
+    #pull: True
+    recreate: yes
+    detach: True
+    env:
+      CONTAINER_TOKENS: "{{ smartgear_tokens }}"
+      CONTAINER_MODE: "{{ container_mode }}"
+      CONTAINER_HOSTNAME: "{{ container_hostname }}"
+      CONTAINER_PORT: "{{ tomcat_port }}"
+      CONTAINER_INFRASTRUCTURE: "{{ container_infrastructure }}"
+      PATCH_COMMON_SCOPES: "{{ patch_common_scope }}"
+      PATCH_COMMON_AUTHORIZATION: "{{ patch_common_authorization }}"
+    published_ports:
+      - "{{ container_ssh_port }}:22"
+      - "{{ tomcat_port }}:{{ tomcat_port }}"

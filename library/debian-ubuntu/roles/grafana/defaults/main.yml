@@ -1,7 +1,95 @@
 ---
 grafana_repo_key: https://packagecloud.io/gpg.key
 grafana_repo: 'deb https://packagecloud.io/grafana/testing/debian/ wheezy main'
+grafana_pkg_state: latest
 grafana_packages:
   - grafana
 
+grafana_conf_files:
+  - grafana.ini
+  - ldap.toml
+
 grafana_enabled: True
+grafana_app_mode: production
+
+grafana_require_nginx: True
+grafana_require_redis: True
+
+grafana_data_path: /var/lib/grafana
+grafana_server_protocol: http
+grafana_bind_ip_address: 127.0.0.1
+grafana_http_port: 3000
+grafana_domain_name: '{{ ansible_fqdn }}'
+grafana_enforce_dom_name: True
+
+# Either mysql, postgres or sqlite3
+grafana_db_type: sqlite3
+# The other db data is not needed when the choice is sqlite3
+grafana_db_port: 5432
+grafana_db_host: '127.0.0.1'
+grafana_db_hostport: '{{ grafana_db_host }}:{{ grafana_db_port }}'
+grafana_db_name: grafana
+grafana_db_user: grafana_u
+#grafana_db_password: 'set_it_into_a_vault_file'
+grafana_db_pg_ssl_mode: require
+#
+grafana_session_provider: file
+grafana_session_config: sessions
+grafana_session_redis_config: 'addr=127.0.0.1:6379,pool_size=100,db=grafana'
+
+grafana_analytics_reporting_enabled: 'true'
+grafana_analytics_updates_check: 'true'
+
+grafana_u_allow_signup: 'false'
+grafana_u_allow_org_create: 'false'
+grafana_u_default_role: Viewer
+# dark or light
+grafana_u_default_theme: dark
+grafana_auth_anon: 'false'
+
+grafana_log_mode: syslog
+grafana_log_level: info
+grafana_syslog_facility: daemon
+
+grafana_dashboard_json: 'true'
+
+# grafana_additional_plugins:
+#   - { name: 'foo', url: '', cmd: 'remove' }
+#   - { name: 'wut', 'repo: '' }
+#   - { name: 'bar' }
+
+grafana_ldap_auth: 'false'
+grafana_ldap_host: 127.0.0.1
+grafana_ldap_port: 636
+grafana_ldap_use_ssl: 'true'
+grafana_ldap_ssl_skip_verify: 'false'
+grafana_ldap_bind_dn: 'cn=admin,dc=grafana,dc=org'
+grafana_ldap_bind_pwd: 'grafana'
+grafana_ldap_u_search_filter: '(uid=%s)'
+grafana_ldap_u_search_base: 'dc=grafana,dc=org'
+grafana_ldap_posix_groups: 'false'
+grafana_ldap_g_search_filter: '(&(objectClass=posixGroup)(memberUid=%s))'
+grafana_ldap_g_search_filter_user_attr: 'uid'
+grafana_ldap_g_search_base: 'ou=groups,dc=grafana,dc=org'
+grafana_ldap_u_email: 'mail'
+grafana_ldap_admin_role_group: 'cn=admins,dc=grafana,dc=org'
+grafana_ldap_serverattrs_username: 'uid' 
+grafana_ldap_group_roles:
+  - { dn: 'cn=users,dc=grafana,dc=org', role: 'Editor' }
+  - { dn: '*', role: 'Viewer' }
+
+nginx_virthosts:
+  - virthost_name: '{{ ansible_fqdn }}'
+    listen: '80'
+    server_name: '{{ ansible_fqdn }}'
+    server_aliases: ''
+    index: index.html
+    ssl_enabled: False
+    ssl_only: False
+    ssl_letsencrypt_certs: '{{ nginx_letsencrypt_managed }}'
+    root: '{{ nginx_webroot }}'
+    server_tokens: 'off'
+    proxy_standard_setup: True
+    proxies:
+      - location: /
+        target: http://localhost:{{ grafana_http_port }};

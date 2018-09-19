@@ -1,2 +1,2 @@
 ---
-- include: pkg.yml
+- import_tasks: pkg.yml

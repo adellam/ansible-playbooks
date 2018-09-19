@@ -1,0 +1,23 @@
+dn: olcDatabase={1}hdb,cn=config
+changetype: modify
+add: olcDbIndex
+olcDbIndex: entryUUID eq
+-
+add: olcSyncRepl
+olcSyncRepl: rid={{ openldap_slave_id | default(001) }}
+  provider={{ openldap_master_ldap_uri }}
+  bindmethod=simple
+  binddn="cn={{ openldap_replica_user }},{{ openldap_base_dn }}"
+  credentials={{ slapd_replica_pwd }}
+  searchbase="{{ openldap_slave_search_base }}"
+  logbase="cn=accesslog"
+  schemachecking=on
+  type={{ openldap_slave_sync_type }}
+  retry="60 +"
+  interval={{ openldap_slave_sync_interval }}
+  starttls="{{ openldap_slave_tls_starttls }}"
+  syncdata={{ openldap_slave_syncdata_type }}
+-
+add: olcUpdateRef
+olcUpdateRef: {{ openldap_master_ldap_uri }}
+

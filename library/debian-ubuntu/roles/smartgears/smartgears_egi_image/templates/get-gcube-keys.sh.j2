@@ -33,7 +33,6 @@ elif [ "$INFRA_NAME" == "d4science.research-infrastructures.eu" ] ; then
     wget {{ gcube_pkey_4 }} --no-check-certificate -o $LOG_FILE.D4Research -O D4Research.gcubekey
     wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.SoBigData -O SoBigData.gcubekey
     wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.OpenAIRE -O OpenAIRE.gcubekey
-    wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.Edison -O Edison.gcubekey
     wget {{ gcube_pkey_3 }} --no-check-certificate -o $LOG_FILE.SmartArea -O SmartArea.gcubekey
     chmod 400 $SM_LIB_DIR/*.gcubekey
 else

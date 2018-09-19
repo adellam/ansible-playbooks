@@ -1,0 +1,5 @@
+---
+dependencies:
+  - { role: '../../library/roles/oracle-jdk', when: openjdk_install is not defined or not openjdk_install }
+  - { role: '../../library/roles/openjdk', when: openjdk_install | default(False) }
+  - { role: '../../library/roles/nginx', when: cdh_zeppelin_dedicated_node }

@@ -1,0 +1,6 @@
+---
+- import_tasks: wp_prerequisites.yml
+- import_tasks: wp_install.yml
+- import_tasks: wp_plugins.yml
+- import_tasks: wp_nginx.yml
+

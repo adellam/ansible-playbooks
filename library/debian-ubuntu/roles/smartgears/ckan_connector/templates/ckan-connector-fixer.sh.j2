@@ -46,16 +46,9 @@ cd /usr/lib/ckan/default/src/ckan
 
 if [ "$CKAN_CREATE_USER" == "True" ] ; then
 # Create the admin user
-    paster sysadmin add $CK_ADMIN -c $CK_INI << EOF
-y
-
-$CK_ADMIN_PWD
-$CK_ADMIN_PWD
-
-
-EOF
-
+    paster user -c $CK_INI add $CK_ADMIN password=$CK_ADMIN_PWD email=ckan_admin@d4science.org
 fi
+paster sysadmin -c $CK_INI add $CK_ADMIN
 
 # Get the admin key
 echo "update \"user\" set state = 'active' where name = '${CK_ADMIN}';" > $SQL_FILE

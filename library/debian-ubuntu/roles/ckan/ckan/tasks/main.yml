@@ -1,6 +1,6 @@
 ---
-- include: ckan.yml
-- include: ckan-plugins.yml
-- include: ckan-config.yml
-- include: enable-ckan.yml
-- include: supervisor.yml 
+- import_tasks: ckan.yml
+- import_tasks: ckan-plugins.yml
+- import_tasks: ckan-config.yml
+- import_tasks: enable-ckan.yml
+- import_tasks: supervisor.yml 

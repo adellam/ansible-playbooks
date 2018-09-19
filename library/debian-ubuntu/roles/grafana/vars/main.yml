@@ -1,0 +1,5 @@
+---
+redis_install: True
+setup_nginx: True
+nginx_use_common_virthost: True
+

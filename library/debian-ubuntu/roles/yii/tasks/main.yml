@@ -16,7 +16,7 @@
 
 - name: Fix the permissions on the yii framework directory
   command: chown -R root:root {{ yii_install_dir }}/yii-{{ yii_version }}.{{ yii_release }}
-  when: ( yii_unpack | changed )
+  when: yii_unpack is changed
   tags: [ 'yii', 'yii-framework' ]
 
 - name: Create a couple of links to the running version
@@ -31,14 +31,3 @@
   with_items: '{{ yii_unneeded_files }}'
   tags: [ 'yii', 'yii-framework' ]
 
-- name: Install the php required modules
-  apt: name={{ item }} state=present
-  with_items: '{{ yii_php_modules }}'
-  notify: Reload php-fpm
-  tags: [ 'yii', 'yii-framework' ]
-
-- name: Install the php modules to access the db servers
-  apt: name={{ item }} state=present
-  with_items: '{{ yii_php_db_server_modules }}'
-  notify: Reload php-fpm
-  tags: [ 'yii', 'yii-framework' ]

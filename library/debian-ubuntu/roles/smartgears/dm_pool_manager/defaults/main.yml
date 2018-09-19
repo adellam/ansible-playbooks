@@ -1,7 +1,7 @@
 ---
 dm_pool_manager_install: False
 dm_pool_manager_upgrade: False
-dm_pool_manager_version: 2.1.0-4.7.0-155107
+dm_pool_manager_version: latest
 dm_pool_manager_name: dataminer-pool-manager
 
 dm_pool_manager_group_id: org.gcube.dataAnalysis

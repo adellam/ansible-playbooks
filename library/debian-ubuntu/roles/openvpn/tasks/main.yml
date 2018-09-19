@@ -1,4 +1,4 @@
 ---
-- include: openvpn.yml
-- include: letsencrypt-openvpn.yml
+- import_tasks: openvpn.yml
+- import_tasks: letsencrypt-openvpn.yml
   when: openvpn_letsencrypt_managed

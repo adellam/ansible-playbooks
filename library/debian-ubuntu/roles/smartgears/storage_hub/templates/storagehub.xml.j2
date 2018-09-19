@@ -1,0 +1,11 @@
+<Context path="/storagehub">
+     <Resource 
+    name="jcr/repository"
+    auth="Container"
+    type="javax.jcr.Repository"
+    factory="org.apache.jackrabbit.core.jndi.BindableRepositoryFactory"
+    configFilePath="{{ storagehub_config_file_path }}"
+    repHomeDir="{{ storagehub_rep_home_dir }}"
+        />
+
+</Context>

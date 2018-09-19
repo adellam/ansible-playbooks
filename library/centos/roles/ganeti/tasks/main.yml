@@ -1,6 +1,6 @@
 ---
 - name: "*** Install the Integ ganeti repo ***"
-  yum: name={{ integ_ganeti_repo_url }} state=installed
+  yum: name={{ integ_ganeti_repo_url }} state=present
   when: ganeti_use_drbd
   tags:
     - ganeti

@@ -2,15 +2,15 @@
 if ($request_method = 'OPTIONS') {
 {% if nginx_cors_limit_origin %}
     add_header 'Access-Control-Allow-Origin' '{{ nginx_cors_acl_origin | default("$http_origin") }}';
-    add_header 'Access-Control-Allow-Credentials' 'true';
 {% else %}
     add_header 'Access-Control-Allow-Origin' '*';
 {% endif %}
-    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    add_header 'Access-Control-Allow-Credentials' 'true';
+    add_header 'Access-Control-Allow-Methods' '{{ nginx_cors_allowed_methods }}';
     #
     # Custom headers and headers various browsers *should* be OK with but aren't
     #
-    add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
+    add_header 'Access-Control-Allow-Headers' '{{ nginx_cors_allowed_headers }}';
     #
     # Tell client that this pre-flight info is valid for 20 days
     #
@@ -22,38 +22,37 @@ if ($request_method = 'OPTIONS') {
 if ($request_method = 'POST') {
 {% if nginx_cors_limit_origin %}
     add_header 'Access-Control-Allow-Origin' '{{ nginx_cors_acl_origin | default("$http_origin") }}';
-    add_header 'Access-Control-Allow-Credentials' 'true';
 {% else %}
     add_header 'Access-Control-Allow-Origin' '*';
 {% endif %}
-    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-    add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
-    add_header 'Access-Control-Expose-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
+    add_header 'Access-Control-Allow-Credentials' 'true';
+    add_header 'Access-Control-Allow-Methods' '{{ nginx_cors_allowed_methods }}';
+    add_header 'Access-Control-Allow-Headers' '{{ nginx_cors_allowed_headers }}';
+    add_header 'Access-Control-Expose-Headers' '{{ nginx_cors_allowed_headers }}';
 }
 if ($request_method = 'GET') {
 {% if nginx_cors_limit_origin %}
     add_header 'Access-Control-Allow-Origin' '{{ nginx_cors_acl_origin | default("$http_origin") }}';
-    add_header 'Access-Control-Allow-Credentials' 'true';
 {% else %}
     add_header 'Access-Control-Allow-Origin' '*';
 {% endif %}
-    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-    add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
-    add_header 'Access-Control-Expose-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
+    add_header 'Access-Control-Allow-Credentials' 'true';
+    add_header 'Access-Control-Allow-Methods' '{{ nginx_cors_allowed_methods }}';
+    add_header 'Access-Control-Allow-Headers' '{{ nginx_cors_allowed_headers }}';
+    add_header 'Access-Control-Expose-Headers' '{{ nginx_cors_allowed_headers }}';
 }
 {% else %}
 {% if nginx_cors_limit_origin %}
 add_header 'Access-Control-Allow-Origin' '{{ nginx_cors_acl_origin | default("$http_origin") }}';
-add_header 'Access-Control-Allow-Credentials' 'true';
 {% else %}
 add_header 'Access-Control-Allow-Origin' '*';
 {% endif %}
-add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With,Accept-Language,X-CustomHeader,Content-Range,Range';
-{% if nginx_cors_limit_origin %}
-if ($request_method = 'OPTIONS') {
+if ($request_method = OPTIONS ) {
     return 204;
 }
-{% endif %}
+add_header 'Access-Control-Allow-Credentials' 'true';
+add_header 'Access-Control-Allow-Methods' '{{ nginx_cors_allowed_methods }}';
+add_header 'Access-Control-Allow-Headers' '{{ nginx_cors_allowed_headers }}';
+add_header 'Access-Control-Expose-Headers' '{{ nginx_cors_allowed_headers }}';
 {% endif %}
 

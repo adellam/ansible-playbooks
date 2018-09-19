@@ -3,6 +3,6 @@ quota_service_install: False
 quota_service_version: latest
 quota_service_name: quota-manager
 quota_group_id: org.gcube.resource.management
-quota_extension: war
-quota_service_file: '{{ quota_service_name }}-{{ quota_service_version }}.{{ quota_extension }}'
+quota_service_extension: war
+quota_service_file: '{{ quota_service_name }}-{{ quota_service_version }}.{{ quota_service_extension }}'
 

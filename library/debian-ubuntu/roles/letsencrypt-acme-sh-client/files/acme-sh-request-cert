@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ -f "/etc/default/acme_sh_request_env" ] ; then
+    . "/etc/default/acme_sh_request_env"
+else
+    exit 1
+fi
+
+if [ -f "$ACME_SH_ENV_FILE" ] ; then
+    . "$ACME_SH_ENV_FILE"
+else
+    exit 1
+fi
+RETVAL=
+
+$ACME_SH_BIN $ACME_SH_ISSUE_CERT_REQUEST > "$ACME_SH_ISSUE_LOG_FILE" 2>&1
+RETVAL=$?
+
+if [ $RETVAL -ne 0 ] ; then
+    touch "$ACME_SH_CONFIG_HOME/ok_certificate_issued"
+fi
+
+exit $RETVAL

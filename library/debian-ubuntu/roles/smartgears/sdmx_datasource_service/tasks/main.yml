@@ -1,0 +1,31 @@
+---
+- block:
+    - name: Remove the old service files
+      file: path={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ sdmx_datasource_service_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ sdmx_datasource_service_name }}.{{ sdmx_datasource_extension }}'
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: not sdmx_datasource_service_install 
+  tags: [ 'smartgears', 'sdmx_datasource_service', 'tomcat' ]
+
+- block:
+    - name: Get the sdmx_datasource-service 
+      maven_artifact: artifact_id={{ sdmx_datasource_service_name }} version={{ sdmx_datasource_service_version | default('latest') }} group_id={{ sdmx_datasource_group_id }} extension={{ sdmx_datasource_extension | default('war') }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ sdmx_datasource_service_file }}
+      register: sdmx_datasource_service_download
+  
+    - name: Remove the old service files
+      file: path={{ smartgears_instance_path }}/webapps/{{ sdmx_datasource_service_name }} state=absent
+      when: sdmx_datasource_service_download is changed
+
+    - name: Copy the  service war file into the webapps directory
+      copy: src={{ smartgears_downloads_dir }}/{{ sdmx_datasource_service_file }} dest={{ smartgears_instance_path }}/webapps/{{ sdmx_datasource_service_name }}.{{ sdmx_datasource_extension }} remote_src=yes force=yes
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ d4science_user }}'
+  when: sdmx_datasource_service_install 
+  tags: [ 'smartgears', 'sdmx_datasource_service', 'tomcat' ]
+

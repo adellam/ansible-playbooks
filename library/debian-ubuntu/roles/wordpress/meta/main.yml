@@ -1,0 +1,5 @@
+---
+dependencies:
+  - { role: '../../library/roles/mysql', when: wordpress_local_mysql }
+  - role: '../../library/roles/php-fpm'
+  - { role: '../../library/roles/nginx', when: wordpress_local_nginx }

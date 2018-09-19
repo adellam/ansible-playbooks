@@ -70,13 +70,13 @@
     - name: Check if restart is required by any of the versioned plugins
       set_fact:
         jenkins_restart_required: yes
-      when: item.changed
+      when: item is changed
       with_items: '{{ my_jenkins_plugin_versioned.results }}'
 
     - name: Check if restart is required by any of the unversioned plugins
       set_fact:
         jenkins_restart_required: yes
-      when: item.changed
+      when: item is changed
       with_items: '{{ my_jenkins_plugin_unversioned.results }}'
 
     - name: Restart Jenkins if required

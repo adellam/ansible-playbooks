@@ -16,7 +16,7 @@
 
     - name: Remove the old is-sweeper plugin
       shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ is_sweeper_se_plugin_name }}-*-{{ is_sweeper_se_plugin_classifier }}.{{ is_sweeper_se_plugin_extension }}
-      when: ( is_sweeper_plugin_download )
+      when: is_sweeper_plugin_download is changed
 
     - name: Install the is-sweeper plugin inside the smart executor lib directory
       copy: src={{ smartgears_downloads_dir }}/{{ is_sweeper_se_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ is_sweeper_se_plugin_file }} remote_src=yes force=yes

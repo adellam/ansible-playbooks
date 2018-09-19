@@ -1,43 +1,48 @@
 ---
-- name: Install the joomla php prerequisites
-  apt: name={{ item }} state=present
-  with_items: joomla_php_prereq
-  tags: joomla
+- block:
+  - name: Install the joomla php prerequisites
+    apt: name={{ item }} state=present
+    with_items: '{{ joomla_php_prereq }}'
 
-- name: Ensure that the download and install dirs exist
-  file: path={{ item }} state=directory
-  with_items:
-    - '{{ joomla_download_dir }}/joomla-unpacked'
-    - '{{ joomla_install_dir }}'
-  tags: joomla
-  
-- name: Download the joomla distribution file
-  get_url: url={{ joomla_tar_url }} dest={{ joomla_download_dir }}
-  register: joomla_download
-  tags: joomla
+  - name: Install the php postgresql driver
+    apt: name={{ item }} state=present
+    with_items: '{{ joomla_php_pg_driver }}'
+    when: joomla_use_postgresql
 
-- name: Unpack the joomla distribution file
-  unarchive: copy=no src={{ joomla_download_dir }}/{{ joomla_dist_file }} dest={{ joomla_download_dir }}/joomla-unpacked
-  when: ( joomla_download | changed )
-  tags: joomla
+  - name: Install the php mysql driver
+    apt: name={{ item }} state=present
+    with_items: '{{ joomla_php_my_driver }}'
+    when: joomla_use_mysql
 
-- name: Move the joomla files to the right place
-  shell: cp -a {{ joomla_download_dir }}/joomla-unpacked/* {{ joomla_install_dir }}/
-  args:
-    creates: '{{ joomla_install_dir }}/index.php'
-  with_items: phpfpm_pools
-  when: ( joomla_download | changed )
-  register: unpack_joomla
-  tags: joomla
+  - name: Ensure that the download and install dirs exist
+    file: path={{ item }} state=directory
+    with_items:
+      - '{{ joomla_download_dir }}/joomla-unpacked'
+      - '{{ joomla_install_dir }}'
+    
+  - name: Download the joomla distribution file
+    get_url: url={{ joomla_tar_url }} dest={{ joomla_download_dir }} validate_certs=no
+    register: joomla_download
 
-- name: Set the correct ownership of the joomla files
-  file: dest={{ joomla_install_dir }} owner={{ item.user }} group={{ item.group }} recurse=yes state=directory
-  with_items: phpfpm_pools
-  when: ( unpack_joomla | changed )
-  tags: joomla
+  - name: Unpack the joomla distribution file
+    unarchive: copy=no src={{ joomla_download_dir }}/{{ joomla_dist_file }} dest={{ joomla_download_dir }}/joomla-unpacked
+    when: joomla_download is changed
 
-- name: Remove the original joomla unpacked distribution
-  command: rm -fr {{ joomla_download_dir }}/{{ joomla_dist_name }}
-  when: ( unpack_joomla | changed )
-  tags: joomla
+  - name: Move the joomla files to the right place
+    shell: cp -a {{ joomla_download_dir }}/joomla-unpacked/* {{ joomla_install_dir }}/
+    args:
+      creates: '{{ joomla_install_dir }}/index.php'
+    with_items: '{{ phpfpm_pools }}'
+    when: joomla_download is changed
+    register: unpack_joomla
 
+  - name: Set the correct ownership of the joomla files
+    file: dest={{ joomla_install_dir }} owner={{ item.user }} group={{ item.group }} recurse=yes state=directory
+    with_items: '{{ phpfpm_pools }}'
+    when: unpack_joomla is changed
+
+  - name: Remove the original joomla unpacked distribution
+    command: rm -fr {{ joomla_download_dir }}/{{ joomla_dist_name }}
+    when: unpack_joomla is changed
+
+  tags: joomla

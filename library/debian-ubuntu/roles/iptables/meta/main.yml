@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: '../../library/roles/postfix-relay', when: postfix_relay_client is defined and postfix_relay_client }
+  - { role: '../../library/roles/postfix-relay', when: postfix_relay_server is defined and postfix_relay_server }

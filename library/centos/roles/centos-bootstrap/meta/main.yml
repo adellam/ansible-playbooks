@@ -1,6 +1,5 @@
 ---
 dependencies:
-  - role: '../../library/roles/external-repos'
-  - role: '../../library/roles/basic-setup'
-#  - role: '../../library/roles/self-signed-cert'
-  - role: '../../library/roles/tuned-setup'
+  - role: '../../library/centos/roles/external-repos'
+  - role: '../../library/centos/roles/basic-setup'
+  - role: '../../library/centos/roles/tuned-setup'

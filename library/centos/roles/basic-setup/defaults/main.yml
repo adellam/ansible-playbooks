@@ -25,7 +25,6 @@ centos_packages_to_install:
   - ntp
   - psmisc
   - tcpdump
-  - net-tools
   - tuned
   - bash-completion
   - rsync
@@ -71,7 +70,6 @@ centos_locate_package:
 centos_is_vm: True
 centos_hw_packages:
   - smartmontools
-  - hddtemp
   - system-storage-manager
 
 centos_selinux_daemons_dump_core: False

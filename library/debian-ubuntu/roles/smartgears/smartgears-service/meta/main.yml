@@ -1,0 +1,6 @@
+---
+dependencies:
+  - { role: '../../library/roles/smartgears/smartgears' }
+  - { role: '../../library/roles/smartgears/smartgears-nginx-frontend', when: setup_nginx is defined and setup_nginx }
+  - { role: '../../library/roles/d4s_user_services_perms', when: smartgears_node }
+  - role: '../../library/roles/ssh-keys'

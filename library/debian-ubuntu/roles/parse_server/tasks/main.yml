@@ -1,0 +1,13 @@
+---
+- block:
+  - name: Create the parse user
+    user: name={{ parse_server_user }} home={{ parse_server_user_home }} createhome=no system=yes shell=/bin/bash
+
+  - name: Create the parse home directory
+    file: dest={{ parse_server_user_home }} owner={{ parse_server_user }} group={{ parse_server_user }} mode=0755 state=directory
+
+  - name: Install the parse server
+    npm: name={{ item }} global=yes state=present production=true
+    with_items: '{{ parse_server_npm_modules }}'
+
+  tags: [ 'parse', 'parse_server' ]

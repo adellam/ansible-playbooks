@@ -1,6 +1,0 @@
----
-- name: Restart rsyslog
-  #service: name=rsyslog state=restarted
-  command: /usr/sbin/service rsyslog stop ; /usr/sbin/service rsyslog start
-
-

@@ -1,13 +1,20 @@
 dn: cn=config
-add: olcTLSCACertificateFile
+changetype: modify
+replace: olcTLSCACertificateFile
 olcTLSCACertificateFile: /etc/pki/openldap/chain.pem
--
-add: olcTLSCertificateKeyFile
+
+dn: cn=config
+changetype: modify
+replace: olcTLSCertificateKeyFile
 olcTLSCertificateKeyFile: /etc/pki/openldap/privkey.pem
--
-add: olcTLSCertificateFile
+
+dn: cn=config
+changetype: modify
+replace: olcTLSCertificateFile
 olcTLSCertificateFile: /etc/pki/openldap/cert.pem
--
-add: olcTLSCACertificatePath
+
+dn: cn=config
+changetype: modify
+replace: olcTLSCACertificatePath
 olcTLSCACertificatePath: /etc/ssl/certs
 

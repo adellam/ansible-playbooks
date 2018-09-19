@@ -1,12 +1,12 @@
 ---
-- include: packages.yml
-- include: mysql-conf.yml
+- import_tasks: packages.yml
+- import_tasks: mysql-conf.yml
   when: mysql_enabled
-- include: manage-mysql-service.yml
-- include: configure_root_access.yml
+- import_tasks: manage-mysql-service.yml
+- import_tasks: configure_root_access.yml
   when: mysql_enabled
-- include: manage_my_db.yml
+- import_tasks: manage_my_db.yml
   when: mysql_enabled
-- include: mysql-backup.yml
+- import_tasks: mysql-backup.yml
   when: mysql_enabled
 

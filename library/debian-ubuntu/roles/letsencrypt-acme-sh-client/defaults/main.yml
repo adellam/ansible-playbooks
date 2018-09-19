@@ -1,0 +1,66 @@
+---
+letsencrypt_acme_sh_install: False
+letsencrypt_acme_sh_git_install: True
+letsencrypt_acme_sh_git_url: https://github.com/Neilpang/acme.sh.git
+letsencrypt_acme_user: acme
+letsencrypt_acme_sh_user: '{{ letsencrypt_acme_user }}'
+letsencrypt_acme_user_home: /var/lib/acme
+letsencrypt_acme_git_dest_dir: '{{ letsencrypt_acme_user_home }}/acme_sh_dist'
+letsencrypt_acme_sh_user_home: '{{ letsencrypt_acme_user_home }}'
+letsencrypt_acme_sh_base_data_dir: '{{ letsencrypt_acme_sh_user_home }}/acme_data'
+letsencrypt_acme_sh_certificates_install_dir: '{{ ansible_fqdn }}'
+letsencrypt_acme_sh_certificates_install_base_path: '{{ letsencrypt_acme_sh_user_home }}/live'
+letsencrypt_acme_sh_certificates_install_path: '{{ letsencrypt_acme_sh_certificates_install_base_path }}/{{ letsencrypt_acme_sh_certificates_install_dir }}'
+letsencrypt_acme_sh_log_dir: /var/log/acme
+letsencrypt_acme_sh_install_cron: False
+letsencrypt_acme_sh_log_enabled: True
+letsencrypt_acme_sh_auto_upgrade: False
+letsencrypt_acme_sh_install_options: '--install'
+letsencrypt_acme_sh_test_request: False
+letsencrypt_acme_sh_use_syslog: True
+letsencrypt_acme_sh_syslog_level: 6
+
+# We only support the PowerDNS API. Adding other ones should be straightforward
+letsencrypt_acme_sh_use_dns_provider: False
+letsencrypt_acme_sh_dns_provider_type: dns_pdns
+letsencrypt_acme_sh_dns_api_url: 'http://localhost:8081'
+letsencrypt_acme_sh_dns_api_provider_id: localhost
+# Use a vault variable for this one
+letsencrypt_acme_sh_dns_api_token: XXXXXXX
+
+
+letsencrypt_acme_sh_command: acme.sh
+# The data directory is created by the acme.sh install 
+letsencrypt_acme_sh_dirs:
+  - '{{ letsencrypt_acme_sh_user_home }}/bin'
+  - '{{ letsencrypt_acme_sh_base_data_dir }}/certs'
+  - '{{ letsencrypt_acme_sh_base_data_dir }}/logs'
+#  - '{{ letsencrypt_acme_sh_base_data_dir }}/data'
+letsencrypt_acme_sh_dest_dir: '{{ ansible_fqdn }}'
+letsencrypt_acme_sh_certs_dir: '{{ letsencrypt_acme_sh_base_data_dir }}/certs/{{ letsencrypt_acme_sh_dest_dir }}'
+# The various services maintainers need to put the reconfigure/restart scripts there
+letsencrypt_acme_sh_services_scripts_dir: /usr/lib/acme/hooks
+
+letsencrypt_acme_sh_explicitly_install_certs: False
+
+letsencrypt_acme_sh_use_ecc: True
+letsencrypt_acme_sh_key_lenght: ec-384
+letsencrypt_acme_sh_ocsp_must_staple: False
+letsencrypt_acme_email: sysadmin@example.com
+letsencrypt_acme_sh_email: '{{ letsencrypt_acme_email }}'
+letsencrypt_acme_standalone_port: 4402
+letsencrypt_acme_sh_standalone_port: '{{ letsencrypt_acme_standalone_port }}'
+letsencrypt_acme_cron_day_of_month: '*'
+letsencrypt_acme_cron_hour: '{{ range(1, 4) | random }}'
+letsencrypt_acme_cron_minute: '{{ range(0, 59) | random }}'
+
+# Use this when you want a single certificate. Even when multiple provider methods are needed
+# The dns_provider and standalone options are mutually exclusive
+letsencrypt_acme_sh_domains:
+  - ''
+#  - { domain: '{{ ansible_fqdn }}', dns_provider: '{{ letsencrypt_acme_sh_dns_provider_type }}', dns_alias_challenge: 'dns-challenge.example.org', standalone: True }
+
+letsencrypt_acme_sh_domains_install:
+  - ''
+#  - { domain: '{{ ansible_fqdn }}', ecc: '{{ letsencrypt_acme_sh_use_ecc }}', cert_file: '{{ letsencrypt_acme_sh_certificates_install_path }}/cert', key_file: '{{ letsencrypt_acme_sh_certificates_install_path }}/privkey', fullchain_file: '{{ letsencrypt_acme_sh_certificates_install_path }}/fullchain', reloadcmd: 'letsencrypt_acme_sh_services_scripts_dir/hook_script'   }
+

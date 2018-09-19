@@ -1,0 +1,29 @@
+---
+- name: create a shinyproxy user named {{ shinyproxy_user }} and a relative home in /opt/{{ shinyproxy_user }}
+  action: user name={{ shinyproxy_user }}  password='$6$rounds=656000$/7ZCa5dNuPoJsUCq$/f7OPQBzue3gSAmGbIfVEnqYQf0aIgvF9OhsN8F0BToTFdKGFRtdNH6bQZWwgLwS3WEPyR8V2QPp8QOLAtO.20' shell=/bin/bash createhome=yes home="/opt/{{ shinyproxy_user }}"
+
+- name: gather the PIDs of the shinyproxy instances that are running to kill them
+  shell: ps aux|grep shinyproxy|grep -v grep|awk '{ print $2 }'
+  register: shiny_pids
+  ignore_errors: True
+
+- name: kill the running shinyproxy instances (if there's any)
+  shell: kill -9 "{{ item }}"
+  with_items: "{{ shiny_pids.stdout.split('\n') }}"
+  ignore_errors: True
+
+- name: install shinyproxy in "/opt/{{ shinyproxy_user }}"
+  get_url: url={{ shinyproxy_url }} dest="/opt/{{ shinyproxy_user }}/" force=yes
+
+#- name: pull shinyproxy docker demo app ### can't user docker module due to API mismatch between client and server API versions
+#  #docker: name=shinyproxy_demo pull=missing image=openanalytics/shinyproxy-demo
+#  shell: "docker pull openanalytics/shinyproxy-demo"
+#
+- name: copy the custom application.yml file
+  template: src=application.yml dest="/opt/{{ shinyproxy_user }}/" 
+
+#### we'll start the shinyproxy instance only after the docker images have been built/updated
+#- name: start shinyproxy
+#  become: yes
+#  become_user: "{{ shinyproxy_user }}"
+#  shell: "nohup java -jar /opt/{{ shinyproxy_user }}/{{shinyproxy_jar }} &"

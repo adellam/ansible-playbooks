@@ -1,5 +1,0 @@
----
-gcoreboot_install: False
-gcoreboot_enabled: False
-gcoreboot_startcontainer: startContainer.sh
-gcoreboot_stopcontainer: stopContainer.sh

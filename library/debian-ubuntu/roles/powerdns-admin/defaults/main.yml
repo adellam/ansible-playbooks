@@ -1,0 +1,27 @@
+---
+pdns_admin_install: True
+pdns_admin_dir: 'pdns_admin-{{ pdns_admin_version }}.linux-amd64'
+pdns_admin_git_repo_url: 'https://github.com/ngoduykhanh/PowerDNS-Admin.git'
+pdns_admin_user: pdnsadmin
+pdns_admin_home: /opt/pdnsadmin
+pdns_admin_cmd: '{{ pdns_admin_dist_dir }}/{{ pdns_admin_dir }}/pdns_admin'
+pdns_admin_http_port: 9393
+pdns_admin_opts: ''
+pdns_admin_loglevel: 'WARN'
+pdns_admin_logdir: '/var/log/pdnsadmin'
+pdns_admin_logfile: '{{ pdns_admin_logdir }}/pdnsadmin.log'
+
+pdns_admin_prereqs:
+  - git
+  - python3
+  - python3-pip
+  - python3-virtualenv
+  - python3-dev
+  - libmysqlclient-dev
+  - libxmlsec1-dev
+  - pkg-config
+  - libpq-dev
+  - libsasl2-dev
+  - libldap2-dev
+  - libssl-dev
+  - python3-psycopg2

@@ -1,6 +1,6 @@
 ---
 - name: Install the jetty packages
-  apt: pkg={{ item }} state=installed force=yes
+  apt: pkg={{ item }} state=present force=yes
   with_items:
     - jetty
     - libapache2-mod-jk

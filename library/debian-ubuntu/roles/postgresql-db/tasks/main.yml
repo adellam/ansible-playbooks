@@ -1,0 +1,10 @@
+---
+- import_tasks: configure-access.yml
+  when: psql_db_data is defined
+- import_tasks: manage_dbs.yml
+  when: psql_db_data is defined
+- import_tasks: db_schemas.yml
+  when: psql_db_schemas is defined
+- import_tasks: db_extensions.yml
+  when: psql_db_extensions is defined
+

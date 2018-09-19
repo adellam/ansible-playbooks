@@ -1,57 +1,92 @@
 ---
-- name: Install the mongodb apt key
-  #apt_key: id=7F0CEB10 state=present
-  raw: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-  when: mongodb_install_from_external_repo
+- block:
+    - name: Check if Service mongod Exists
+      stat: path=/etc/init/mongod
+      register: service_mongod_status
+      tags: mongodb
+
+    - name: Ensure mongod is stopped and disabled
+      service: name=mongod state=stopped enabled=no
+      when:
+        - service_mongod_status.stat.exists
+        - mongodb_start_server is defined
+        - mongodb_start_server == 'no'
+        - mongodb_install_conf
+
+  when: mongodb_install_server
+  tags: mongodb 
+
+- block:
+    - name: Install the mongodb apt keys
+      apt_key: keyserver='hkp://keyserver.ubuntu.com:80' id={{ item }} state=present
+      with_items: '{{ mongodb_repo_keys }}'
+      when: mongodb_install_from_external_repo
+      register: apt_key_update_cache
+
+    - name: Update the apt cache after adding a new key
+      apt: update_cache=yes
+      when: apt_key_update_cache is changed
+
+    - name: Remove the old mongo apt repositories
+      apt_repository: repo='{{ item }}' state=absent update_cache=yes
+      with_items: '{{ mongodb_old_repositories }}'
+      when: mongodb_upgrade_from_older_version
+
+    - name: Install the mongodb repository
+      apt_repository: repo="{{ mongodb_apt_repository }}" update_cache=yes state=present
+
+  when: mongodb_install_from_external_repo 
+  tags: [ 'mongodb', 'mongodb_client', 'mongodb_repo' ]
+
+- block:
+    - name: Install the mongodb configuration
+      template: src=mongod-{{ mongodb_version }}.conf.j2 dest=/etc/mongod.conf owner=root group=root mode=0444 backup=yes
+      when: mongodb_install_conf
+      notify: Restart mongodb
+
+    - name: We are upgrading, install the latest version of the mongodb packages
+      apt: pkg={{ item }} state=latest update_cache=yes cache_valid_time=1800
+      with_items: '{{ mongodb_server_pkgs }}'
+      when:
+        - mongodb_install_from_external_repo
+        - mongodb_install_packages
+        - mongodb_upgrade_from_older_version
+
+    - name: Install the mongodb packages
+      apt: pkg={{ item }} state={{ mongodb_pkg_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ mongodb_server_pkgs }}'
+      when:
+        - mongodb_install_from_external_repo
+        - mongodb_install_packages
+
+    - name: Create the mongodb log directory
+      file: dest={{ mongodb_logdir }} state=directory owner={{ mongodb_user }} group={{ mongodb_group }} mode=0755
+      when: mongodb_install_conf
+
+    - name: Create the mongodb db directory
+      file: dest={{ mongodb_dbpath }} state=directory owner={{ mongodb_user }} group={{ mongodb_group }} mode=0755
+      when: mongodb_install_conf
+
+    - name: Install the mongodb defaults file
+      template: src=mongod-default.j2 dest=/etc/default/mongod owner=root group=root mode=0444
+      when: mongodb_install_conf
+      notify: Restart mongodb
+
+    - name: Install the cron job that manages log files rotation
+      template: src=mongo_log_rotate.sh.j2 dest=/etc/cron.daily/mongo_log_rotate owner=root group=root mode=0555
+      when: not mongodb_systemlog_external_logrotate
+
+    - name: Ensure mongodb is started and enabled
+      service: name=mongod state=started enabled=yes
+      when: ( mongodb_start_server is defined ) and ( mongodb_start_server == 'yes' ) and ( mongodb_install_conf )
+
+  when: mongodb_install_server
   tags: mongodb
 
-- name: Install the mongodb repository
-  ansible_repository: repo="deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" state=present update_cache=yes
-  when: mongodb_install_from_external_repo
-  register: external_repo
-  tags: mongodb
+- block:
+    - name: Install the mongodb client packages
+      apt: pkg={{ item }} state={{ mongodb_pkg_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ mongodb_client_pkgs }}'
 
-- name: Install the latest version of mongodb server
-  apt: pkg={{ item }} state={{ mongodb_pkg_state }}
-  with_items:
-    - mongodb-org
-  when:
-    - mongodb_install_from_external_repo
-    - mongodb_install_packages
-  tags: mongodb
-
-- name: Install the mongodb defaults file
-  template: src=mongod-default.j2 dest=/etc/default/mongod owner=root group=root mode=0444
-  when: mongodb_install_conf
-  notify: Restart mongodb
-  tags: mongodb
-
-- name: Create the mongodb db directory
-  file: dest={{ mongodb_dbpath }} state=directory owner={{ mongodb_user }} group={{ mongodb_group }} mode=0755
-  when: mongodb_install_conf
-  tags: mongodb
-
-- name: Create the mongodb log directory
-  file: dest={{ mongodb_logdir }} state=directory owner={{ mongodb_user }} group={{ mongodb_group }} mode=0755
-  when: mongodb_install_conf
-  tags: mongodb
-
-- name: Install the mongodb 2.6 configuration
-  template: src=mongod-2.6.conf.j2 dest=/etc/mongod.conf owner=root group=root mode=0444
-  when: mongodb_install_conf
-  notify: Restart mongodb
-  tags: mongodb
-
-- name: Install the cron job that manages log files rotation
-  template: src=mongo_log_rotate.sh.j2 dest=/etc/cron.daily/mongo_log_rotate owner=root group=root mode=0555
-  tags: [ 'mongodb', 'mongo_logrotate' ]
-
-- name: Ensure mongodb is started
-  service: name=mongod state=started enabled=yes
-  when: ( mongodb_start_server is defined ) and ( mongodb_start_server == 'yes' ) and ( mongodb_install_conf )
-  tags: mongodb
-
-- name: Ensure mongod is stopped and disabled
-  service: name=mongod state=stopped enabled=no
-  when: ( mongodb_start_server is defined ) and ( mongodb_start_server == 'no' ) and ( mongodb_install_conf )
-  tags: mongodb
+  when: not mongodb_install_server
+  tags: [ 'mongodb', 'mongodb_client' ]

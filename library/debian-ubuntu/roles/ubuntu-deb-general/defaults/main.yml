@@ -3,8 +3,9 @@
 # Use the apt proxy
 #
 use_apt_proxy: False
+dist_upgrade: False
 
-pkg_state: installed
+pkg_state: present
 common_packages:
   - acl
   - zile
@@ -29,12 +30,16 @@ common_packages:
   - nano
   - xmlstarlet
   - bsdutils
+  - less
 
-default_python_packages:
+default_python_packages_trusty:
   - python-software-properties
   - python-lxml
   - python-boto
-  
+
+default_python_packages:
+  - python-lxml
+  - python-boto
 
 # Set this variable in your playbook
 # additional_packages:
@@ -99,6 +104,19 @@ pki_subdirs:
   
 # Install our /etc/resolv.conf
 install_resolvconf: True
+resolv_conf_domain: example.org
+resolv_conf_use_openstack_settings: True
+
+resolv_conf_search:
+  - 'example.org'
+  - 'example.com'
+
+resolv_conf_ip:
+  - '8.8.8.8'
+  - '1.1.1.1'
+
+# Install nscd if requested
+install_nscd: False
 
 # Install and configure munin
 configure_munin: False
@@ -109,8 +127,9 @@ manage_root_ssh_keys: True
 install_additional_ca_certs: False
 additional_ca_dest_dir: /usr/local/share/ca-certificates
 # IMPORTANT: the destination file extension must be .crt
+# Put the source inside the files directory of this role.
 #x509_additional_ca_certs:
-#  - { url: "https://security.fi.infn.it/CA/mgt/INFNCA.pem", dest_file: '{{ additional_ca_dest_dir }}/infn-ca.crt' }
+#  - { file: "local-ca.crt", dest_file: '{{ additional_ca_dest_dir }}/infn-ca.crt' }
 
 #
 default_security_limits:
@@ -136,6 +155,8 @@ has_apt: "('{{ ansible_distribution }}' == 'Debian' or '{{ ansible_distribution 
 has_fail2ban: "(('{{ ansible_distribution }}' == 'Ubuntu') and ({{ ansible_distribution_major_version }} >= 14)) or (('{{ ansible_distribution }}' == 'Debian') and ({{ ansible_distribution_major_version }} >= 8))"
 
 is_debian: "'{{ ansible_distribution }}' == 'Debian'"
+is_not_debian9: "'{{ ansible_distribution_release }}' != 'stretch'"
+is_debian9: "'{{ ansible_distribution_release }}' == 'stretch'"
 is_debian8: "'{{ ansible_distribution_release }}' == 'jessie'"
 is_debian7: "'{{ ansible_distribution_release }}' == 'wheezy'"
 is_debian6: "('{{ ansible_distribution }}' == 'Debian' and {{ ansible_distribution_major_version }} == 6)"

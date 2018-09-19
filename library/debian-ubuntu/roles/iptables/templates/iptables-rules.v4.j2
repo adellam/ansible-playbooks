@@ -68,7 +68,7 @@
 {% endif %}
 {% if psql_firewall_enabled %}
 {% if psql_db_port is defined %}
-{% if psql_listen_on_ext_int %}
+{% if psql_listen_on_ext_int is defined and psql_listen_on_ext_int %}
 {% if psql_db_data is defined %}
 # postgresql clients
 {% for db in psql_db_data %}
@@ -186,27 +186,38 @@
 -A INPUT -m pkttype --pkt-type multicast -d {{ orientdb_hazelcast_multicast_group }} -j ACCEPT
 -A INPUT -m state --state NEW -p tcp -m tcp --dport {{ orientdb_hazelcast_multicast_port }} -j ACCEPT
 {% endif %}
-{% if ganglia_enabled is defined %}
-{% if ganglia_enabled %}
-{% if ganglia_gmond_cluster_port is defined %}
+# Prometheus exporters
+{% if prometheus_enabled is defined and prometheus_enabled %}
+{% if prometheus_servers_ip is defined %}
+{% for ip in prometheus_servers_ip %}
+-A INPUT -m state --state NEW -s {{ ip }} -p tcp -m tcp --dport 9100:9300 -j ACCEPT
+{% endfor %}
+{% else %}
+-A INPUT -m state --state NEW -p tcp -m tcp --dport 9100:9300 -j ACCEPT
+{% endif %}
+{% endif %}
 # Ganglia
-{% if not ganglia_unicast_mode %}
+{% if ganglia_enabled is defined and ganglia_enabled %}
+{% if ganglia_gmond_cluster_port is defined %}
+{% if ganglia_unicast_mode is defined %}
+{% if ganglia_unicast_mode %}
+{% for net in ganglia_unicast_networks %}
+-A INPUT -p udp -m udp -s {{ net }} --dport {{ ganglia_gmond_cluster_port }} -j ACCEPT
+{% endfor %}
+{% else %}
 {% if ganglia_gmond_use_jmxtrans is not defined or not ganglia_gmond_use_jmxtrans %}
 -A INPUT -m pkttype --pkt-type multicast -d {{ ganglia_gmond_mcast_addr }} -j ACCEPT
 {% else %}
 -A INPUT -m pkttype --pkt-type multicast -j ACCEPT
 -A INPUT -p udp -m udp -d {{ ganglia_gmond_mcast_addr }} --dport {{ ganglia_gmond_cluster_port }} -j ACCEPT
 {% endif %}
-{% else %}
-{% for net in ganglia_unicast_networks %}
--A INPUT -p udp -m udp -s {{ net }} --dport {{ ganglia_gmond_cluster_port }} -j ACCEPT
-{% endfor %}
+{% endif %}
 {% endif %}
 -A INPUT -m state --state NEW -s {{ ganglia_gmetad_host }} -p tcp -m tcp --dport {{ ganglia_gmond_cluster_port }} -j ACCEPT
 -A INPUT -s {{ ganglia_gmetad_host }} -p udp -m udp --dport {{ ganglia_gmond_cluster_port }}  -j ACCEPT
 {% endif %}
 {% endif %}
-{% endif %}
+# Postfix
 {% if postfix_relay_server is defined %}
 {% if postfix_relay_server %}
 #

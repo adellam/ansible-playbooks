@@ -1,0 +1,70 @@
+---
+- block:
+    - name: Remove the installed home library/ storagehub  when we do not want it installed
+      file: dest={{ item }} state=absent
+      with_items:
+        - '{{ smartgears_instance_path }}/webapps/{{ home_library_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ home_library_name }}.war'
+        - '{{ smartgears_instance_path }}/webapps/{{ storage_hub_name }}'
+        - '{{ smartgears_instance_path }}/webapps/{{ storage_hub_name }}.war'
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: not storage_hub_install
+  tags: [ 'smartgears', 'storage_hub', 'tomcat' ]
+
+- block:
+    - maven_artifact: artifact_id={{ storage_hub_name }} version={{ storage_hub_version | default(omit) }} group_id={{ storage_hub_group_id }} extension={{ storage_hub_extension | default('war') }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ storage_hub_file }}
+      register: storage_hub_download
+
+    - name: Remove the installed storage hub before upgrading
+      file: dest={{ smartgears_instance_path }}/webapps/{{ storage_hub_name }} state=absent
+      when: storage_hub_download is changed
+      notify: Restart smartgears
+
+    - name: Get the StorageHub war
+      maven_artifact: artifact_id={{ storage_hub_name }} version={{ storage_hub_ver | default('latest') }} group_id={{ storage_hub_group_id }} extension={{ storage_hub_extension }} repository_url={{ smartgears_global_base_url }} dest={{ smartgears_downloads_dir }}/{{ storage_hub_file }}
+      register: storage_hub_download
+
+
+    - name: Create the storage_hub webapp directory
+      file: dest={{ smartgears_instance_path }}/webapps/{{ storage_hub_name }} state=directory
+      when:  storage_hub_download 
+
+    - name: Unarchive the storage_hub war file
+      unarchive: copy=no src={{ smartgears_downloads_dir }}/{{ storage_hub_file }} dest={{ smartgears_instance_path }}/webapps/{{ storage_hub_name }}
+      args:
+        creates: '{{ smartgears_instance_path }}/webapps/{{ storage_hub_name }}/WEB-INF/web.xml'
+      notify: Restart smartgears 
+
+    - name: Install the storage_hub web.xml template
+      template: src=storage-hub-web.xml.j2 dest={{ smartgears_instance_path }}/webapps/{{ storage_hub_name }}/WEB-INF/web.xml mode=0440
+      notify: Restart smartgears 
+
+    - name: Create the JackRabbit persistence directory
+      become_user: root
+      file: dest={{ jackrabbit_data_dir }} state=directory owner={{ smartgears_user }} group={{ smartgears_user }}
+
+    - name: Verify if the JackRabbit persistence directory is in the place where the service expects it
+      stat: path={{ smartgears_instance_path }}/jackrabbit
+      register: jackrabbit_data_path
+
+    - name: Link the data dir to the place where jackrabbit expects it
+      file: src={{ jackrabbit_data_dir }} dest={{ smartgears_instance_path }}/jackrabbit state=link
+      when: not jackrabbit_data_path.stat.exists
+
+    - name: Install the repository configuration files
+      template: src={{ item }}.j2 dest={{ jackrabbit_data_dir }}/{{ item }}
+      with_items: '{{ jackrabbit_config_files }}'
+      notify: Restart smartgears
+
+    - name: Install the additional service context default file
+      template: src=storagehub.xml.j2 dest={{ smartgears_instance_path }}/conf/Catalina/localhost/storagehub.xml mode=0664
+      notify: Restart smartgears
+
+  become: True
+  become_user: '{{ smartgears_user }}'
+  when: storage_hub_install
+  tags: [ 'smartgears', 'storage_hub', 'tomcat' ]
+

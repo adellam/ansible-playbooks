@@ -1,14 +1,14 @@
 ---
-- include: base-packages-old-gems.yml
+- import_tasks: base-packages-old-gems.yml
   when: is_precise
-- include: base-packages.yml
+- import_tasks: base-packages.yml
   when: is_trusty
-- include: rubygems.yml
-- include: redmine.yml
-- include: redmine-plugins.yml
-- include: base-config.yml
-- include: mod_passenger.yml
+- import_tasks: rubygems.yml
+- import_tasks: redmine.yml
+- import_tasks: redmine-plugins.yml
+- import_tasks: base-config.yml
+- import_tasks: mod_passenger.yml
   when: ruby_use_mod_passenger
-- include: unicorn.yml
+- import_tasks: unicorn.yml
   when: ruby_use_unicorn
 

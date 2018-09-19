@@ -1,0 +1,61 @@
+---
+- block:
+    - name: Create the user under prometheus will run
+      user: name={{ prometheus_user }} home={{ prometheus_home }} createhome=no shell=/usr/sbin/nologin system=yes
+      
+    - name: Create the prometheus server base and conf directories
+      file: dest={{ item }} state=directory owner=root group=root
+      with_items:
+        - '{{ prometheus_home }}'
+        - '{{ prometheus_confdir }}'
+        - '{{ prometheus_dist_dir }}'
+
+    - name: Create the prometheus directory structure
+      file: dest={{ prometheus_home }}/{{ item }} state=directory owner={{ prometheus_user }} group={{ prometheus_user }}
+      with_items:
+        - data
+        - logs
+
+    - name: Download prometheus
+      get_url: url={{ prometheus_download_url }} dest=/srv/
+
+    - name: Unarchive the prometheus distribution
+      unarchive: src=/srv/{{ prometheus_file }} dest={{ prometheus_dist_dir }} remote_src=yes 
+      args:
+        creates: '{{ prometheus_dist_dir }}/{{ prometheus_dir }}/prometheus'
+      notify: Restart prometheus
+
+    - name: Install the prometheus configuration
+      template: src=prometheus.yml.j2 dest={{ prometheus_confdir }}/prometheus.yml force=no
+      notify: Reload prometheus
+
+    - name: Install the prometheus defaults
+      template: src=prometheus.default.j2 dest=/etc/default/prometheus mode=0644 owner=root group=root
+
+    - name: Install the prometheus upstart script
+      copy: src=prometheus.upstart dest=/etc/init/prometheus.conf mode=0644 owner=root group=root
+      when: ansible_service_mgr != 'systemd'
+
+    - name: Install the prometheus server systemd unit
+      template: src=prometheus.systemd dest=/etc/systemd/system/prometheus.service mode=0644 owner=root group=root
+      when: ansible_service_mgr == 'systemd'
+      notify: systemd reload
+
+    - name: Ensure that prometheus is started and enabled
+      service: name=prometheus state=started enabled=yes
+
+  tags: prometheus
+  when: prometheus_install
+
+- block:
+    - name: Ensure that prometheus is stopped and disabled
+      service: name=prometheus state=stopped enabled=no
+
+    - name: Remove the prometheus init script
+      file: dest=/etc/init/prometheus.conf state=absent
+
+    - name: Remove all the prometheus files
+      file: dest={{ prometheus_home }} state=absent
+
+  tags: prometheus
+  when: not prometheus_install

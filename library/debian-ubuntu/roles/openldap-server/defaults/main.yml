@@ -1,16 +1,24 @@
 ---
 openldap_pkg_state: present
 openldap_service_enabled: True
+# Important: for a replica to work correctly, the same exact schemas present into the master have to be installed in advance 
+openldap_master: False
+openldap_slave: False
 openldap_pkg_list:
   - slapd
   - ldapvi
   - ldap-utils
   - ldapscripts
   - db-util
+  - libarchive-zip-perl
+
+# DB_CONFIG options 
+openldap_db_set_cachesize: '0 524288000 1'
 
 openldap_slapd_services: 'ldap:/// ldapi:///'
 openldap_slapd_tcp_port: 389
 openldap_slapd_ssl_port: 636
+# Leave it to false if you want to use start_tls (recommended)
 openldap_slapd_ssl_only: False
 
 openldap_db_dir: /var/lib/ldap
@@ -19,11 +27,30 @@ openldap_db_dir: /var/lib/ldap
 # cosine.ldif
 # inetorgperson.ldif
 # nis.ldif
+
+openldap_base_schemas:
+  - monitor.ldif
+
 #openldap_additional_schemas:
 #  - dyngroup.ldif
 
+openldap_admin_user: admin
+# If you want a different user for the consumer, you have to create it on the master
+openldap_replica_user: '{{ openldap_admin_user }}'
+
+openldap_base_dn: 'dc=example,dc=org'
+openldap_slave_search_base: '{{ openldap_base_dn }}'
+openldap_slave_sync_interval: '00:00:05:00'
+openldap_slave_sync_type: refreshAndPersist
+openldap_slave_syncdata_type: accesslog
+openldap_slave_tls_starttls: 'yes' 
+
 openldap_cleaner_cron_job: False
+openldap_daily_restart: False
 openldap_letsencrypt_managed: False
+
+# Default: check once a day, purge the entries older than two days
+openldap_accesslog_purge: '02+00:00 01+00:00'
 
 openldap_letsencrypt_ldif:
   - olcSSL.ldif

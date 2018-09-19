@@ -1,0 +1,41 @@
+- block:
+  - name: Install the Node.js repository key
+    apt_key: url={{ node_js_repo_key }} state=present
+
+  - name: Install the Node.js repository configuration
+    apt_repository: repo={{ item }} state=present update_cache=True
+    with_items: '{{ node_js_repo_urls }}'
+
+  - name: Install the Node.js packages
+    apt: pkg={{ item }} state={{ node_js_pkg_state }} update_cache=True cache_valid_time=1800
+    with_items: '{{ node_js_pkgs }}'
+
+  tags: [ 'nodejs', 'node_js' ]
+
+- block:
+  - name: Install the Node.js yarn repository key
+    apt_key: url={{ node_js_yarn_repo_key }} state=present
+
+  - name: Install the Node.js yarn repository configuration
+    apt_repository: repo={{ item }} state=present update_cache=True
+    with_items: '{{ node_js_yarn_repo_urls }}'
+
+  - name: Install the Node.js yarn packages
+    apt: pkg={{ item }} state={{ node_js_pkg_state }} update_cache=True cache_valid_time=1800
+    with_items: '{{ node_js_yarn_pkgs }}'
+
+  when: node_js_yarn_install
+  tags: [ 'nodejs', 'node_js', 'yarn', 'node_js_yarn' ]
+
+- block:
+  - name: Install the Node.js yarn repository configuration
+    apt_repository: repo={{ item }} state=absent update_cache=True
+    with_items: '{{ node_js_yarn_repo_urls }}'
+
+  - name: Install the Node.js yarn packages
+    apt: pkg={{ item }} state=absent update_cache=True cache_valid_time=1800
+    with_items: '{{ node_js_yarn_pkgs }}'
+
+  when: not node_js_yarn_install
+  tags: [ 'nodejs', 'node_js', 'yarn', 'node_js_yarn' ]
+

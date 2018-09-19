@@ -1,0 +1,12 @@
+[Unit]
+Description=node_exporter - Prometheus exporter for machine metrics.
+After=network.target
+
+[Service]
+Type=simple
+
+User={{ prometheus_n_e_user }}
+Group={{ prometheus_n_e_user }}
+
+ExecStart={{ prometheus_n_e_cmd }}  {{ prometheus_n_e_opts }} {{ prometheus_n_e_additional_opts }} --collector.systemd
+

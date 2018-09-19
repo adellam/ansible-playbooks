@@ -1,5 +1,5 @@
 ---
-- include: vsftpd.yml
+- import_tasks: vsftpd.yml
   when: vsftpd_enabled
-- include: disable-vsftpd.yml
+- import_tasks: disable-vsftpd.yml
   when: not vsftpd_enabled

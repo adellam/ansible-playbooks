@@ -1,9 +1,9 @@
 ---
-- include: nagios.yml
-- include: dell-omsa.yml
+- import_tasks: nagios.yml
+- import_tasks: dell-omsa.yml
   when: dell_system is defined
-- include: postgresql-nagios.yml
+- import_tasks: postgresql-nagios.yml
   when: nagios_postgresql_check is defined and nagios_postgresql_check
-#- include: nsca.yml
-- include: hardware-checks.yml
+#- import_tasks: nsca.yml
+- import_tasks: hardware-checks.yml
   when: nagios_hw is defined and nagios_hw

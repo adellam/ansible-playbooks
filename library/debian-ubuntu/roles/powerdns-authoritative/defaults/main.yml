@@ -1,0 +1,55 @@
+---
+powerdns_auth_major: 4
+powerdns_auth_minor: 1
+powerdns_auth_version: '{{ powerdns_auth_major }}.{{ powerdns_auth_minor }}'
+powerdns_auth_repo_data: 'deb [arch=amd64] http://repo.powerdns.com/ubuntu {{ ansible_distribution_release }}-auth-{{ powerdns_auth_major }}{{ powerdns_auth_minor }} main'
+powerdns_auth_repo_key: 'https://repo.powerdns.com/FD380FBB-pub.asc'
+
+powerdns_auth_enable_api: True
+powerdns_auth_enable_web_interface: True
+
+powerdns_auth_pkgs:
+  - pdns-server
+  - pdns-tools
+  - pdns-backend-lua
+  - pdns-backend-remote 
+  - pdns-backend-pipe 
+
+powerdns_auth_use_db_backend: True
+powerdns_auth_backend_name: gpgsql
+powerdns_auth_db_backend: pgsql
+powerdns_auth_db_pkgs:
+  - 'pdns-backend-{{ powerdns_auth_db_backend }}'
+
+powerdns_auth_backend_data:
+  - { key: 'gpgsql-host', value: '127.0.0.1' }
+  - { key: 'gpgsql-port', value: 5432 }
+  - { key: 'gpgsql-dbname', value: '' }
+  - { key: 'gpgsql-user', value: '' }
+  - { key: 'gpgsql-password', value: '' }
+  - { key: 'gpgsql-dnssec', value: '' }
+  - { key: 'gpgsql-extra-connection-parameters', value: '' }
+  
+# pdns_zone_transfer_ip:
+# - '0/0'
+# pdns_allow_dnsupdate_from:
+# - '0/0'
+# pdns_allow_notify_from:
+# - '0/0'
+# pdns_allow_unsigned_notify: 'yes'
+# pdns_allow_unsigned_supermaster: 'yes'
+# pdns_also_notify_from:
+# - '0/0'
+# powerdns_auth_enable_api: 'no'
+# powerdns_auth_api_key: 'use a vault file'
+# powerdns_auth_api_readonly: 'no'
+# powerdns_dnsupdate: 'no'
+# powerdns_local_ipv4: '0.0.0.0'
+# powerdns_local_ipv4_fail: 'yes'
+# powerdns_local_port: 53
+# powerdns_auth_master: 'no'
+# powerdns_reuseport: 'yes'
+# powerdns_auth_slave: 'no'
+# powerdns_auth_webserver: 'no'
+# powerdns_auth_web_address: '127.0.0.1'
+# powerdns_auth_web_allowfrom: '127.0.0.1,::1'

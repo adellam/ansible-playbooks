@@ -1,0 +1,12 @@
+[Unit]
+Description=Zeppelin
+After=network.target
+
+[Service]
+Type=simple
+
+User={{ cdh_zeppelin_user }}
+Group={{ cdh_zeppelin_group }}
+
+WorkingDirectory={{ cdh_zeppelin_home }}/{{ cdh_zeppelin_dir }}
+ExecStart={{ cdh_zeppelin_home }}/{{ cdh_zeppelin_dir }}/bin/zeppelin-daemon.sh upstart

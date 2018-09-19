@@ -1,0 +1,20 @@
+- name: create temporary build directory
+  shell: mktemp -d
+  register: tempdir
+
+- name: copy the Dockerfile
+  template: src=Dockerfile dest="{{ tempdir.stdout }}/"
+
+- name: Build the docker image
+  docker_image:
+    path: "{{ tempdir.stdout }}"
+    name: "{{ image_name }}"
+    tag: "{{ image_tag }}"
+    state: present
+    force: yes
+    rm: True
+    pull: False
+    push: "{{ push_to_repo }}"
+
+- name: remove the temporary build directory
+  file: path="{{ tempdir.stdout }}" state=absent

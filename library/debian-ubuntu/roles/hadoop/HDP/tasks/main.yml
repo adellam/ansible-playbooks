@@ -9,10 +9,32 @@
 
     - name: Update the apt cache
       apt: update_cache=yes
-      when: ( ambari_repo | changed )
+      when: ambari_repo is changed
 
     - name: Install the ambari server
-      apt: pkg=ambari-server state=latest
-  
+      apt: pkg=ambari-server state=latest update_cache=yes cache_valid_time=1800
+
   when: hdp_ambari_install
   tags: [ 'hdp', 'hadoop', 'ambari' ]
+
+- block:
+
+    - name: Get the signing key for the postgresql.org repository
+      apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+      when: ambari_use_separate_postgres_db
+
+    - name: Setup the postgresql.org repository
+      apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_lsb.codename }}-pgdg main' update_cache=yes
+      when: ambari_use_separate_postgres_db
+
+    - name: Install the Postgresql client
+      apt: pkg=postgresql-client-{{ ambari_postgresql_version }} state=latest update_cache=yes cache_valid_time=1800
+      when: ambari_use_separate_postgres_db
+
+    - name: Download the jdbc driver
+      get_url: url=https://jdbc.postgresql.org/download/postgresql-{{ postgresql_jdbc_driver_version }}.jar dest=/srv/postgresql.jar
+      when: ambari_use_separate_postgres_db
+
+  when: hdp_ambari_install
+  tags: [ 'hdp', 'hadoop', 'ambari', 'ambari_pg' ]
+

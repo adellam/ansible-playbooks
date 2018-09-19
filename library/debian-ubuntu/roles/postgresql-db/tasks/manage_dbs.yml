@@ -1,0 +1,36 @@
+---
+- block: 
+    - name: Add a user for the postgresql DBs
+      become: True
+      become_user: postgres
+      postgresql_user: user={{ item.user }} password={{ item.pwd }} role_attr_flags={{ item.roles }} port={{ psql_db_port }} state={{ item.userstate | default('present') }}
+      with_items: '{{ psql_db_data | default(omit) }}'
+      when: item.roles is defined
+
+    - name: Add the databases with the correct owner. Or remove them, if not used anymore
+      become: True
+      become_user: postgres
+      postgresql_db: db={{ item.name }} port={{ psql_db_port }} encoding={{ item.encoding }} owner={{ item.user }} template=template0 state={{ item.state | default('present') }}
+      with_items: '{{ psql_db_data | default(omit) }}'
+      when: item.managedb | default(True)
+
+    - name: Manage users privileges
+      become: True
+      become_user: postgres
+      postgresql_privs: db={{ item.name }} privs={{ item.privs }} type=database roles={{ item.roles }} port={{ psql_db_port }} state={{ item.userstate | default('present') }}
+      with_items: '{{ psql_db_privs | default(omit) }}'
+      when: psql_db_privs is defined
+
+    - name: Define a user with password, with no associated DBs
+      become: True
+      become_user: postgres
+      postgresql_user: user={{ item.user }} password={{ item.pwd }} port={{ psql_db_port }}
+      with_items: '{{ psql_db_data | default(omit) }}'
+      when:
+        - item.pwd is defined
+        - item.roles is not defined
+
+  when: psql_db_data is defined
+  tags: [ 'postgresql', 'postgres', 'pg_db', 'pg_user' ]
+
+

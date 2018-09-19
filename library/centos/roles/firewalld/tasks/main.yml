@@ -1,7 +1,7 @@
 ---
-- include: firewalld_rules.yml
+- import_tasks: firewalld_rules.yml
   when: firewalld_enabled
 
-- include: disable_firewalld.yml
+- import_tasks: disable_firewalld.yml
   when: not firewalld_enabled
   

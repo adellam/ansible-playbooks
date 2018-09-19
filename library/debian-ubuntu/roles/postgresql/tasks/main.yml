@@ -1,42 +1,40 @@
 ---
-- include: postgresql_org_repo.yml
+- import_tasks: postgresql_org_repo.yml
   when: pg_use_postgresql_org_repo
-- include: packages.yml
+- import_tasks: packages.yml
   when: psql_postgresql_install
-- include: postgis.yml
+- import_tasks: postgis.yml
   when: postgres_install_gis_extensions
-- include: postgresql-config.yml
+- import_tasks: postgresql-config.yml
   when: psql_postgresql_install
-- include: postgresql-ssl-config.yml
+- import_tasks: postgresql-ssl-config.yml
   when: psql_postgresql_install
-- include: psql-kernel-sharedmem.yml
+- import_tasks: psql-kernel-sharedmem.yml
   when:
     - psql_postgresql_install 
     - psql_set_shared_memory
-- include: configure-access.yml
+- import_tasks: configure-access.yml
   when:
     - psql_postgresql_install
     - psql_db_data is defined
-- include: postgresql-service-status.yml
+- import_tasks: postgresql-service-status.yml
   when: psql_postgresql_install
-- include: postgres_pgpool.yml
+- import_tasks: postgres_pgpool.yml
   when: psql_pgpool_install
-- include: manage_pg_db.yml
+- import_tasks: manage_pg_db.yml
   when:
     - psql_postgresql_install
     - psql_db_data is defined
-- include: postgresql-backup.yml
+- import_tasks: postgresql-backup.yml
   when:
     - psql_postgresql_install
-- include: pgpool-ii.yml
+- import_tasks: pgpool-ii.yml
   when: psql_pgpool_service_install
-- include: postgresql-letsencrypt-acmetool.yml
+- import_tasks: postgresql-letsencrypt-acmetool.yml
   when:
-    - postgresql_letsencrypt_managed
     - letsencrypt_acme_install is defined
-- include: pgpool-letsencrypt-acmetool.yml
+- import_tasks: pgpool-letsencrypt-acmetool.yml
   when:
-    - pgpool_letsencrypt_managed
     - letsencrypt_acme_install is defined
 
 

@@ -1,5 +1,5 @@
 ---
-- include: r-packages_cleanup.yml
+- import_tasks: r-packages_cleanup.yml
   when: r_packages_cleanup
-- include: r-installation.yml
-- include: r-packages-updater.yml
+- import_tasks: r-installation.yml
+- import_tasks: r-packages-updater.yml

@@ -6,7 +6,7 @@
 
 - name: Install the puppetlabs repo package
   apt: deb=/srv/{{ foreman_puppetlabs_repo_pkg }} update_cache=yes
-  when: puppetlabs_repo | changed
+  when: puppetlabs_repo is changed
   tags: foreman
 
 - name: Add the foreman repo keys
@@ -29,5 +29,5 @@
 
 #- name: Run the foremann installer
 #  shell: foreman-installer
-#  when: foreman_installer_pkg | changed
+#  when: foreman_installer_pkg is changed
 #  tags: foreman

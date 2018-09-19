@@ -38,8 +38,12 @@
   <Service name="Catalina">
 
 {% if item.http_enabled %}
-    <Executor name="tomcatThreadPool" namePrefix="catalina-exec-"
-        maxThreads="{{ item.max_threads }}" minSpareThreads="10"/>
+  <Executor name="tomcatThreadPool"
+            namePrefix="catalina-exec-"
+            maxQueueSize="{{ item.max_queue_size | default(32767) }}"
+            maxThreads="{{ item.max_threads }}"
+            minSpareThreads="10"
+            />
 {% endif %}
 
     <!-- A "Connector" represents an endpoint by which requests are received
@@ -53,20 +57,32 @@
     <!-- A http "Connector" using the shared thread pool-->
     <Connector executor="tomcatThreadPool"
 	           enableLookups="false"
+               maxQueueSize="{{ item.max_queue_size | default(32767) }}"
                maxThreads="{{ item.max_threads }}" connectionTimeout="60000"
 	           URIEncoding="UTF-8" bindOnInit="false" address="{{ item.http_address }}"
                port="{{ item.http_port }}" protocol="HTTP/1.1"
                maxPostSize="{{ item.max_post_size | default(104857600) }}"
-               redirectPort="8443" />
+               {% if tomcat_m_reverse_proxy_name_enabled %}
+               proxyName="{{ tomcat_m_reverse_proxy_name }}"
+               proxyPort="{{ tomcat_m_reverse_proxy_port }}"
+               {% endif %}
+               />
 {% endif %}
 
 {% if item.ajp_enabled %}
     <!-- Define an AJP 1.3 Connector on port {{ tomcat_ajp_port }} -->
-    <Connector port="{{ item.ajp_port }}" protocol="AJP/1.3" redirectPort="8443"
-	           enableLookups="false" address="{{ item.ajp_address }}"
+    <Connector port="{{ item.ajp_port }}" protocol="AJP/1.3"
+	           enableLookups="false"
+               address="{{ item.ajp_address }}"
+               URIEncoding="UTF-8"
+               maxQueueSize="{{ item.max_queue_size | default(32767) }}"
                maxThreads="{{ item.max_threads }}"
                connectionTimeout="60000"
                maxPostSize="{{ item.max_post_size | default(104857600) }}"
+               {% if tomcat_m_reverse_proxy_name_enabled %}
+               proxyName="{{ tomcat_m_reverse_proxy_name }}"
+               proxyPort="{{ tomcat_m_reverse_proxy_port }}"
+               {% endif %}
 	           URIEncoding="UTF-8" bindOnInit="false" />
 {% endif %}
     

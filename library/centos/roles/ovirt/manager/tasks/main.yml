@@ -1,0 +1,17 @@
+---
+- block:
+  - name: Install the backups cron job
+    cron: name="oVirt Engine backup" job="engine-backup --mode=backup --file={{ ovirt_engine_backup_dir }}/engine-backup.bkp --log={{ ovirt_engine_backup_dir }}/backup.log" special_time=daily user=root
+    when: ovirt_engine_daily_backup
+    
+  - name: Install a logrotate entry to remove the old engine backups
+    template: src=ovirt-backup.logrotate dest=/etc/logrotate.d/ovirt-backup owner=root group=root mode=0644
+
+  tags: [ 'ovirt', 'ovirt_engine', 'ovirt_manager' ]
+
+- block:
+  - name: Install a set of ansible tasks that customise the oVirt host
+    template: src=ovirt-host-deploy-post-tasks.txt dest={{ ovirt_engine_dest_tasks }}/ovirt-host-deploy-post-tasks.yml owner=root group=root mode=0644
+
+  when: ovirt_engine_custom_tasks
+  tags: [ 'ovirt', 'ovirt_engine', 'ovirt_manager' ]

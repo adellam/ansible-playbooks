@@ -93,7 +93,7 @@
   capabilities: path=/usr/bin/acmetool capability=cap_net_bind_service+ep state=absent
   when:
     - letsencrypt_acme_install
-    - "'{{ letsencrypt_acme_authenticator }}' != 'listener'"
+    - letsencrypt_acme_authenticator != 'listener'
   ignore_errors: True
   tags: letsencrypt
 
@@ -110,7 +110,7 @@
 - name: Install a script that requests the certificates and manage the self signed certificate
   template: src=acme-cert-request.sh.j2 dest=/usr/local/bin/acme-cert-request owner=root group=root mode=0755
   when: letsencrypt_acme_install
-  tags: letsencrypt
+  tags: [ 'letsencrypt', 'letsencrypt_cron' ]
 
 - name: Set certificates as to be revoked
   become: True
@@ -122,18 +122,23 @@
     - letsencrypt_certs_revoke_list is defined
   tags: letsencrypt
   
+- name: Remove the old cron script 
+  file: dest=/usr/local/bin/cron-acme-cert-request state=absent
+  when: letsencrypt_acme_install
+  tags: [ 'letsencrypt', 'letsencrypt_cron' ]
+
 - name: Install a daily cron job to renew the certificates when needed
   become: True
   become_user: '{{ letsencrypt_acme_user }}'
-  cron: name="Letsencrypt certificate renewal" special_time=daily job="/usr/local/bin/acme-cert-request > {{ letsencrypt_acme_log_dir }}/acme-cron.log 2>&1"
+  cron: name="Letsencrypt certificate renewal" day={{ letsencrypt_acme_cron_day_of_month }} hour={{ letsencrypt_acme_cron_hour }} minute={{ letsencrypt_acme_cron_minute }}  job="/usr/local/bin/acme-cert-request > {{ letsencrypt_acme_log_dir }}/acme-cron.log 2>&1"
   when: letsencrypt_acme_install
-  tags: letsencrypt
+  tags: [ 'letsencrypt', 'letsencrypt_cron' ]
 
 - name: letsencrypt acmetool request the first certificate
   become: True
   become_user: '{{ letsencrypt_acme_user }}'
   command: '/usr/local/bin/acme-cert-request'
-  when: ( letsencrypt_new_desired_file | changed )
+  when: letsencrypt_new_desired_file is changed
   ignore_errors: True
   tags: letsencrypt
 

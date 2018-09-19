@@ -1,6 +1,6 @@
 ---
-- include: couchbase.yml
-- include: swappiness.yml
-- include: ganglia-plugin.yml
+- import_tasks: couchbase.yml
+- import_tasks: swappiness.yml
+- import_tasks: ganglia-plugin.yml
   when: ganglia_enabled
 

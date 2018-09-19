@@ -1,87 +1,85 @@
 ---
-- name: Install the ganglia client
-  apt: pkg={{ item }} state=installed update_cache=yes cache_valid_time=3600
-  with_items:
-    - ganglia-monitor
+- block:
+    - name: Install the ganglia client
+      apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=3600
+      with_items:
+        - ganglia-monitor
+
+    - name: Install the ganglia linux specific plugins. We need at least ubuntu trusty. Or debian 7. Or debian 8
+      apt: pkg={{ item }} state=present force=yes
+      with_items:
+        - ganglia-modules-linux
+        - ganglia-monitor-python
+      notify: Restart ganglia monitor
+      when: is_trusty
+
+    - name: Install the ganglia linux specific plugins. We need at least ubuntu trusty. Or debian 7. Or debian 8
+      apt: pkg={{ item }} state=present force=yes
+      with_items:
+        - ganglia-modules-linux
+        - ganglia-monitor-python
+      notify: Restart ganglia monitor
+      when: is_debian7
+
+    - name: Install the ganglia linux specific plugins. We need at least ubuntu trusty. Or debian 7. Or debian 8
+      apt: pkg={{ item }} state=present force=yes
+      with_items:
+        - ganglia-modules-linux
+        - ganglia-monitor-python
+      notify: Restart ganglia monitor
+      when: is_debian8
+
+    - name: Distribute the ganglia configuration file for Ubuntu >= 12.04
+      template: src=gmond.j2 dest=/etc/ganglia/gmond.conf owner=root group=root mode=444
+      when: ( is_not_ubuntu_less_than_precise ) or ( is_debian8 )
+      notify: Restart ganglia monitor
+
+    - name: Distribute the ganglia configuration file for Debian 7
+      template: src=gmond.j2 dest=/etc/ganglia/gmond.conf owner=root group=root mode=444
+      when: is_debian7
+      notify: Restart ganglia monitor
+
+    - name: Distribute the ganglia configuration file for Ubuntu < 12.04 and >= 10.04 and Debian 6
+      template: src=gmond.j2 dest=/etc/ganglia/gmond.conf owner=root group=root mode=444
+      when: is_ubuntu_between_10_04_and_11_04_and_is_debian_6
+      notify: Restart ganglia monitor
+
+    - name: Distribute the ganglia configuration file for Ubuntu < 10.04 and Debian 4
+      template: src=gmond-2.5.j2 dest=/etc/gmond.conf owner=root group=root mode=444
+      when: is_ubuntu_between_8_and_9_and_is_debian_4
+      notify: Restart ganglia monitor
+
+    - name: Distribute the ganglia configuration on broken hardy 8.04.4
+      template: src=gmond-2.5.j2 dest=/etc/gmond.conf owner=root group=root mode=444
+      when: is_broken_hardy_lts
+      notify: Restart ganglia monitor
+
+    - name: Setup the ganglia directory for python modules
+      file: dest=/usr/lib/ganglia/python_modules state=directory
+      when: is_precise
+
+    - name: Ensure that the ganglia include conf dir exists
+      file: path=/etc/ganglia/conf.d state=directory
+      when: is_precise
+
+    - name: Setup the ganglia configuration for python modules
+      copy: src=modpython.conf dest=/etc/ganglia/conf.d/modpython.conf owner=root group=root mode=0644
+      notify: Restart ganglia monitor
+      when: is_precise
+
+    - name: Set the kernel UDP buffer limits (net.core.rmem_max) to a value that is double of the ganglia udp buffer
+      sysctl: name=net.core.rmem_max value={{ ganglia_udp_recv_buffer *2 }} reload=yes state=present
+      when: ganglia_set_rmem
+
+  when: ganglia_enabled
   tags: [ 'monitoring', 'ganglia' ]
 
-- name: Install the ganglia linux specific plugins. We need at least ubuntu trusty. Or debian 7. Or debian 8
-  apt: pkg={{ item }} state=installed force=yes
-  with_items:
-    - ganglia-modules-linux
-    - ganglia-monitor-python
-  notify: Restart ganglia monitor
-  when: is_trusty
-  tags: [ 'monitoring', 'ganglia' ]
+- block:
+    - name: Remove the ganglia client
+      apt: pkg={{ item }} state=absent purge=yes
+      with_items:
+        - ganglia-monitor
+        - libganglia1
 
-- name: Install the ganglia linux specific plugins. We need at least ubuntu trusty. Or debian 7. Or debian 8
-  apt: pkg={{ item }} state=installed force=yes
-  with_items:
-    - ganglia-modules-linux
-    - ganglia-monitor-python
-  notify: Restart ganglia monitor
-  when: is_debian7
+  when: not ganglia_enabled
   tags: [ 'monitoring', 'ganglia' ]
-
-- name: Install the ganglia linux specific plugins. We need at least ubuntu trusty. Or debian 7. Or debian 8
-  apt: pkg={{ item }} state=installed force=yes
-  with_items:
-    - ganglia-modules-linux
-    - ganglia-monitor-python
-  notify: Restart ganglia monitor
-  when: is_debian8
-  tags: [ 'monitoring', 'ganglia' ]
-
-- name: Distribute the ganglia configuration file for Ubuntu >= 12.04
-  template: src=gmond.j2 dest=/etc/ganglia/gmond.conf owner=root group=root mode=444
-  when: ( is_not_ubuntu_less_than_precise ) or ( is_debian8 )
-  notify: Restart ganglia monitor
-  tags: [ 'monitoring', 'ganglia' ]
-
-- name: Distribute the ganglia configuration file for Debian 7
-  template: src=gmond.j2 dest=/etc/ganglia/gmond.conf owner=root group=root mode=444
-  when: is_debian7
-  notify: Restart ganglia monitor
-  tags: [ 'monitoring', 'ganglia' ]
-
-- name: Distribute the ganglia configuration file for Ubuntu < 12.04 and >= 10.04 and Debian 6
-  template: src=gmond.j2 dest=/etc/ganglia/gmond.conf owner=root group=root mode=444
-  when: is_ubuntu_between_10_04_and_11_04_and_is_debian_6
-  notify: Restart ganglia monitor
-  tags: [ 'monitoring', 'ganglia' ]
-
-- name: Distribute the ganglia configuration file for Ubuntu < 10.04 and Debian 4
-  template: src=gmond-2.5.j2 dest=/etc/gmond.conf owner=root group=root mode=444
-  when:
-    - is_ubuntu_between_8_and_9_and_is_debian_4
-  notify: Restart ganglia monitor
-  tags: [ 'monitoring', 'ganglia' ]
-
-- name: Distribute the ganglia configuration on broken hardy 8.04.4
-  template: src=gmond-2.5.j2 dest=/etc/gmond.conf owner=root group=root mode=444
-  when:
-    - is_broken_hardy_lts
-  notify: Restart ganglia monitor
-  tags: [ 'monitoring', 'ganglia' ]
-
-- name: Setup the ganglia directory for python modules
-  file: dest=/usr/lib/ganglia/python_modules state=directory
-  when: is_precise
-  tags: [ 'monitoring', 'ganglia' ]
-
-- name: Ensure that the ganglia include conf dir exists
-  file: path=/etc/ganglia/conf.d state=directory
-  when: is_precise
-  tags: [ 'monitoring', 'ganglia' ]
-
-- name: Setup the ganglia configuration for python modules
-  copy: src=modpython.conf dest=/etc/ganglia/conf.d/modpython.conf owner=root group=root mode=0644
-  notify: Restart ganglia monitor
-  when: is_precise
-  tags: [ 'monitoring', 'ganglia' ]
-
-- name: Set the kernel UDP buffer limits (net.core.rmem_max) to a value that is double of the ganglia udp buffer
-  sysctl: name=net.core.rmem_max value={{ ganglia_udp_recv_buffer *2 }} reload=yes state=present
-  when: ganglia_set_rmem
-  tags: [ 'monitoring', 'ganglia' ]
-

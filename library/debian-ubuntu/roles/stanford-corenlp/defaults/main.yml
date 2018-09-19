@@ -1,0 +1,23 @@
+---
+# https://stanfordnlp.github.io/CoreNLP/
+stanford_corenlp_version: latest
+stanford_corenlp_name: stanford-corenlp
+stanford_corenlp_extension: war
+stanford_corenlp_file: '{{ stanford_corenlp_name }}-{{ stanford_corenlp_version }}.{{ stanford_corenlp_extension }}'
+stanford_corenlp_group_id: edu.stanford.nlp
+stanford_corenlp_languages:
+  - arabic
+  - chinese
+  - english
+  - english_kbp
+  - french
+  - german
+  - spanish
+
+stanford_corenlp_user: corenlp
+stanford_corenlp_base_dir: /opt/corenlp
+stanford_corenlp_dist_dir: '{{ stanford_corenlp_base_dir }}/stanford-corenlp'
+stanford_corenlp_log_dir: '{{ stanford_corenlp_base_dir }}/logs'
+stanford_corenlp_cmd: 'java -cp "*" -mx4g edu.stanford.nlp.pipeline.StanfordCoreNLPServer -props StanfordCoreNLP-english.properties -port 9000 -timeout 60000'
+
+tint_service_cmd: './tint-server.sh -p 9001'

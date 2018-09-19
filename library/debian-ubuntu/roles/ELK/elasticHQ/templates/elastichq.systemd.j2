@@ -1,0 +1,18 @@
+[Unit]
+Description=ElasticHQ - Monitoring and Management Web Application for ElasticSearch instances and clusters.
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory={{ elastic_hq_home }}
+StandardOutput=syslog
+StandardError=syslog
+Restart=on-failure
+RemainAfterExit=yes
+
+User={{ elastic_hq_user }}
+Group={{ elastic_hq_user }}
+
+ExecStart={{ elastic_hq_start_cmd }} 
+ExecStop=
+

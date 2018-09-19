@@ -19,7 +19,7 @@
 
     - name: Remove the old gcube oauth files
       file: path={{ smartgears_instance_path }}/webapps/gcube-{{ gcube_oauth_name }}  state=absent
-      when: ( gcube_oauth_download | changed )
+      when: gcube_oauth_download is changed
       notify: Restart smartgears
   
     - name: Copy the gcube_oauth war into the webapps directory

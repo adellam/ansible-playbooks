@@ -1,13 +1,14 @@
 ---
 dataminer_app_install: False
 dataminer_app_upgrade: False
+dataminer_algorithms_installer: True
+dataminer_algorithms_updater: True
 
 # ZIP file
 dataminer_product: prod
 dataminer_zip_url: 'http://svn.research-infrastructures.eu/public/d4science/gcube/trunk/data-analysis/DataMinerConfiguration/webapp/{{ dataminer_product }}/wps.zip'
 
 # Install from WAR
-dataminer_war_install: True
 dataminer_wps_version: latest
 dataminer_wps_name: wps
 dataminer_wps_group_id: org.gcube.data-analysis
@@ -32,7 +33,12 @@ dataminer_algorithms_updater_cron: present
 dataminer_algorithms_updater_minute_frequency: "0"
 dataminer_algorithms_updater_hour_frequency: "*"
 
+dataminer_download_gebco_file: True
 dataminer_data_file_from_thredds: 'http://thredds.d4science.org/thredds/fileServer/public/netcdf/gebco_08_OCEANS_CLIMATOLOGY_METEOROLOGY_ATMOSPHERE_.nc'
+
+dataminer_conda_install: False
+dataminer_hdf5: False
+dataminer_install_nscd: False
 
 # dev, prod, preprod
 dataminer_infra_reference: dev

@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: '../../library/roles/ubuntu-python-setup', when: python_pip_env_workaround is not defined }

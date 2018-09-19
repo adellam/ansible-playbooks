@@ -3,8 +3,14 @@ is_exporter_se_plugin_install: False
 is_exporter_se_plugin_upgrade: False
 is_exporter_se_plugin_version: latest
 
-is_exporter_se_plugin_group_id: 'org.gcube.information-system'
-is_exporter_se_plugin_name: 'is-exporter-se-plugin'
+is_exporter_se_plugin_group_id: 'org.gcube.accounting'
+is_exporter_se_plugin_name: 'accounting-aggregator-se-plugin'
 is_exporter_se_plugin_extension: 'jar'
-is_exporter_se_plugin_classifier: 'jar-with-dependencies'
-is_exporter_se_plugin_file: '{{ is_exporter_se_plugin_name }}-{{ is_exporter_se_plugin_version }}-jar-with-dependencies.{{ is_exporter_se_plugin_extension }}'
+is_exporter_se_plugin_classifier: 'uberjar'
+is_exporter_se_plugin_uber_file: '{{ is_exporter_se_plugin_name }}-{{ is_exporter_se_plugin_version }}-{{ is_exporter_se_plugin_classifier }}.{{ is_exporter_se_plugin_extension }}'
+is_exporter_se_plugin_file: '{{ is_exporter_se_plugin_name }}-{{ is_exporter_se_plugin_version }}.{{ is_exporter_se_plugin_extension }}'
+
+catalina_apps_conf:
+  - { app_name: '{{ smart_executor_name }}', plugin_name: '{{ is_exporter_se_plugin_name }}' }
+
+# Note: the deb package nco is required

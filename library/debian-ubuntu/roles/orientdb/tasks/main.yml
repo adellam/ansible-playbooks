@@ -4,7 +4,7 @@
       user: name={{ orientdb_user }} home={{ orientdb_base_dir }} createhome=yes shell=/bin/bash
       
     - name: Get the orientdb distribution
-      get_url: url={{ orientdb_binary_distribution_url }} dest={{ orientdb_base_dir }}/{{ orientdb_tar_file }}
+      get_url: url={{ orientdb_binary_distribution_url }} dest={{ orientdb_base_dir }}/{{ orientdb_tar_file }} validate_certs=no
 
     - name: Unpack the orientdb distribution
       unarchive: src={{ orientdb_base_dir }}/{{ orientdb_tar_file }} dest={{ orientdb_base_dir }} copy=no
@@ -14,7 +14,7 @@
     - name: Link to the latest version
       become: True
       become_user: '{{ orientdb_user }}'
-      file: src={{ orientdb_dir }}-{{ orientdb_version }} dest={{ orientdb_install_dir }} state=link
+      file: src={{ orientdb_tar_filename }} dest={{ orientdb_install_dir }} state=link
 
     - name: Install the orientdb startup script
       template: src=orientdb.init.j2 dest=/etc/init.d/orientdb owner=root group=root mode=0755
@@ -75,6 +75,10 @@
     - name: Ensure that the service is enabled and running
       service: name=orientdb state=started enabled=yes
       when: orientdb_enabled
+
+    - name: Ensure that the service is stopped and disabled
+      service: name=orientdb state=stopped enabled=no
+      when: not orientdb_enabled
 
   tags: orientdb
   when: orientdb_install

@@ -1,0 +1,35 @@
+---
+- block:
+    - name: Install git
+      apt: pkg=git update_cache=yes cache_valid_time=1800
+
+    - name: Install the minimal python 3 env
+      apt: pkg={{ item }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ elastic_hq_python_pkgs }}'
+
+    - name: Create a user to run the elasticHQ service
+      user: name={{ elastic_hq_user }} home={{ elastic_hq_home }} createhome=no shell=/usr/sbin/nologin system=yes
+
+    - name: Create the user home directory
+      file: dest={{ elastic_hq_home }} state=directory owner={{ elastic_hq_user }} group={{ elastic_hq_user }}
+
+    - name: Get the elasticHQ distribution
+      git: repo={{ elastic_hq_repo_url }} dest={{ elastic_hq_home }}
+
+    - name: Get the elasticHQ dependencies
+      pip: chdir={{ elastic_hq_home }} executable=pip3 requirements=requirements.txt
+
+    - name: Install the elasticHQ systemd startup unit
+      template: src=elastichq.systemd.j2 dest=/etc/systemd/system/elastichq.service mode=0644 owner=root group=root
+      when: ansible_service_mgr == 'systemd'
+      register: elastichq_systemd_unit
+
+    - name: systemd reload
+      command: systemctl daemon-reload
+      when: elastichq_systemd_unit is changed
+
+    - name: Ensure that elasticHQ is started and enabled
+      service: name=elastichq state=started enabled=yes
+
+  tags: [ 'elasticsearch', 'elastic_hq' ]
+  

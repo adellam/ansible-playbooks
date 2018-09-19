@@ -1,0 +1,13 @@
+---
+- block:
+    - name: Add postgres extensions to the databases, if needed
+      become: True
+      become_user: postgres
+      postgresql_ext: name={{ item.1 | default(omit) }} db={{ item.0.name }} port={{ psql_db_port }}
+      with_subelements:
+        - '{{ psql_db_extensions | default([]) }}'
+        - extensions
+
+  when: psql_db_extensions is defined
+  tags: [ 'postgresql', 'postgres', 'pg_extensions', 'pg_db' ]
+

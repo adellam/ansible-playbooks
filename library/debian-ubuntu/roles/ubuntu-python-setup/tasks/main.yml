@@ -1,0 +1,33 @@
+---
+- block:
+    - name: Install the get-pip.py pip downloader
+      get_url: url={{ python_get_pip_url }} dest=/usr/local/lib/get-pip.py
+
+    - name: Install a script that fixes the broken trusty pip package
+      copy: src=pip-fixer.sh dest=/usr/local/bin/python-pip-fixer mode=0755 owner=root group=root
+      register: python_pip_fixer
+
+    - name: Fix the trusty pip installation
+      shell: /usr/local/bin/python-pip-fixer
+      when: python_pip_fixer is changed
+
+    - name: Install the python dev headers and other dev requirements
+      apt: pkg={{ item }} state={{ python_pkgs_state }} update_cache=yes cache_valid_time=1800
+      with_items: '{{ python_pip_dev_packages }}'
+
+    - name: Install a specific version of tornado to avoid breaking dependencies
+      pip: name=tornado version=4.1 state=present
+
+    - name: Install the latest six python package
+      pip: name=six state=present
+
+    - name: Install setuptools version 33.1.1
+      pip: name=setuptools version=33.1.1 state=present
+
+    - name: Fix the ssl warnings installing some ssl libraries
+      pip: name={{ item }} state={{ python_pkgs_state }}
+      with_items: '{{ python_pip_fix_ssl_warnings | default ([]) }}'
+      register: python_pip_env_workaround
+
+  when: is_trusty
+  tags: [ "python", 'py_env', 'ansible_setup' ]

@@ -1,0 +1,10 @@
+smartgears_container_name: "smartgears_base_container"
+smartgears_image: "smartgears_base_image"
+image_version: "{{ smartgears_distribution_version }}"
+container_ssh_port: 2222
+tomcat_port: 8080
+
+smartgear_tokens: "c8610c1b-4293-4ed4-ad53-f2aeaf4fbeb8-97827"
+container_mode: "online"
+container_hostname: "shinyproxy"
+container_infrastructure: "d4s"

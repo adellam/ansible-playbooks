@@ -15,7 +15,7 @@
 
     - name: Remove the old resource-registry-handlers file
       shell: rm -f {{ smartgears_instance_path }}/lib/{{ resource_registry_handlers_name }}-*.{{ resource_registry_handlers_extension }}
-      when: ( resource_registry_handlers_download | changed )
+      when: resource_registry_handlers_download is changed
 
     - name: Copy the resource registry jar file into the tomcat lib directory
       copy: src={{ smartgears_downloads_dir }}/{{ resource_registry_handlers_file }} dest={{ smartgears_instance_path }}/lib/{{ resource_registry_handlers_file }} remote_src=yes force=yes

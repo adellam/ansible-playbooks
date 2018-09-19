@@ -1,0 +1,45 @@
+---
+### installs pip and docker-py to enable using ansible's docker module
+-   name: Install python setup tools
+    yum: name=python-setuptools state=latest
+    when: (ansible_distribution == "CentOS" or ansible_distribution == "RedHat") and ansible_distribution_version == "7"
+    tags: docker
+
+-   name: Install Pypi
+    easy_install: name=pip
+    when: (ansible_distribution == "CentOS" or ansible_distribution == "RedHat") and ansible_distribution_version == "7"
+    tags: docker
+
+-   name: Install docker-py
+    pip: name=docker-py
+    when: (ansible_distribution == "CentOS" or ansible_distribution == "RedHat") and ansible_distribution_version == "7"
+
+-   name: Install Docker
+    yum: name=docker state=latest
+    when: (ansible_distribution == "CentOS" or ansible_distribution == "RedHat") and ansible_distribution_version == "7"
+    tags: docker
+
+-   name: Create a dir to place the service file override "docker-tcp-override.conf"
+    file: path=/etc/systemd/system/docker.service.d/ state=directory owner=root group=root selevel=s0 seuser=system_u serole=object_r setype=systemd_unit_file_t mode=0755
+    when: (ansible_distribution == "CentOS" or ansible_distribution == "RedHat") and ansible_distribution_version == "7"
+
+-   name: Create a systemd service overrride "docker-tcp-override.conf" to force Docker to actually listen to tcp 127.0.0.1:2375 along the unix socket (required for shinyproxy)
+    copy: src=docker-tcp-override.conf dest=/etc/systemd/system/docker.service.d/ owner=root group=root selevel=s0 seuser=system_u serole=object_r setype=systemd_unit_file_t mode=0755
+    when: (ansible_distribution == "CentOS" or ansible_distribution == "RedHat") and ansible_distribution_version == "7"
+
+#### The other way around enabling docker's tcp socket in systemd based distros... Didn't work for me.
+#-   name: Create a systemd socketfile "docker-tcp.socket" to have Docker listen to tcp port 2375 (required for shinyproxy)
+#    copy: src=docker-tcp.socket dest=/etc/systemd/system/ owner=root group=root selevel=s0 seuser=system_u serole=object_r setype=systemd_unit_file_t mode=0755
+
+#-   name: Make sure Docker is *not* running before starting the socket service, otherwise things *won't* work
+#    service: name=docker state=stopped enabled=yes 
+#    #when: "changed not in socketfile_changed.src"
+
+#-   name: Make sure docker-tcp.socket is enabled and running
+#    systemd: name=docker-tcp.socket state=restarted enabled=yes daemon_reload=yes
+####
+#
+-   name: Force a docker service (re)start since we don't know whether the service file override has been updated/deployed for the first time (can't register file changes from copy module???)
+    systemd: name=docker state=restarted enabled=yes daemon_reload=yes
+    when: (ansible_distribution == "CentOS" or ansible_distribution == "RedHat") and ansible_distribution_version == "7"
+#   service: name=docker state=started enabled=yes

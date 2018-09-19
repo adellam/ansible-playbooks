@@ -8,7 +8,7 @@ geonetwork_point_version: 6
 geonetwork_minor_version: 0
 geonetwork_app_name: GeoNetwork
 geonetwork_version: '{{ geonetwork_major_version }}.{{ geonetwork_point_version }}.{{ geonetwork_minor_version }}'
-geonetwork_download_url: 'https://downloads.sourceforge.net/project/geonetwork/GeoNetwork_opensource/v{{ geonetwork_version }}/geonetwork.war?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fgeonetwork%2Ffiles%2FGeoNetwork_opensource%2Fv{{ geonetwork_version  }}%2F&ts=1485267039&use_mirror=netcologne'
+geonetwork_download_url: 'https://cytranet.dl.sourceforge.net/project/geonetwork/GeoNetwork_opensource/v{{ geonetwork_version }}/geonetwork.war'
 
 geonetwork_download_directory: /srv/geonetwork
 geonetwork_data_directory: /srv/geonetwork_data

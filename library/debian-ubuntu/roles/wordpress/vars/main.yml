@@ -1,0 +1,20 @@
+---
+http_port: 80
+https_port: 443
+
+letsencrypt_acme_dest_dir: '{{ wordpress_servername }}'
+
+php_from_ppa: True
+php_version: 5.6
+
+phpfpm_base_dir: '/etc/php/{{ php_version }}/fpm'
+phpfpm_cli_dir: '/etc/php{{ php_version }}/cli'
+
+mysql_db_data:
+  - { name: '{{ wordpress_db_name }}', user: '{{ wordpress_db_user }}', pwd: '{{ wordpress_db_pwd }}', collation: '{{ mysql_default_collation }}', encoding: '{{ mysql_default_encoding }}', user_grant: 'ALL', allowed_hosts: [ '{{ ansible_fqdn }}/32', '127.0.0.1/8', 'localhost' ] }
+
+phpfpm_default_pool_name: '{{ wordpress_system_user }}'
+phpfpm_default_user: '{{ wordpress_system_user }}'
+
+phpfpm_pools:
+  - { pool_name: '{{ phpfpm_default_pool_name }}', app_context: '{{ phpfpm_default_context }}', user: '{{ phpfpm_default_user }}', group: '{{ phpfpm_default_group }}', listen: '{{ phpfpm_default_listen }}', allowed_clients: '{{ phpfpm_default_allowed_clients }}', pm: '{{ phpfpm_default_pm }}', pm_max_children: '{{ phpfpm_default_pm_max_children }}', pm_start_servers: '{{ phpfpm_default_pm_start_servers }}', pm_min_spare: '{{ phpfpm_default_pm_min_spare_servers }}', pm_max_spare: '{{ phpfpm_default_pm_max_spare_servers }}', pm_max_requests: '{{ phpfpm_default_pm_max_requests }}', pm_status_enabled: '{{ phpfpm_default_pm_status_enabled }}', pm_status_path: '{{ phpfpm_default_pm_status_path }}', ping_enabled: '{{ phpfpm_default_ping_enabled }}', ping_path: '{{ phpfpm_default_ping_path }}', ping_response: '{{ phpfpm_default_ping_response }}', display_errors: '{{ phpfpm_default_display_errors }}', log_errors: '{{ phpfpm_default_log_errors }}', memory_limit: '{{ phpfpm_default_memory_limit }}', slowlog_timeout: '{{ phpfpm_default_slowlog_timeout }}', rlimit_files: '{{ phpfpm_default_rlimit_files }}', php_extensions: '{{ phpfpm_default_extensions }}', define_custom_variables: '{{ phpfpm_default_define_custom_variables }}', admin_write: True, doc_root: '{{ wordpress_doc_root }}', virthost: '{{ wordpress_servername }}' }

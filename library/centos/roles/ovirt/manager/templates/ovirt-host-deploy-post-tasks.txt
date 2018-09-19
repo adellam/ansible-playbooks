@@ -1,0 +1,14 @@
+{% if ovirt_engine_custom_firewall_rules %}
+- block:
+{% for cidr in ovirt_engine_firewall_admitted_sources %}
+  - name: Enable custom firewall rules
+    firewalld: source={{ cidr }} zone=public permanent=yes immediate=yes state=enabled
+{% endfor %}
+
+  - name: Change the default firewall zone
+    firewalld:
+      zone: drop
+      permanent: yes
+      immediate: yes
+      state: enabled
+{% endif %}

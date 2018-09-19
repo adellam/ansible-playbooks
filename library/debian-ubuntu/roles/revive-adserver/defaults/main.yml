@@ -14,15 +14,15 @@ revive_automatic_maintenance: True
 revive_domain: example.com
 
 revive_ad_php_modules:
-  - php-xml-parser
-  - php5-memcache
-  - php5-memcached
-  - php5-apcu
-  - libphp-pclzip
+  - php-xml
+  - php-memcache
+  - php-memcached
+  - php-apcu
+  - php-pclzip
 
 revive_db_server: pgsql  
 revive_ad_php_db_server_modules:
-  - 'php5-{{ revive_db_server }}'
+  - 'php{{ php_version }}-{{ revive_db_server }}'
 
 revive_writable_dirs:
   - var

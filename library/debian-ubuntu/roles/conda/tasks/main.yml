@@ -1,0 +1,43 @@
+---
+- block:
+    - name: Find the user home directory path
+      getent: database=passwd key={{ conda_user }} split=":"
+      
+    - name: Create a downloads directory if does not exist
+      file: dest={{ getent_passwd[conda_user][4] }}/downloads state=directory
+
+    - name: Download the conda installer
+      get_url: url={{ conda_url }} dest={{ getent_passwd[conda_user][4] }}/downloads mode=0744
+
+    - name: Run the conda installer
+      command: '{{ getent_passwd[conda_user][4] }}/downloads/{{ conda_installer_file }} -f -b -p {{ conda_install_prefix }}'
+      args:
+        creates: '{{ conda_install_prefix }}/bin/conda'
+
+  become: True
+  become_user: '{{ conda_user }}'
+  tags: [ 'python', 'conda' ]
+
+- block:
+    - name: Create a conda environment
+      shell: export PATH={{ conda_install_prefix }}/bin:{{ ansible_env.PATH }} ; mkdir -p {{ conda_user_home }}/.conda/pkgs/ ; chown -R {{ conda_user }} {{ conda_user_home }}/.conda ; {{ conda_install_prefix }}/bin/conda create -y -n {{ item.env_name }} {{ item.env_opts }} || exit 0
+      environment:
+        PATH: 'PATH={{ conda_install_prefix }}/bin:{{ ansible_env.PATH }}'
+      args:
+        creates: '{{ conda_install_prefix }}/envs/{{ item.env_name }}'
+        executable: /bin/bash
+      with_items: '{{ conda_env_pkgs }}'
+
+    - name: Install additional packages and libraries inside the conda environment
+      shell: export PATH={{ conda_install_prefix }}/bin:{{ ansible_env.PATH }} ; source {{ conda_install_prefix }}/bin/activate {{ item.env_name }} ; {{ conda_install_prefix }}/bin/conda install -y {{ item.repo_list }} {{ item.pkg }} ; touch {{ conda_install_prefix }}/envs/{{ item.env_name }}/.{{ item.pkg }}
+      environment:
+        PATH: 'PATH={{ conda_install_prefix }}/bin:{{ ansible_env.PATH }}'
+      args:
+        executable: /bin/bash
+        creates: '{{ conda_install_prefix }}/envs/{{ item.env_name }}/.{{ item.pkg }}'
+      with_items: '{{ conda_env_pkgs }}'
+
+  become: True
+  become_user: '{{ conda_user }}'
+  when: conda_env_pkgs is defined
+  tags: [ 'python', 'conda', 'conda_env' ]

@@ -18,3 +18,4 @@ thredds_organization: 'ORG'
 thredds_email: ''
 thredds_host_institution_name: 'ORG'
 thredds_host_institution_web: ''
+thredds_force_ssl_for_user_data: False

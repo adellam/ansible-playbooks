@@ -16,9 +16,9 @@
 
     - name: Remove the old social indexer plugin
       shell: rm -f {{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ social_data_indexer_se_plugin_name }}-*-jar-with-dependencies.jar
-      when: (social_indexer_download | changed)
+      when: social_indexer_download is changed
 
-    - name: Copy the accounting aggregator plugin to its final destination
+    - name: Copy the social indexer  plugin to its final destination
       copy: src={{ smartgears_downloads_dir }}/{{ social_data_indexer_se_plugin_file }} dest={{ smartgears_instance_path }}/webapps/{{ smart_executor_name }}/WEB-INF/lib/{{ social_data_indexer_se_plugin_file }} remote_src=yes force=yes
       notify: Restart smartgears
 

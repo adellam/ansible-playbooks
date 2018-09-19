@@ -1,0 +1,83 @@
+---
+- block:
+  - name: Create the nextcloud webroot
+    file: dest={{ nextcloud_web_basedir }} owner=root group=root state=directory
+
+  - name: Create the nextcloud data directory
+    file: dest={{ nextcloud_data_dir }} state=directory owner={{ item.user }} group={{ item.user }}
+    with_items: '{{ phpfpm_pools }}'
+
+  - name: Get nextcloud
+    get_url: url={{ nextcloud_download_url }} dest=/srv/{{ nextcloud_dist_filename }}
+
+  - name: Unpack the nextcloud archive
+    unarchive: remote_src=yes src=/srv/{{ nextcloud_dist_filename }} dest={{ item.doc_root }} owner={{ item.user }} group={{ item.user }}
+    args:
+      creates: '{{ item.doc_root }}/index.php'
+    with_items: '{{ phpfpm_pools }}'
+
+  tags: [ 'nextcloud' ]
+
+- block:
+  - name: Configure the nextcloud instance
+    shell: cd {{ item.doc_root }} ; php occ maintenance:install --database="{{ nextcloud_db }}" --database-host "{{ nextcloud_db_host }}" --database-name "{{ nextcloud_db_name }}" --database-user "{{ nextcloud_db_user }}" --database-pass "{{ nextcloud_db_pwd }}" --admin-user "{{ nextcloud_admin_user }}" --admin-pass "{{ nextcloud_admin_u_pwd }}"  --data-dir={{ nextcloud_data_dir }} ; touch {{ nextcloud_data_dir }}/.ht_nextcloud_setup
+    args:
+      creates: '{{ nextcloud_data_dir }}/.ht_nextcloud_setup'
+    with_items: '{{ phpfpm_pools }}'
+
+  - name: Set the trusted domains list
+    shell: cd {{ item.webroot }} ; php occ config:system:set trusted_domains {{ item.id }} --value={{ item.name }} ; touch {{ nextcloud_data_dir }}/.ht_nextcloud_trusted_domains
+    args:
+      creates: '{{ nextcloud_data_dir }}/.ht_nextcloud_trusted_domains'
+    with_items: '{{ nextcloud_servernames }}'
+
+  - name: Setup the cron configuration
+    shell: cd {{ item.webroot }} ; php occ background:cron ; touch {{ nextcloud_data_dir }}/.ht_nextcloud_cron
+    args:
+      creates: 'touch {{ nextcloud_data_dir }}/.ht_nextcloud_cron'
+    with_items: '{{ nextcloud_servernames }}'
+    tags: [ 'nextcloud', 'nextcloud_config_cron' ]
+
+  - name: Install the nextcloud cron job
+    cron: user={{ item.user }} minute="*/15" job="php -f {{ item.doc_root }}/cron.php" name="NextCloud cron job"
+    with_items: '{{ phpfpm_pools }}'
+    tags: [ 'nextcloud', 'nextcloud_config_cron' ]
+
+  become: True
+  become_user: '{{ nextcloud_user }}'
+  tags: [ 'nextcloud', 'nextcloud_config' ]
+
+- block:
+  - name: Create the nextcloud encryption keys directory
+    become_user: root
+    file: dest={{ nextcloud_oc_dir }} state=directory owner={{ item.user }} group={{ item.user }}
+    with_items: '{{ phpfpm_pools }}'
+
+  - name: Activate global encryption
+    shell: cd {{ item.doc_root }} ; php occ app:enable encryption ; php occ encryption:enable ; php occ encryption:enable-master-key  ; php occ encryption:change-key-storage-root {{ nextcloud_oc_dir }} ; touch {{ nextcloud_oc_dir }}/.ht_nextcloud_oc
+    args:
+      creates: '{{ nextcloud_oc_dir }}/.ht_nextcloud_oc'
+    with_items: '{{ phpfpm_pools }}'
+
+  become: True
+  become_user: '{{ nextcloud_user }}'
+  when: nextcloud_encryption_enabled
+  tags: [ 'nextcloud', 'nextcloud_config', 'nextcloud_config_oc' ]
+
+- block:
+  - name: Enable ldap
+    shell: cd {{ item.doc_root }} ; php occ app:enable user_ldap ; touch {{ item.doc_root }}/.ht_nextcloud_ldap_enabled
+    args:
+      creates: '{{ item.doc_root }}/.ht_nextcloud_ldap_enabled'
+    with_items: '{{ phpfpm_pools }}'
+
+  - name: Configure ldap
+    shell: cd {{ item.doc_root }} ; php occ ldap:create-empty-config ; touch {{ item.doc_root }}/.ht_nextcloud_ldap_configured
+    args:
+      creates: '{{ item.doc_root }}/.ht_nextcloud_ldap_configured'
+    with_items: '{{ phpfpm_pools }}'
+
+  become: True
+  become_user: '{{ nextcloud_user }}'
+  when: nextcloud_ldap_auth
+  tags: [ 'nextcloud', 'nextcloud_config', 'nextcloud_config_ldap' ]

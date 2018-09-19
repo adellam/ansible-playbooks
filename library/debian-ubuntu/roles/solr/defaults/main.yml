@@ -1,25 +1,29 @@
 ---
 # solr
 solr_install: False
-solr_version: 7.1.0
+solr_version: 7.4.0
 solr_http_port: 8983
 solr_service: -solr
 solr_config_name: hindex
 solr_shards: 1
 solr_instance: '{{ solr_service }}'
+solr_custom_log4j: False
+solr_rotate_logs_on_start: 'true'
 solr_log_dir: /var/log/solr
-solr_log_level: INFO
+solr_log_level: ERROR
 solr_http_port_1: '{{ solr_http_port }}'
 solr_zoo_port: 9983
 solr_zoo_port_1: 9984
 solr_zoo_port_2: 9985
 solr_jmx_port_1: 8601
+solr_jmx_enabled: 'false'
 solr_user: solr
 solr_group: solr
 # We need to define this one because we are using the tomcat multiple instances role
 solr_base_dir: /opt
 solr_server_dir: '{{ solr_base_dir }}/solr'
 solr_data_dir: '{{ solr_server_dir }}/server/solr'
+solr_conf_dir: '{{ solr_server_dir }}/conf'
 solr_collections_base_dir: '{{ solr_data_dir }}/data/solr'
 solr_pid_dir: '{{ solr_server_dir }}/bin'
 solr_heap:  1024M
@@ -47,3 +51,13 @@ solr_cloud_mode: True
 solr_zk_external_cluster: False
 solr_zk_hosts: '127.0.0.1:2181'
 solr_zk_timeout: 15000
+
+solr_prometheus_exporter: True
+solr_prometheus_port: 9983
+solr_prometheus_threads: 2
+solr_prometheus_bindir: '{{ solr_server_dir }}/contrib/prometheus-exporter/bin'
+solr_prometheus_command: 'solr-exporter'
+solr_prometheus_command_params: '-p {{ solr_prometheus_port }} -b {{ solr_zk_hosts }} -f {{ solr_prometheus_conf_file }} -n {{ solr_prometheus_threads }}' 
+solr_prometheus_data_dir: '{{ solr_base_dir }}/solr_prometheus_exporter'
+solr_prometheus_conf_dir: '{{ solr_prometheus_data_dir }}/conf'
+solr_prometheus_conf_file: '{{ solr_prometheus_conf_dir }}/solr-exporter-config.xml'

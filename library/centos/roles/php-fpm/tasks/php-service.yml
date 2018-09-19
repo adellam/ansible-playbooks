@@ -19,12 +19,12 @@
   shell: checkmodule -M -m -o /usr/local/etc/php-fpm-sepol.mod /usr/local/etc/php-fpm-sepol.te ; semodule_package -o /usr/local/etc/php-fpm-sepol.pp -m /usr/local/etc/php-fpm-sepol.mod ; semodule -i /usr/local/etc/php-fpm-sepol.pp
   args:
     creates: /usr/local/etc/php-fpm-sepol.pp
-  when: php_fpm_selinux_policy.changed
+  when: php_fpm_selinux_policy is changed
   tags: [ 'php', 'selinux' ]
 
 - name: Create the users under the php-fpm processes will run
   user: name={{ item.user }} comment="{{ item.user }}" home={{ item.homedir }} createhome={{ item.createhome }} shell=/sbin/nologin
-  with_items: '{{ phpfpm_pools }}'
+  with_items: phpfpm_pools
   when: phpfpm_create_users
   notify: Restart php-fpm
   ignore_errors: True

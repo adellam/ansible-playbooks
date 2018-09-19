@@ -26,11 +26,8 @@
 <authorizeChildrenContext>{{ smartgears_authorized_on_all_scopes }}</authorizeChildrenContext>
 
   <property name='SmartGearsDistributionBundle' value='UnBundled' />
-{% if smartgears_distribution_version == 'latest' %}
   <property name='SmartGearsDistribution' value='{{ smartgears_real_distribution_version }}' />
-{% else %}
-  <property name='SmartGearsDistribution' value='{{ smartgears_distribution_version }}' />
-{% endif %}
+
   <publication-frequency>{{ smartgears_publication_frequency }}</publication-frequency>
   <infrastructure>{{ smartgears_infrastructure_name }}</infrastructure>
 

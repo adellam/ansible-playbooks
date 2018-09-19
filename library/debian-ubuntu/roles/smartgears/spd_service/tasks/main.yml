@@ -18,7 +18,7 @@
   
     - name: Remove the old spd files
       file: path={{ smartgears_instance_path }}/webapps/{{ spd_service_name }} state=absent
-      when: ( spd_service_download | changed )
+      when: spd_service_download is changed
 
     - name: Copy the spd war into the webapps directory
       copy: src={{ smartgears_downloads_dir }}/{{ spd_service_file }} dest={{ smartgears_instance_path }}/webapps/{{ spd_service_name }}.{{ spd_extension }} remote_src=yes force=yes

@@ -1,0 +1,3 @@
+---
+cloud_init_disable_netconfig: False
+cloud_init_remove_pkg: True

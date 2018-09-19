@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: '../library/roles/smartgears/catalina-app-conf'
+

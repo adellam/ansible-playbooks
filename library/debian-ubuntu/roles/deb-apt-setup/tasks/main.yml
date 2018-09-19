@@ -1,18 +1,11 @@
 ---
 # First things first: install the basic requirements with a raw command
-- name: install python-apt
+- name: Install python 2 and python-apt
   raw: "apt-get update; apt-get install -y python python-apt lsb-release"
-  tags:
-    - pythonapt
+  tags: [ 'python', 'ansible_setup' ]
 
 - name: Install python-software-properties
-  apt: pkg=python-software-properties state=installed
-  tags:
-    - pythonapt
-
-- name: Install software-properties-common on quantal distributions
-  apt: pkg=software-properties-common state=installed
-  when: is_quantal
-  tags:
-    - pythonapt
+  apt: pkg=python-software-properties state=present update_cache=yes cache_valid_time=3600
+  when: is_not_debian9
+  tags: pythonapt
 

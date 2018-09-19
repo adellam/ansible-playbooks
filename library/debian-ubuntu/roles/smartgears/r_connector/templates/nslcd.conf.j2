@@ -25,8 +25,8 @@ tls_cacertfile {{ r_connector_nslcd_cafile }}
 #rootpwmoddn cn=admin,dc=example,dc=com
 
 # SSL options
-#ssl off
-tls_reqcert demand
+ssl {{ r_connector_ssl }}
+tls_reqcert {{ r_connector_tls_reqcert }}
 
 # The search scope.
 #scope sub

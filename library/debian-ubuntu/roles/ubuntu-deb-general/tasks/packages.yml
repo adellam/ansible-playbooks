@@ -1,11 +1,18 @@
 ---
-- name: Install the basic packages
-  apt: pkg={{ item }} state=installed
+- name: Install the basic python packages
+  apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
   with_items: '{{ default_python_packages }}'
+  when: not is_trusty
+  tags: packages
+
+- name: Install the basic python packages on trusty
+  apt: pkg={{ item }} state=present update_cache=yes cache_valid_time=1800
+  with_items: '{{ default_python_packages_trusty }}'
+  when: is_trusty
   tags: packages
 
 - name: Install software-properties-common if needed
-  apt: pkg=software-properties-common state=installed
+  apt: pkg=software-properties-common state=present update_cache=yes cache_valid_time=1800
   when: is_ubuntu
   tags: packages
 
@@ -79,13 +86,21 @@
   ignore_errors: True
   tags: packages
 
+- name: Setup the infrascience trusty repository
+  apt_repository: repo='deb [arch=amd64] http://ppa.research-infrastructures.eu/trusty-infrascience {{ ansible_distribution_release }} main' update_cache=yes
+  when:
+    - is_trusty
+    - infrascience_internal_ppa
+  ignore_errors: True
+  tags: packages
+
 - name: install common packages
-  apt: pkg={{ item }} state={{ pkg_state }}
+  apt: pkg={{ item }} state={{ pkg_state }} update_cache=yes cache_valid_time=1800
   with_items: '{{ common_packages }}'
   tags: [ 'packages', 'common_pkgs' ]
 
 - name: Install additional packages, if any
-  apt: pkg={{ item }} state={{ pkg_state }}
+  apt: pkg={{ item }} state={{ pkg_state }} update_cache=yes cache_valid_time=1800
   with_items: '{{ additional_packages | default([]) }}'
   tags: [ 'packages', 'common_pkgs', 'additional_packages' ]
 

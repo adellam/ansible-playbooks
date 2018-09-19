@@ -1,0 +1,99 @@
+---
+- block: 
+  - name: Install the git client if we are installing using git
+    apt: pkg=git update_cache=yes cache_valid_time=1800
+    when: letsencrypt_acme_sh_git_install
+
+  - name: Create the letsencrypt acme user
+    user: name={{ letsencrypt_acme_sh_user }} home={{ letsencrypt_acme_sh_user_home }} createhome=no shell=/usr/sbin/nologin system=yes
+    tags: [ 'letsencrypt', 'letsencrypt_user' ]
+
+  - name: Create the letsencrypt acme home, if it does not exist already. In a separate step because it could be already there.
+    file: dest={{ letsencrypt_acme_sh_user_home }} owner={{ letsencrypt_acme_sh_user }} group={{ letsencrypt_acme_sh_user }} state=directory recurse=yes
+
+  - name: Create a directory where to put the cron job and hooks logs
+    file: dest={{ letsencrypt_acme_sh_log_dir }} state=directory owner={{ letsencrypt_acme_sh_user }} group={{ letsencrypt_acme_sh_user }} mode=0750
+
+  - name: Install the acme.sh environment variables file
+    template: src=acme_sh_request_env.j2 dest=/etc/default/acme_sh_request_env owner=root group=root mode=0444
+    register: acme_sh_issue
+
+  - name: Install the script that initializes the acme.sh environment
+    copy: src=acme-sh-install dest=/usr/local/bin/acme-sh-install owner=root group=acme mode=0750
+
+  - name: Install a script that issues the certificates
+    copy: src=acme-sh-request-cert dest=/usr/local/bin/acme-sh-request-cert owner=root group=acme mode=0750
+
+  - name: Install a script that installs the issued certificates
+    copy: src=acme-sh-install-certs dest=/usr/local/bin/acme-sh-install-certs owner=root group=acme mode=0750
+
+  - name: Install the scripts that will be run as a cron job
+    copy: src={{ item }} dest=/usr/local/bin/{{ item }} owner=root group=acme mode=0750
+    with_items:
+      - acme-sh-cron-script
+      - acme-sh-cron-command
+    tags: [ 'letsencrypt', 'letsencrypt_cron', 'letsencrypt_acme_sh' ]
+
+  - name: Install a daily cron job to renew the certificates when needed. It runs as root
+    cron: name="Letsencrypt certificate renewal" day={{ letsencrypt_acme_cron_day_of_month }} hour={{ letsencrypt_acme_cron_hour }} minute={{ letsencrypt_acme_cron_minute }}  job="/usr/local/bin/acme-sh-cron-script > {{ letsencrypt_acme_sh_log_dir }}/acme-cron.log 2>&1"
+    tags: [ 'letsencrypt', 'letsencrypt_cron', 'letsencrypt_acme_sh' ]
+
+  when: letsencrypt_acme_sh_install
+  tags: [ 'letsencrypt', 'letsencrypt_acme_sh' ]
+
+- block:
+  - name: Download the acme.sh distribution
+    git: repo={{ letsencrypt_acme_sh_git_url }} dest={{ letsencrypt_acme_git_dest_dir }} recursive=yes update=yes
+
+  - name: Create the letsencrypt acme.sh directory tree
+    file: dest={{ item }} state=directory mode=0755
+    with_items: '{{ letsencrypt_acme_sh_dirs }}'
+
+  - name: Run the installation command for acme.sh
+    shell: /usr/local/bin/acme-sh-install
+    args:
+      creates: '{{ letsencrypt_acme_sh_user_home }}/bin/acme.sh'
+
+  - name: Create the letsencrypt acme.sh configuration
+    template: src=account.conf.j2 dest={{ letsencrypt_acme_sh_base_data_dir }}/data/account.conf mode=0640
+
+  - name: Request the certificates
+    shell: /usr/local/bin/acme-sh-request-cert
+    #args:
+    #  creates: '{{ letsencrypt_acme_sh_base_data_dir }}/data/ok_certificate_issued'
+    register: acme_sh_certificate_issued
+    when: acme_sh_issue is changed
+    notify: Install the requested certificates
+    ignore_errors: True
+
+  - name: Remove the daily cron job that run as acme user.
+    cron: name="Letsencrypt certificate renewal" day={{ letsencrypt_acme_cron_day_of_month }} hour={{ letsencrypt_acme_cron_hour }} minute={{ letsencrypt_acme_cron_minute }}  job="/usr/local/bin/acme-sh-cron-script > {{ letsencrypt_acme_sh_log_dir }}/acme-cron.log 2>&1" state=absent
+    tags: [ 'letsencrypt', 'letsencrypt_cron', 'letsencrypt_acme_sh' ]
+
+  become: True
+  become_user: '{{ letsencrypt_acme_sh_user }}'
+  when: letsencrypt_acme_sh_install
+  tags: [ 'letsencrypt', 'letsencrypt_acme_sh' ]
+
+- block: 
+  - name: Check if the 'live' path is a symling. It is, if acmetool was installed
+    stat: path={{ letsencrypt_acme_sh_certificates_install_path }}
+    register: is_symlink
+
+  - name: Remove the 'live' path if it was a symlink
+    file: dest={{ letsencrypt_acme_sh_certificates_install_path }} state=absent
+    when: is_symlink.stat.islnk is defined and is_symlink.stat.islnk
+
+  - name: Create the certificates installation directory
+    file: dest={{ letsencrypt_acme_sh_certificates_install_path }} state=directory owner=root group=root mode=0755
+
+  - name: Install the certificates
+    shell: /usr/local/bin/acme-sh-install-certs
+    when:
+      - letsencrypt_acme_sh_explicitly_install_certs
+      - acme_sh_certificate_issued is defined
+      - acme_sh_certificate_issued is changed
+    ignore_errors: True
+
+  when: letsencrypt_acme_sh_install
+  tags: [ 'letsencrypt', 'letsencrypt_acme_sh' ]

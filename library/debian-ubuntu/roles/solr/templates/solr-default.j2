@@ -1,4 +1,3 @@
-
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -72,10 +71,10 @@ ZK_CLIENT_TIMEOUT="{{ solr_zk_timeout }}"
 # Set to true to activate the JMX RMI connector to allow remote JMX client applications
 # to monitor the JVM hosting Solr; set to "false" to disable that behavior
 # (false is recommended in production environments)
-ENABLE_REMOTE_JMX_OPTS="false"
+ENABLE_REMOTE_JMX_OPTS="{{ solr_jmx_enabled }}"
 
 # The script will use SOLR_PORT+10000 for the RMI_PORT or you can set it here
-# RMI_PORT=18983
+RMI_PORT={{ solr_jmx_port_1 }}
 
 # SOLR additional options
 SOLR_OPTS="$SOLR_OPTS {{ solr_startup_opts }}"
@@ -102,10 +101,12 @@ SOLR_PID_DIR={{ solr_pid_dir }}
 # If solr.xml is not stored in ZooKeeper, this directory needs to contain solr.xml
 SOLR_HOME={{ solr_data_dir }}
 
+{% if solr_custom_log4j %}
 # Solr provides a default Log4J configuration properties file in server/resources
 # however, you may want to customize the log settings and file appender location
 # so you can point the script to use a different log4j.properties file
-#LOG4J_PROPS=/var/solr/log4j.properties
+LOG4J_PROPS={{ solr_conf_dir }}/log4j.properties
+{% endif %}
 
 # Changes the logging level. Valid values: ALL, TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF. Default is INFO
 # This is an alternative to changing the rootLogger in log4j.properties
@@ -118,7 +119,7 @@ SOLR_LOGS_DIR={{ solr_log_dir }}
 # Enables log rotation, cleanup, and archiving during start. Setting SOLR_LOG_PRESTART_ROTATION=false will skip start
 # time rotation of logs, and the archiving of the last GC and console log files. It does not affect Log4j configuration.
 # This pre-startup rotation may need to be disabled depending how much you customize the default logging setup.
-#SOLR_LOG_PRESTART_ROTATION=true
+SOLR_LOG_PRESTART_ROTATION={{ solr_rotate_logs_on_start }}
 
 # Sets the port Solr binds to, default is 8983
 SOLR_PORT={{ solr_http_port }}

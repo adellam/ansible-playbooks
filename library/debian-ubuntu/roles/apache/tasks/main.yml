@@ -1,8 +1,8 @@
 ---
-- include: apache-ppa.yml
-- include: apache.yml
-- include: apache-modules.yml
-- include: apache-basic-auth.yml
+- import_tasks: apache-ppa.yml
+- import_tasks: apache.yml
+- import_tasks: apache-modules.yml
+- import_tasks: apache-basic-auth.yml
   when: apache_basic_auth
-- include: apache-letsencrypt.yml
+- import_tasks: apache-letsencrypt.yml
   when: letsencrypt_acme_install is defined and letsencrypt_acme_install

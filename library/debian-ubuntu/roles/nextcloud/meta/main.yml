@@ -1,0 +1,6 @@
+---
+dependencies:
+  - { role: '../../library/roles/php-fpm' }
+  - { role: '../../library/roles/nginx' }
+  - { role: '../../library/roles/redis', when nextcloud_use_redis }
+  - { role: '../../library/roles/memcached', when nextcloud_use_memcache }

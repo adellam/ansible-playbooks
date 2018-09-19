@@ -1,0 +1,21 @@
+{% if letsencrypt_acme_sh_log_enabled %}
+LOG_FILE="{{ letsencrypt_acme_sh_base_data_dir }}/logs"
+LOG_LEVEL=1
+{% endif %}
+
+{% if letsencrypt_acme_sh_auto_upgrade %}
+AUTO_UPGRADE="1"
+{% endif %}
+#NO_TIMESTAMP=1
+
+CERT_HOME='{{ letsencrypt_acme_sh_base_data_dir }}/certs'
+ACCOUNT_EMAIL='{{ letsencrypt_acme_sh_email }}'
+
+{% if letsencrypt_acme_sh_use_dns_provider %}
+{% if letsencrypt_acme_sh_dns_provider_type == 'dns_pdns' %}
+PDNS_Url="{{ letsencrypt_acme_sh_dns_api_url }}"
+PDNS_ServerId="{{ letsencrypt_acme_sh_dns_api_provider_id }}"
+PDNS_Token="{{ letsencrypt_acme_sh_dns_api_token }}"
+PDNS_Ttl=180
+{% endif %}
+{% endif %}

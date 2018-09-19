@@ -1,0 +1,15 @@
+---
+- block:
+  - name: cloud-init should not mess with the network settings
+    copy: src=99-disable-network-config.cfg dest=/etc/cloud/cloud.cfg.d/99-disable-network-config.cfg owner=root group=root mode=0644
+
+  when: cloud_init_disable_netconfig
+  tags: [ 'ovirt_cloud_init_net', 'ovirt' ]
+
+- block:
+  - name: Remove the cloud-init package
+    apt: pkg=cloud-init state=absent
+
+  when: cloud_init_remove_pkg
+  tags: [ 'ovirt_cloud_init', 'ovirt' ]
+  

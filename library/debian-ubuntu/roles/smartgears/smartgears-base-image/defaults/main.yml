@@ -1,0 +1,33 @@
+repo_type: "repo_groups"
+repo: "gcube-staging-all"
+patch_common_scope: 0
+patch_common_authorization: 0
+
+#smartgears_user: "tomcat7"
+#smartgears_user_home:  "/usr/share/tomcat7/"
+smartgears_user: "root"
+smartgears_user_home: "/root/"
+
+smartgears_distribution_version: "2.1.3-4.7.0-154641"
+smartgears_url: "http://maven.research-infrastructures.eu/nexus/service/local/repositories/{{ repo }}/content/org/gcube/distribution/smartgears-distribution/{{ smartgears_distribution_version }}/smartgears-distribution-{{ smartgears_distribution_version }}.tar.gz"
+smartgears_log_dir: "/var/log/tomcat7"
+smartgears_log_max_history: 30
+smartgears_log_max_file_size: 10MB
+smartgears_log_total_file_cap: 500MB
+smartgears_loglevel: "WARN"
+smartgears_log_use_timesize_appender: True
+
+orchestrator_user: "orchestrator"
+orchestrator_ssh_key: 
+#orchestrator_ssh_key: "ssh-rsa placeholder orchestrator@placeholder"
+
+java_jdk: "java8-jdk" #### either java8-jdk or openjdk-8
+java_home: "/usr/lib/jvm/java-8-oracle"
+catalina_home: "/usr/share/tomcat7"
+catalina_opts: "-Xmx2000m -Xms2000m -XX:MaxPermSize=512M"
+tomcat_port: 8080
+
+image_name: "smartgears-base-image-{{ java_jdk }}"
+#image_tag: "latest"   #{{ smartgears_distribution_version }}
+image_tag: "{{ smartgears_distribution_version }}"
+push_to_repo: "no"

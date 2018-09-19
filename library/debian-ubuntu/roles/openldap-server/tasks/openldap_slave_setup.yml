@@ -1,0 +1,14 @@
+---
+- block:
+  - name: Install the ldif that provides the slave configuration 
+    template: src=consumer.ldif.j2 dest=/etc/ldap/schema/consumer.ldif
+
+  - name: Install the consumer configuration in the slave
+    shell: ldapadd -Q -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/{{ item }} ; touch /etc/ldap/schema/.{{ item }}.installed
+    args:
+      creates: '/etc/ldap/schema/{{ item }}.installed'
+    with_items: consumer.ldif
+
+  tags: [ 'ldap', 'openldap', 'ldap_master', 'ldap_conf' ]
+  when: openldap_slave
+  

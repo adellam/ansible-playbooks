@@ -1,6 +1,6 @@
 ---
 - name: Install the apache packages
-  apt: pkg={{ item }} state=installed force=yes
+  apt: pkg={{ item }} state=present force=yes
   with_items:
     - apache2
     - apache2-mpm-prefork

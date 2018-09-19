@@ -75,13 +75,13 @@ function fail() {
 function init_env() {
     if [ -f $LOCK_FILE ] ; then
         OLDPROC=$( cat $LOCK_FILE )
-        OLDPROC_RUNNING=$( ps auwwx |  grep -v grep | grep $OLDPROC )
+        OLDPROC_RUNNING=$( ps auwwx |  grep -v grep | grep $OLDPROC  | awk '{ print $2 }' )
         RETVAL=$?
-        if [ $RETVAL -eq 0 ] ; then
-            logger "update_r_packages: $OLDPROC_RUNNING"
-            OLDPROC_RUNNING_TIME=$( ps -o etimes= -p ${PROCNUM} )
-            if [ $OLDPROC_RUNNING_TIME > $UPDATER_PROCESS_MAX_RUNTIME ] ; then
-                logger "update_r_packages: process $OLDPROC_RUNNING got stuck, killing it"
+        if [ ! -z "$OLDPROC_RUNNING" ] ; then
+            logger "update_r_packages: pid of the already running process: $OLDPROC_RUNNING"
+            OLDPROC_RUNNING_TIME=$( ps -o etimes= -p ${OLDPROC_RUNNING} )
+            if [ $OLDPROC_RUNNING_TIME -gt $UPDATER_PROCESS_MAX_RUNTIME ] ; then
+                logger "update_r_packages: process $OLDPROC_RUNNING was running for $OLDPROC_RUNNING_TIME seconds. Got stuck, killing it"
                 kill -9 $OLDPROC_RUNNING
                 cleanup
             else
@@ -92,6 +92,8 @@ function init_env() {
             logger "update_r_packages: lock file exist but the process not. Continuing."
             rm -fr $TMP_FILES_DIR
         fi
+    else
+        logger 'update_r_packages: no other jobs running, proceeding.'
     fi
     RETVAL=
     echo "$PROCNUM" > $LOCK_FILE
@@ -132,6 +134,7 @@ function get_data_files_from_svn() {
     if [ -d $R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR ] ; then
         logger "update_r_packages: SVN update"
         cd $R_PKGS_SVN_BASE_DIR/$R_PKGS_SVN_DIR
+        SVN_CLEANUP_OP=$( svn cleanup )
         SVN_UPDATE_OP=$( svn update | tail -1 | grep Updated  >/dev/null 2>&1 )
         SVN_UPDATE_STATUS=$?
     else
@@ -163,6 +166,11 @@ function debian_pkgs() {
     fi
 }
 
+function remove_r_install_packages_lock_files() {
+    # install.packages leaves lock files around if the process crashes
+    rm -fr {{ r_sitelib_path }}/00LOCK-*
+    }
+
 function r_cran_pkgs() {
     if [ $CRAN_PKGS_SKIP -eq 0 ] ; then
         logger "update_r_packages: Installing R packages from CRAN"
@@ -193,9 +201,12 @@ function r_github_pkgs() {
         for l in $( cat $R_PKGS_GITHUB ) ; do
             pkg=$( echo $l | cut -d "/" -f 2 )
             if [ "$ACTION" == "upgrade" ] ; then
-                Rscript --slave --no-save --no-restore-history -e "require(devtools); require(methods); install_github('$l');"
+                #Rscript --slave --no-save --no-restore-history -e "require(devtools); require(methods); install_github('$l');"
+                Rscript --slave --no-save --no-restore-history -e "require(devtools); require(methods); require(jsonlite) ; package_to_install <- '$l' ; refs <- jsonlite::read_json(sprintf('https://api.github.com/repos/%s/releases', package_to_install)) ; ref_to_install <- 'master'; if(length(refs)>0) { ref_to_install <- refs[[1]][['tag_name']] } ; devtools::install_github(package_to_install, ref = ref_to_install)"
+
             else
-                Rscript --slave --no-save --no-restore-history -e "if (! ('$pkg' %in% installed.packages()[,'Package'])) { require(devtools); require(methods) ; install_github('$l'); }"
+                #Rscript --slave --no-save --no-restore-history -e "if (! ('$pkg' %in% installed.packages()[,'Package'])) { require(devtools); require(methods) ; install_github('$l'); }"
+                Rscript --slave --no-save --no-restore-history -e "if (! ('$pkg' %in% installed.packages()[,'Package'])) { require(devtools); require(methods); require(jsonlite) ; package_to_install <- '$l' ; refs <- jsonlite::read_json(sprintf('https://api.github.com/repos/%s/releases', package_to_install)) ; ref_to_install <- 'master'; if(length(refs)>0) { ref_to_install <- refs[[1]][['tag_name']] } ; devtools::install_github(package_to_install, ref = ref_to_install) }"
             fi
         done
     else
@@ -221,6 +232,7 @@ else
     get_data_files
 fi
 debian_pkgs
+remove_r_install_packages_lock_files
 r_cran_pkgs
 r_github_pkgs
 cleanup

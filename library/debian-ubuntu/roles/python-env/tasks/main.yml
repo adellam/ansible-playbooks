@@ -4,6 +4,12 @@
       apt: name={{ item }} state={{ py_env_pkgs_state }} update_cache=yes cache_valid_time=600
       with_items: '{{ py_env_basic_pkgs | default([]) }}'
 
+  when:
+    - py_env_install
+    - python_pip_env_workaround is not defined
+  tags: [ "python", "py_env" ]
+
+- block:
     - name: Install python deb packages
       apt: name={{ item }} state={{ py_env_pkgs_state }} update_cache=yes cache_valid_time=600
       with_items: '{{ py_env_dpkg | default([]) }}'
@@ -12,49 +18,14 @@
       apt: name={{ item }} state={{ py_env_pkgs_state }}  update_cache=yes cache_valid_time=600
       with_items: '{{ py_pip_deps | default([]) }}'
 
-  when: py_env_install
-  tags: [ "python", "py_env" ]
-
-- block:
-    - name: Install the get-pip.py pip downloader
-      get_url: url={{ py_env_get_pip_url }} dest=/usr/local/lib/get-pip.py
-
-    - name: Install a script that fixes the broken trusty pip package
-      copy: src=pip-fixer.sh dest=/usr/local/bin/python-pip-fixer mode=0755 owner=root group=root
-      register: python_pip_fixer
-
-    - name: Fix the trusty pip installation
-      shell: /usr/local/bin/python-pip-fixer
-      when: ( python_pip_fixer | changed )
-
-    - name: Install the python dev headers and other dev requirements
-      apt: pkg={{ item }} state=present
-      with_items: '{{ py_env_pip_dev_packages }}'
-
-    - name: Install the latest six python package
-      pip: name=six state=latest
-
-    - name: Install setuptools version 33.1.1
-      pip: name=setuptools version=33.1.1 state=present
-
-  when:
-    - py_env_trusty_workaround
-    - py_env_install
-    - is_trusty
-  tags: [ "python", "py_env" ]
-
-- block:
-    - name: Fix the ssl warnings installing some ssl libraries
-      pip: name={{ item }}
-      with_items: '{{ py_env_pip_fix_ssl_warnings | default ([]) }}'
-
     - name: Install a list of pip packages
-      pip: name={{ item }}
+      pip: name={{ item }} state=latest
       with_items: '{{ py_env_pip_pkgs | default ([]) }}'
 
     - name: Install a list of versioned pip packages
       pip: name={{ item.pkg }} version={{ item.version }}
       with_items: '{{ py_env_versioned_pip_pkgs | default ([]) }}'
 
-  when: py_env_install
+  when:
+    - py_env_install
   tags: [ "python", "py_env", "py_env_pkgs" ]

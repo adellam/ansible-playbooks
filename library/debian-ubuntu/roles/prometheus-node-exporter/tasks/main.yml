@@ -1,0 +1,53 @@
+---
+- block:
+    - name: Create the user under the node exporter will run
+      user: name={{ prometheus_n_e_user }} home={{ prometheus_n_e_home }} createhome=no shell=/usr/sbin/nologin system=yes
+
+    - name: Create the prometheus node exporter base directory
+      file: dest={{ item }} state=directory owner=root group=root
+      with_items:
+        - '{{ prometheus_n_e_home }}'
+        - '{{ prometheus_n_e_dist_dir }}'
+
+    - name: Create the prometheus node exporter log directory
+      file: dest={{ prometheus_n_e_logdir }} state=directory owner={{ prometheus_n_e_user }} group={{ prometheus_n_e_user }}
+
+    - name: Download the prometheus node exporter
+      get_url: url={{ prometheus_n_e_download_url }} dest=/srv/
+
+    - name: Unarchive the prometheus distribution
+      unarchive: src=/srv/{{ prometheus_n_e_file }} dest={{ prometheus_n_e_dist_dir }} remote_src=yes owner=root group=root
+      args:
+        creates: '{{ prometheus_n_e_dist_dir }}/{{ prometheus_n_e_dir }}/node_exporter'
+      notify: Restart node exporter
+
+    - name: Install the prometheus node exporter upstart script
+      template: src=node_exporter.upstart.j2 dest=/etc/init/node_exporter.conf mode=0644 owner=root group=root
+      when: ansible_service_mgr != 'systemd'
+
+    - name: Install the prometheus node exporter systemd unit
+      template: src=node_exporter.systemd.j2 dest=/etc/systemd/system/node_exporter.service mode=0644 owner=root group=root
+      when: ansible_service_mgr == 'systemd'
+      notify: systemd reload
+
+    - name: Ensure that prometheus node_exporter is started and enabled
+      service: name=node_exporter state=started enabled=yes
+
+  tags: [ 'prometheus', 'node_exporter' ]
+  when: prometheus_n_e_install
+
+- block:
+    - name: Ensure that prometheus node_exporter is stopped and disabled
+      service: name=node_exporter state=stopped enabled=no
+
+    - name: Remove prometheus node exporter upstart script
+      file: dest=/etc/init/node_exporter.conf state=absent
+      when: ansible_service_mgr != 'systemd'
+
+    - name: Remove the prometheus node exporter systemd unit
+      file: dest=/etc/systemd/system/node_exporter.service state=absent
+      when: ansible_service_mgr == 'systemd'
+      notify: systemd reload
+
+  tags: [ 'prometheus', 'node_exporter' ]
+  when: not prometheus_n_e_install

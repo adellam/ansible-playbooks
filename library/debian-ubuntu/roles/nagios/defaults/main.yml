@@ -63,10 +63,7 @@ nagios_dell_omsa_deps:
 
 nagios_dell_omsa_pkg_state: present
 nagios_dell_omsa_pkgs:
-  - srvadmin-base
-  - srvadmin-idrac
-  - srvadmin-storageservices
-  - srvadmin-omcommon
+  - srvadmin-all
 
 # We need a more recent version of the check_openmanage executable
 nagios_dell_standalone_checks:
